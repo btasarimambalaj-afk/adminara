@@ -1,0 +1,134 @@
+const crypto = require('crypto');
+
+/**
+ * Generate ephemeral TURN credentials (RFC 5389)
+ * @param {string} secret - Shared secret with TURN server
+ * @param {number} ttl - Time to live in seconds (default: 24 hours)
+ * @returns {Object} - { username, credential, expiresAt }
+ */
+function generateTurnCredentials(secret, ttl = 86400) {
+  const timestamp = Math.floor(Date.now() / 1000) + ttl;
+  const username = `${timestamp}:hayday`;
+  const hmac = crypto.createHmac('sha1', secret);
+  hmac.update(username);
+  const credential = hmac.digest('base64');
+  
+  return {
+    username,
+    credential,
+    expiresAt: timestamp
+  };
+}
+
+// Cache for TURN credentials
+let cachedCredentials = null;
+let cacheExpiry = 0;
+
+/**
+ * Get ICE servers configuration with ephemeral TURN credentials
+ * @returns {Array} - ICE servers array
+ */
+async function getICEServers() {
+  const now = Date.now();
+  
+  // Return cached credentials if still valid (with 1 min buffer)
+  if (cachedCredentials && cacheExpiry > now + 60000) {
+    return cachedCredentials;
+  }
+  
+  let iceServers = [];
+  
+  try {
+    // Parse custom ICE_SERVERS if provided
+    if (process.env.ICE_SERVERS) {
+      iceServers = JSON.parse(process.env.ICE_SERVERS);
+      cachedCredentials = iceServers;
+      cacheExpiry = now + 3600000; // 1 hour
+      return iceServers;
+    }
+    
+    // Default STUN servers
+    iceServers = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' }
+    ];
+    
+    // Add TURN with ephemeral credentials if configured
+    if (process.env.TURN_SERVER_URL && process.env.TURN_SECRET) {
+      const { username, credential } = generateTurnCredentials(
+        process.env.TURN_SECRET,
+        parseInt(process.env.TURN_TTL || '86400')
+      );
+      
+      iceServers.push({
+        urls: process.env.TURN_SERVER_URL,
+        username,
+        credential
+      });
+      
+      // Add TURNS (TLS) if available
+      if (process.env.TURNS_SERVER_URL) {
+        iceServers.push({
+          urls: process.env.TURNS_SERVER_URL,
+          username,
+          credential
+        });
+      }
+    }
+    // Fallback to static TURN credentials
+    else if (process.env.TURN_SERVER_URL && process.env.TURN_USERNAME) {
+      iceServers.push({
+        urls: process.env.TURN_SERVER_URL,
+        username: process.env.TURN_USERNAME,
+        credential: process.env.TURN_PASSWORD || 'pass'
+      });
+    }
+    
+    // Add Twilio TURN if configured
+    if (process.env.TWILIO_TURN_URL) {
+      iceServers.push({
+        urls: process.env.TWILIO_TURN_URL,
+        username: process.env.TWILIO_TURN_USERNAME,
+        credential: process.env.TWILIO_TURN_CREDENTIAL
+      });
+    }
+    
+    // Add Metered TURN if configured
+    if (process.env.METERED_TURN_URL) {
+      iceServers.push({
+        urls: process.env.METERED_TURN_URL,
+        username: process.env.METERED_TURN_USERNAME,
+        credential: process.env.METERED_TURN_CREDENTIAL
+      });
+    }
+    
+  } catch (error) {
+    console.error('ICE servers configuration error:', error.message);
+    // Fallback to basic STUN
+    iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+  }
+  
+  // Force TURN-only mode if configured
+  if (process.env.FORCE_TURN === 'true') {
+    iceServers = iceServers.filter(server => 
+      server.urls.includes('turn:') || server.urls.includes('turns:')
+    );
+  }
+  
+  // Cache the result
+  if (process.env.TURN_SECRET) {
+    const ttl = parseInt(process.env.TURN_TTL || '86400');
+    cacheExpiry = now + (ttl * 1000);
+  } else {
+    cacheExpiry = now + 3600000; // 1 hour for static credentials
+  }
+  cachedCredentials = iceServers;
+  
+  return iceServers;
+}
+
+module.exports = {
+  generateTurnCredentials,
+  getICEServers
+};

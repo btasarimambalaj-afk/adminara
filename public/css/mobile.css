@@ -1,0 +1,116 @@
+/* Mobile Optimization */
+
+/* Touch-friendly buttons */
+@media (max-width: 768px) {
+  .btn, .control-btn {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+
+  .welcome-btn {
+    min-height: 56px;
+    font-size: 18px;
+  }
+
+  .welcome-input {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Full-screen video on mobile */
+  .video-container {
+    height: calc(100vh - 140px);
+  }
+
+  #localVideo {
+    width: 100px;
+    height: 133px;
+  }
+
+  /* Larger control buttons */
+  .control-buttons {
+    gap: 12px;
+  }
+
+  .control-btn .icon {
+    font-size: 24px;
+  }
+
+  /* iOS safe area */
+  .phone-interface {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .controls {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  /* Landscape mode */
+  @media (orientation: landscape) {
+    .video-container {
+      height: 100vh;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+    }
+
+    #localVideo {
+      width: 80px;
+      height: 107px;
+    }
+  }
+}
+
+/* Tablet optimization */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .phone-interface {
+    max-width: 600px;
+  }
+
+  .video-container {
+    height: 70vh;
+  }
+}
+
+/* Touch feedback */
+.btn:active, .control-btn:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+/* Prevent text selection on buttons */
+.btn, .control-btn, .welcome-btn {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling */
+html {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar on mobile */
+@media (max-width: 768px) {
+  body::-webkit-scrollbar {
+    display: none;
+  }
+  
+  body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

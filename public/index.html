@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
+  <meta name="description" content="HayDay oyunu için canlı video destek hattı. Anında görüntülü bağlantı kurun!" />
+  <meta name="theme-color" content="#3498db" />
+  
+  <!-- iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HayDay Destek" />
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  <title>HayDay Destek Hattı - Canlı Video Destek</title>
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://adminara.onrender.com/" />
+  <meta property="og:title" content="📞 HayDay Canlı Destek - Anında Görüntülü Yardım" />
+  <meta property="og:description" content="HayDay oyunu için profesyonel canlı destek hattı. Hızlı, güvenli ve kolay görüntülü iletişim! 🚀" />
+  <meta property="og:image" content="https://adminara.onrender.com/icons/hayday.webp" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="HayDay Canlı Destek Sistemi" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="📞 HayDay Canlı Destek" />
+  <meta name="twitter:description" content="Anında görüntülü yardım alın!" />
+  <meta name="twitter:image" content="https://adminara.onrender.com/icons/hayday.webp" />
+  
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/welcome.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+  <link rel="stylesheet" href="css/accessibility.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>" />
+</head>
+<body>
+  <!-- Karşılama Ekranı -->
+  <div id="welcomeScreen" class="welcome-screen">
+    <div class="welcome-container">
+      <div class="welcome-logo">🎮</div>
+      <h1 class="welcome-title">HayDay Canlı Destek</h1>
+      <p class="welcome-text">Oyun içi sorunlarınız için anında görüntülü yardım alın</p>
+      <div class="welcome-features">
+        <div class="feature">✅ Hızlı Bağlantı</div>
+        <div class="feature">🔒 Güvenli</div>
+        <div class="feature">🚀 Kolay Kullanım</div>
+      </div>
+      <input type="text" id="welcomeNameInput" class="welcome-input" placeholder="Adınızı girin" maxlength="50" />
+      <button id="startCallBtn" class="welcome-btn" disabled>Destek Ara 📞</button>
+    </div>
+  </div>
+
+  <!-- Arama Ekranı -->
+  <div id="callScreen" class="container" style="display:none;">
+    <div class="phone-interface">
+      <div class="status-bar">
+        <span id="status-text">HayDay Admin Destek ( Muhsin )</span>
+        <span id="connection-status" class="connection-status">
+          <span class="connection-indicator connecting"></span>Bağlanıyor...
+        </span>
+      </div>
+
+      <div class="video-container">
+        <video id="remoteVideo" autoplay playsinline aria-label="Destek personeli videosu"></video>
+        <video id="localVideo" autoplay playsinline muted aria-label="Kendi kameranız"></video>
+        
+        <button id="exitFullscreenBtn" class="exit-fullscreen-btn" title="Tam Ekrandan Çık">⛶</button>
+        
+        <div id="callInfo" class="call-info-center hidden">
+          <div class="info-line">👨‍💼 Muhsin</div>
+          <div class="info-line" id="callTime">--:--</div>
+          <div class="info-line" id="callDuration">00:00</div>
+        </div>
+
+        <div id="waiting-message" class="status-message hidden">
+          <div class="spinner"></div>
+          <p>HayDay destek hattına bağlanılıyor...</p>
+        </div>
+
+        <div id="error-message" class="status-message hidden" role="alert" aria-live="polite">
+          <div class="icon">⚠️</div>
+          <p id="error-text">Bağlantı hatası</p>
+          <button id="retry-button" class="btn secondary">Tekrar Dene</button>
+        </div>
+
+        <div id="busy-message" class="status-message hidden">
+          <div class="icon">⏳</div>
+          <p>Şu an meşgulüz</p>
+          <p class="subtext">Lütfen daha sonra tekrar deneyin</p>
+        </div>
+
+        <div id="call-ended-message" class="status-message hidden">
+          <div class="icon">📞</div>
+          <p>Görüşme sonlandı</p>
+          <button id="reconnect-button" class="btn secondary">Tekrar Bağlan</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <input type="hidden" id="customerName" />
+        <button id="callButton" style="display:none;"></button>
+        <button id="endButton" class="btn end-btn hidden"><span class="btn-icon">📴</span>Bitir</button>
+
+        <div class="control-buttons hidden">
+          <button id="muteButton" class="btn control-btn" title="Mikrofon Açık" aria-pressed="false" tabindex="0"><span class="icon">🎙️</span></button>
+          <button id="cameraButton" class="btn control-btn active" title="Kamera Kapalı" aria-pressed="true" tabindex="0"><span class="icon">📵</span></button>
+          <button id="speakerButton" class="btn control-btn" title="Hoparlör Kapalı" aria-pressed="false" tabindex="0"><span class="icon">🔈</span></button>
+          <button id="fullscreenButton" class="btn control-btn" title="Tam Ekran" aria-pressed="false" tabindex="0"><span class="icon">⛶</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/warmup.js"></script>
+  <script src="js/accessibility.js"></script>
+  <script src="js/perfect-negotiation.js"></script>
+  <script src="js/connection-monitor.js"></script>
+  <script src="js/helpers.js"></script>
+  <script src="js/webrtc.js"></script>
+  <script src="js/client.js"></script>
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch((err) => console.error('❌ Service Worker registration failed:', err));
+    }
+  </script>
+  <script>
+    const welcomeNameInput = document.getElementById('welcomeNameInput');
+    const startCallBtn = document.getElementById('startCallBtn');
+    
+    welcomeNameInput.oninput = function() {
+      startCallBtn.disabled = this.value.trim().length < 2;
+    };
+    
+    welcomeNameInput.onkeypress = function(e) {
+      if (e.key === 'Enter' && this.value.trim().length >= 2) {
+        startCallBtn.click();
+      }
+    };
+    
+    startCallBtn.onclick = function() {
+      const name = welcomeNameInput.value.trim();
+      if (name.length >= 2) {
+        document.getElementById('customerName').value = name;
+        document.getElementById('welcomeScreen').style.display = 'none';
+        document.getElementById('callScreen').style.display = 'block';
+        document.getElementById('callButton').click();
+      }
+    };
+  </script>
+</body>
+</html>

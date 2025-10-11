@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: adminara
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: PUBLIC_URL
+        sync: false
+      - key: RENDER_EXTERNAL_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_ADMIN_CHAT_ID
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: RATE_LIMIT_MAX
+        value: 100
+      - key: MAX_CONNECTIONS
+        value: 50
+      - key: TURN_URL
+        sync: false
+      - key: TURN_MODE
+        value: static
+      - key: TURN_USER
+        sync: false
+      - key: TURN_PASS
+        sync: false
+      - key: TURN_SECRET
+        generateValue: true

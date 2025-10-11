@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Static credentials mode
+  coturn-static:
+    image: instrumentisto/coturn:latest
+    container_name: coturn-static
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - -n
+      - --log-file=stdout
+      - --realm=adminara.local
+      - --lt-cred-mech
+      - --fingerprint
+      - --user=adminara:STRONGPASS
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+    profiles:
+      - static
+
+  # REST/Ephemeral mode (recommended)
+  coturn-rest:
+    image: instrumentisto/coturn:latest
+    container_name: coturn-rest
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - -n
+      - --log-file=stdout
+      - --realm=adminara.local
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET:-changeme}
+      - --fingerprint
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+    environment:
+      - TURN_SECRET=${TURN_SECRET:-changeme}
+    profiles:
+      - rest
+
+# Usage:
+# Static mode:  docker-compose -f docker-compose.turn.yml --profile static up -d
+# REST mode:    TURN_SECRET=your-secret docker-compose -f docker-compose.turn.yml --profile rest up -d
+# Stop:         docker-compose -f docker-compose.turn.yml down

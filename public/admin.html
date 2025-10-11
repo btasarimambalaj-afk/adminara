@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>HayDay Admin Paneli</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/welcome.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+  <link rel="stylesheet" href="css/accessibility.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+</head>
+<body>
+  <!-- Karşılama Ekranı - OTP -->
+  <div id="welcomeScreen" class="welcome-screen">
+    <div class="welcome-container">
+      <div class="welcome-logo">🔐</div>
+      <h1 class="welcome-title">Admin Girişi</h1>
+      <p class="welcome-text">Telegram'dan şifre alın ve giriş yapın</p>
+      <button id="requestOtpBtn" class="welcome-btn">Şifre İste 📱</button>
+      <div id="otpInputSection" style="display:none;margin-top:20px;width:100%">
+        <input type="text" id="otpInput" class="welcome-input" placeholder="6 haneli şifre" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" />
+        <button id="verifyOtpBtn" class="welcome-btn" disabled>Giriş Yap 🔓</button>
+      </div>
+      <p id="otpError" class="welcome-text" style="color:#f44336;display:none;margin-top:10px;font-size:14px"></p>
+      <p id="otpSuccess" class="welcome-text" style="color:#4CAF50;display:none;margin-top:10px;font-size:14px">Şifre gönderildi!</p>
+    </div>
+  </div>
+
+  <!-- Admin Paneli -->
+  <div id="adminPanel" class="container" style="display:none;">
+    <div class="phone-interface admin-interface">
+      <div class="status-bar">
+        <span>HayDay Admin Paneli</span>
+        <button id="refreshButton" class="refresh-btn" title="Sayfayı Yenile">🔄</button>
+      </div>
+
+      <div class="video-container" id="videoContainer">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="localVideo" autoplay playsinline muted></video>
+        
+        <button id="exitFullscreenBtn" class="exit-fullscreen-btn" title="Tam Ekrandan Çık">⛶</button>
+        
+        <div id="callInfo" class="call-info-center hidden">
+          <div class="info-line" id="customerNameDisplay">👤 Müşteri</div>
+          <div class="info-line" id="callTime">--:--</div>
+          <div class="info-line" id="callDuration">00:00</div>
+        </div>
+        
+        
+        <div id="waiting-message" class="status-message hidden">
+          <div class="spinner"></div>
+          <p>Müşteri bekleniyor...</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-buttons hidden" id="controlButtons">
+          <button id="muteButton" class="btn control-btn" title="Mikrofon Açık">🎙️</button>
+          <button id="cameraButton" class="btn control-btn active" title="Kamera Kapalı">📵</button>
+          <button id="speakerButton" class="btn control-btn" title="Hoparlör Kapalı">🔈</button>
+          <button id="fullscreenButton" class="btn control-btn" title="Tam Ekran">⛶</button>
+          <button id="testButton" class="btn secondary" title="Test">🧪</button>
+          <button id="endButton" class="btn end-btn">Bitir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/warmup.js"></script>
+  <script src="js/accessibility.js"></script>
+  <script src="js/perfect-negotiation.js"></script>
+  <script src="js/connection-monitor.js"></script>
+  <script src="js/helpers.js"></script>
+  <script src="js/webrtc.js"></script>
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch((err) => console.error('❌ Service Worker registration failed:', err));
+    }
+  </script>
+  <script>
+    class AdminApp {
+      constructor() {
+        this.socket = io();
+        this.webRTCManager = new WebRTCManager();
+        this.authenticated = false;
+        this.timer = Helpers.createTimer();
+        this.init();
+      }
+      
+      async init() {
+        this.setupWelcomeEvents();
+        this.setupEvents();
+        await this.checkHttpSession();
+      }
+      
+      async checkHttpSession() {
+        try {
+          const r = await fetch('/admin/session/verify');
+          if (r.ok) {
+            console.log('✅ Valid cookie session');
+            this.authenticated = true;
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('waiting-message').classList.remove('hidden');
+            document.getElementById('controlButtons').classList.remove('hidden');
+            const ok = await this.webRTCManager.start(this.socket, false);
+            if (ok) {
+              this.webRTCManager.createPeerConnection();
+              console.log('✅ Admin WebRTC ready');
+            }
+          }
+        } catch (e) {
+          console.log('❌ No valid session');
+        }
+        const refreshBtn = document.getElementById('refreshButton');
+        if (refreshBtn) refreshBtn.onclick = () => window.location.reload();
+      }
+      
+
+      
+      setupWelcomeEvents() {
+        const requestBtn = document.getElementById('requestOtpBtn');
+        const verifyBtn = document.getElementById('verifyOtpBtn');
+        const otpInput = document.getElementById('otpInput');
+        const otpError = document.getElementById('otpError');
+        const otpSuccess = document.getElementById('otpSuccess');
+        const otpSection = document.getElementById('otpInputSection');
+        
+        otpInput.oninput = () => {
+          verifyBtn.disabled = otpInput.value.trim().length !== 6;
+        };
+        
+        requestBtn.onclick = async () => {
+          requestBtn.disabled = true;
+          requestBtn.textContent = 'Gönderiliyor...';
+          try {
+            await fetch('/admin/otp/request', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ adminId: 'admin' })
+            });
+            otpSuccess.style.display = 'block';
+            otpSection.style.display = 'block';
+            requestBtn.style.display = 'none';
+            otpInput.focus();
+          } catch (e) {
+            requestBtn.disabled = false;
+            requestBtn.textContent = 'Şifre İste 📱';
+          }
+        };
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        const handleVerify = async () => {
+          const code = otpInput.value.trim();
+          if (!/^\d{6}$/.test(code)) {
+            otpError.textContent = 'Lütfen 6 haneli şifre girin';
+            otpError.style.display = 'block';
+            return;
+          }
+          verifyBtn.disabled = true;
+          verifyBtn.textContent = 'Kontrol ediliyor...';
+          try {
+            const r = await fetch('/admin/otp/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ adminId: 'admin', code })
+            });
+            if (r.status === 204) {
+              this.authenticated = true;
+              document.getElementById('welcomeScreen').style.display = 'none';
+              document.getElementById('adminPanel').style.display = 'block';
+              document.getElementById('waiting-message').classList.remove('hidden');
+              document.getElementById('controlButtons').classList.remove('hidden');
+              const ok = await this.webRTCManager.start(this.socket, false);
+              if (ok) {
+                this.webRTCManager.createPeerConnection();
+                console.log('✅ Admin WebRTC ready');
+              }
+            } else {
+              otpError.textContent = 'Hatalı şifre!';
+              otpError.style.display = 'block';
+              otpInput.value = '';
+              verifyBtn.disabled = false;
+              verifyBtn.textContent = 'Giriş Yap 🔓';
+            }
+          } catch (e) {
+            otpError.textContent = 'Hata oluştu';
+            otpError.style.display = 'block';
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Giriş Yap 🔓';
+          }
+        };
+        
+        verifyBtn.onclick = handleVerify;
+        otpInput.onkeypress = (e) => {
+          if (e.key === 'Enter' && otpInput.value.trim().length === 6) handleVerify();
+        };
+      }
+      
+      setupEvents() {
+
+        
+        this.socket.on('disconnect', () => {
+          console.log('Admin socket disconnected - will auto-reconnect');
+        });
+        
+        this.socket.on('reconnect', async () => {
+          console.log('Admin socket reconnected');
+          if (this.authenticated) {
+            try {
+              const r = await fetch('/admin/session/verify');
+              if (!r.ok) {
+                this.authenticated = false;
+                window.location.reload();
+              }
+            } catch (e) {
+              this.authenticated = false;
+              window.location.reload();
+            }
+          }
+        });
+        
+        this.socket.on('room:joined', (data) => {
+          if (data.role === 'admin') {
+            console.log('Admin joined room - waiting for customer');
+            // Waiting message zaten görünüyor, müşteri gelince gizlenecek
+          }
+        });
+        
+        this.socket.on('room:user:joined', async (data) => {
+          if (data.role === 'customer') {
+            console.log('👤 Müşteri odaya katıldı:', data.customerName);
+            document.getElementById('waiting-message').classList.add('hidden');
+            document.getElementById('callInfo').classList.remove('hidden');
+            
+            // Show customer name
+            if (data.customerName) {
+              const nameDisplay = document.getElementById('customerNameDisplay');
+              nameDisplay.textContent = `👤 ${data.customerName}`;
+            }
+            
+            this.timer.start();
+            
+            // Peer connection zaten oluşturuldu (admin login'de), Perfect Negotiation otomatik bağlanacak
+            console.log('✅ Admin peer connection hazır, Perfect Negotiation başlayacak');
+          }
+        });
+        
+        this.socket.on('room:timeout', () => {
+          console.log('Room timeout');
+          // Session'u koruyoruz, sadece waiting mesajı göster
+          document.getElementById('waiting-message').classList.remove('hidden');
+          document.getElementById('callInfo').classList.add('hidden');
+          this.timer.stop();
+        });
+        
+        // Setup control buttons using shared helper
+        Helpers.setupControlButtons(this.webRTCManager);
+        
+        document.getElementById('endButton').onclick = () => {
+          console.log('📴 Admin müşteriyi bitirdi, yeni müşteri bekleniyor...');
+          this.timer.stop();
+          
+          // Müşteriye call:ended gönder
+          this.socket.emit('call:end');
+          
+          // Admin bağlı kalır, sadece waiting mesajı göster
+          document.getElementById('waiting-message').classList.remove('hidden');
+          document.getElementById('callInfo').classList.add('hidden');
+          
+          // Peer connection'u kapat ama WebRTC stream'i koru
+          if (this.webRTCManager.peerConnection) {
+            this.webRTCManager.peerConnection.close();
+            this.webRTCManager.peerConnection = null;
+            console.log('✅ Peer connection kapatıldı, yeni müşteri için hazır');
+          }
+        };
+        
+        this.socket.on('call:ended', () => {
+          console.log('📞 Müşteri görüşmeyi bitirdi');
+          this.timer.stop();
+          
+          // Peer connection'u kapat ama WebRTC stream'i koru
+          if (this.webRTCManager.peerConnection) {
+            this.webRTCManager.peerConnection.close();
+            this.webRTCManager.peerConnection = null;
+          }
+          
+          // Admin bağlı kalır, yeni müşteri bekler
+          document.getElementById('waiting-message').classList.remove('hidden');
+          document.getElementById('callInfo').classList.add('hidden');
+          console.log('✅ Yeni müşteri bekleniyor...');
+        });
+        document.getElementById('testButton').onclick = () => window.open('/test-suite.html', '_blank');
+        document.getElementById('refreshButton').onclick = () => window.location.reload();
+      }
+    }
+    
+    new AdminApp();
+  </script>
+</body>
+</html>
