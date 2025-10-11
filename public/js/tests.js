@@ -424,11 +424,21 @@
     return fetch('/config/ice-servers')
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        var hasTurn = data.iceServers.some(function(s) {
-          return s.urls && s.urls.some(function(u) {
-            return u.indexOf('turn:') === 0;
-          });
-        });
+        var hasTurn = false;
+        for (var i = 0; i < data.iceServers.length; i++) {
+          var s = data.iceServers[i];
+          if (!s.urls) continue;
+          
+          var urls = Array.isArray(s.urls) ? s.urls : [s.urls];
+          for (var j = 0; j < urls.length; j++) {
+            if (urls[j].indexOf('turn:') === 0) {
+              hasTurn = true;
+              break;
+            }
+          }
+          if (hasTurn) break;
+        }
+        
         addLog(hasTurn ? 'OK TURN server configured' : 'WARN No TURN server', hasTurn ? 'success' : 'warning');
         setStatus('turnServer', hasTurn ? 'success' : 'failed');
         updateStats(hasTurn);
