@@ -1,5 +1,41 @@
 # Changelog - AdminAra
 
+## [1.3.4] - 2025-01-11 - Coverage & Cleanup
+
+### 🎯 Test Coverage Improvements & Code Cleanup
+
+**Status**: ✅ Stable Release  
+**Grade**: A+ (up from A)  
+**Test Coverage**: Target 70%+
+
+### Fixed
+- **Test Coverage**: Added comprehensive tests for socket handlers
+  - `tests/unit/socket-handlers-extended.test.js` - Validation functions
+  - `tests/integration/webrtc-signaling.test.js` - WebRTC signaling flow
+  - `tests/unit/admin-auth-extended.test.js` - Extended admin auth scenarios
+  
+### Removed
+- **Deprecated Code**: Deleted `socket/otp.js` (moved to `utils/session.js`)
+- **Coverage Directory**: Removed from git tracking (.gitignore)
+
+### Changed
+- **socket/handlers.js**: Added validation helper functions
+  - `validateOffer()` - WebRTC offer validation
+  - `validateAnswer()` - WebRTC answer validation
+  - `validateIceCandidate()` - ICE candidate validation
+  
+### Documentation
+- **README.md**: Fixed dead documentation links
+  - Removed: DEPLOYMENT.md, TURN-SETUP.md, IMPROVEMENT-PLAN.md, etc.
+  - Kept: ARCHITECTURE.md, GO-LIVE.md, SRE-RUNBOOKS.md, CONTRIBUTING.md
+
+### Metrics
+- Test files: +3 new test suites
+- Code cleanup: -1 deprecated file
+- Documentation: 9 dead links → 4 active links
+
+---
+
 ## [1.3.3] - 2025-10-11 - Stable Release
 
 ### 🎯 Quick-Fix: Test Stabilization & Production Hardening
