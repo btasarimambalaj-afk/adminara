@@ -400,12 +400,21 @@ server.listen(PORT, () => {
     
     setInterval(async () => {
       try {
-        const fetch = require('node-fetch');
-        const response = await fetch(`${pingUrl}/health`);
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`🏓 Ping OK - Uptime: ${Math.floor(data.uptime)}s`);
-        }
+        const https = require('https');
+        https.get(`${pingUrl}/health`, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            try {
+              const json = JSON.parse(data);
+              console.log(`🏓 Ping OK - Uptime: ${Math.floor(json.uptime)}s`);
+            } catch (e) {
+              console.log('🏓 Ping OK');
+            }
+          });
+        }).on('error', (error) => {
+          console.error('❌ Ping error:', error.message);
+        });
       } catch (error) {
         console.error('❌ Ping error:', error.message);
       }
