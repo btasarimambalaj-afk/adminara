@@ -70,12 +70,7 @@ npm run test:coverage
 
 ## Docs
 
-- [Deployment Guide](docs/DEPLOYMENT.md)
 - [Architecture](docs/ARCHITECTURE.md)
-- [TURN Setup Guide](docs/TURN-SETUP.md)
-- [Improvement Plan](docs/IMPROVEMENT-PLAN.md)
-- [Test Coverage Plan](docs/TEST-COVERAGE-PLAN.md)
-- [Final Status](docs/FINAL-STATUS.md)
-- [Code Analysis](docs/CODE-ANALYSIS.md)
-- [Cost Analysis](docs/COST-ANALYSIS.md)
+- [Go-Live Runbook](docs/GO-LIVE.md)
+- [SRE Runbooks](docs/SRE-RUNBOOKS.md)
 - [Contributing](CONTRIBUTING.md)

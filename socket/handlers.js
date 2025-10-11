@@ -3,6 +3,19 @@ const metrics = require('../utils/metrics');
 const { SocketError, handleSocketError } = require('../utils/error-handler');
 const { withTimeoutClear } = require('../utils/middleware');
 
+// Validation helpers
+function validateOffer(offer) {
+  return offer && offer.type === 'offer' && typeof offer.sdp === 'string' && offer.sdp.length > 0;
+}
+
+function validateAnswer(answer) {
+  return answer && answer.type === 'answer' && typeof answer.sdp === 'string' && answer.sdp.length > 0;
+}
+
+function validateIceCandidate(candidate) {
+  return candidate && typeof candidate.candidate === 'string' && candidate.candidate.length > 0;
+}
+
 const ROOM_TIMEOUT_MS = 60000; // 1 dakika
 let roomTimeout = null;
 
@@ -182,3 +195,7 @@ module.exports = (io, socket, state) => {
     otpStore.delete(socket.id);
   }));
 };
+
+module.exports.validateOffer = validateOffer;
+module.exports.validateAnswer = validateAnswer;
+module.exports.validateIceCandidate = validateIceCandidate;
