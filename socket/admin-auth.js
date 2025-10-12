@@ -41,6 +41,9 @@ async function generateAndSendOTP(socket, bot) {
 async function createOtpForAdmin(adminId, bot) {
   const password = crypto.randomInt(100000, 999999).toString();
   const data = { password, expires: Date.now() + 300000 };
+  
+  const stateStore = require('../utils/state-store');
+  await stateStore.setOtp(adminId, data);
   adminPasswordStore.set(adminId, data);
 
   if (bot && process.env.TELEGRAM_ADMIN_CHAT_ID) {
@@ -52,6 +55,7 @@ async function createOtpForAdmin(adminId, bot) {
       logger.info('OTP sent via Telegram', { adminId });
     } catch (err) {
       logger.error('Telegram OTP send failed', { err: err.message });
+      throw err;
     }
   } else {
     logger.warn('Telegram not configured', { bot: !!bot, chatId: !!process.env.TELEGRAM_ADMIN_CHAT_ID });
@@ -64,12 +68,18 @@ function verifyAdminOtp(adminId, code) {
   if (!stored || stored.expires < Date.now()) return false;
   if (stored.password === code) {
     adminPasswordStore.delete(adminId);
+    failedAttempts.delete(adminId);
     return true;
   }
+  
+  const attempts = (failedAttempts.get(adminId) || 0) + 1;
+  failedAttempts.set(adminId, attempts);
+  metrics.otpInvalidAttempts.inc();
+  
   return false;
 }
 
-module.exports = (socket, state) => {
+module.exports = (io, socket, state) => {
   const { bot } = state;
   
   // IP Whitelist (optional)
@@ -108,6 +118,11 @@ module.exports = (socket, state) => {
   });
 
   socket.on('admin:password:request', async () => {
+    const stateStore = require('../utils/state-store');
+    await stateStore.setOtp(socket.id, {
+      password: crypto.randomInt(100000, 999999).toString(),
+      expires: Date.now() + 300000
+    });
     await generateAndSendOTP(socket, bot);
   });
 

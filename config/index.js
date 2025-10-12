@@ -1,11 +1,21 @@
 const envalid = require('envalid');
+const crypto = require('crypto');
 
 const env = envalid.cleanEnv(process.env, {
   NODE_ENV: envalid.str({ choices: ['development', 'staging', 'production'], default: 'development' }),
   PORT: envalid.port({ default: 3000 }),
-  PUBLIC_URL: envalid.url({ default: 'http://localhost:3000' }),
+  PUBLIC_URL: envalid.str({ default: '' }),
   
-  COOKIE_SECRET: envalid.str({ default: 'dev-secret' }),
+  SESSION_SECRET: envalid.str({ 
+    default: process.env.NODE_ENV === 'production' ? undefined : 'dev-session-secret',
+    desc: 'Session secret for Express sessions'
+  }),
+  COOKIE_SECRET: envalid.str({ 
+    default: process.env.NODE_ENV === 'production' 
+      ? crypto.randomBytes(32).toString('hex') 
+      : 'dev-cookie-secret',
+    desc: 'Cookie signing secret'
+  }),
   SESSION_TTL_MS: envalid.num({ default: 43200000 }),
   
   REDIS_URL: envalid.str({ default: '' }),
@@ -15,10 +25,10 @@ const env = envalid.cleanEnv(process.env, {
   TELEGRAM_BOT_TOKEN: envalid.str({ default: '' }),
   TELEGRAM_ADMIN_CHAT_ID: envalid.str({ default: '' }),
   
-  TURN_URL: envalid.str({ default: '' }),
+  TURN_SERVER_URL: envalid.str({ default: '' }),
   TURN_MODE: envalid.str({ choices: ['static', 'rest'], default: 'static' }),
-  TURN_USER: envalid.str({ default: '' }),
-  TURN_PASS: envalid.str({ default: '' }),
+  TURN_USERNAME: envalid.str({ default: '' }),
+  TURN_CREDENTIAL: envalid.str({ default: '' }),
   TURN_SECRET: envalid.str({ default: '' }),
   
   MAX_CONNECTIONS: envalid.num({ default: 50 }),

@@ -24,17 +24,19 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
       - key: RATE_LIMIT_MAX
         value: 100
       - key: MAX_CONNECTIONS
         value: 50
-      - key: TURN_URL
+      - key: TURN_SERVER_URL
         sync: false
       - key: TURN_MODE
         value: static
-      - key: TURN_USER
+      - key: TURN_USERNAME
         sync: false
-      - key: TURN_PASS
+      - key: TURN_CREDENTIAL
         sync: false
       - key: TURN_SECRET
         generateValue: true

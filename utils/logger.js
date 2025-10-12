@@ -1,5 +1,11 @@
 const winston = require('winston');
 const path = require('path');
+const fs = require('fs');
+
+const logsDir = path.join(process.cwd(), 'logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
@@ -8,16 +14,16 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'hayday-webrtc' },
+  defaultMeta: { service: 'adminara-webrtc' },
   transports: [
     new winston.transports.File({ 
-      filename: path.join('logs', 'error.log'), 
+      filename: path.join(logsDir, 'error.log'), 
       level: 'error',
-      maxsize: 5242880, // 5MB
+      maxsize: 5242880,
       maxFiles: 5
     }),
     new winston.transports.File({ 
-      filename: path.join('logs', 'app.log'),
+      filename: path.join(logsDir, 'app.log'),
       maxsize: 5242880,
       maxFiles: 5
     })

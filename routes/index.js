@@ -10,8 +10,14 @@ module.exports = (state) => {
     const stateStore = require('../utils/state-store');
     const telegramQueue = require('../jobs/telegram');
     
-    res.json({
-      status: 'ok',
+    const redisHealthy = await stateStore.isHealthy();
+    const queueHealthy = await telegramQueue.isHealthy();
+    const telegramConfigured = state.bot && process.env.TELEGRAM_ADMIN_CHAT_ID;
+    
+    const allHealthy = redisHealthy && queueHealthy && telegramConfigured;
+    
+    res.status(allHealthy ? 200 : 503).json({
+      status: allHealthy ? 'ok' : 'degraded',
       timestamp: new Date().toISOString(),
       admin: !!state.adminSocket,
       customers: state.customerSockets.size,
@@ -23,14 +29,16 @@ module.exports = (state) => {
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB'
       },
-      telegram: state.bot ? 'connected' : 'disabled',
+      services: {
+        telegram: telegramConfigured ? 'ok' : 'not_configured',
+        redis: redisHealthy ? 'ok' : 'unavailable',
+        queue: queueHealthy ? 'ok' : 'unavailable'
+      },
       webrtc: {
         activeSessions: state.customerSockets.size,
         reconnectAttempts: state.reconnectAttempts || 0,
-        turnServers: process.env.TURN_URL ? 'configured' : 'none'
-      },
-      redis: await stateStore.isHealthy(),
-      queue: await telegramQueue.isHealthy()
+        turnServers: process.env.TURN_SERVER_URL ? 'configured' : 'none'
+      }
     });
   });
 

@@ -1,4 +1,5 @@
 require('dotenv').config();
+const config = require('./config');
 const crypto = require('crypto');
 const express = require('express');
 const http = require('http');
@@ -13,10 +14,9 @@ const { initSentry, Sentry } = require('./utils/sentry');
 const stateStore = require('./utils/state-store');
 const telegramQueue = require('./jobs/telegram');
 
-const COOKIE_SECRET = process.env.COOKIE_SECRET || 
-  (process.env.NODE_ENV === 'production' ? crypto.randomBytes(32).toString('hex') : 'dev-secret');
+const COOKIE_SECRET = config.COOKIE_SECRET;
 
-if (process.env.NODE_ENV === 'production' && !process.env.COOKIE_SECRET) {
+if (config.isProduction && !process.env.COOKIE_SECRET) {
   logger.warn('COOKIE_SECRET not set, generated random secret (will change on restart)');
 }
 
