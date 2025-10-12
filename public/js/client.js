@@ -1,7 +1,13 @@
 // Client-side application logic
 class ClientApp {
   constructor() {
-    this.socket = io();
+    this.socket = io({
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
+      transports: ['websocket', 'polling']
+    });
     this.webRTCManager = new WebRTCManager();
     this.customerName = '';
     this.timer = Helpers.createTimer();
@@ -72,6 +78,8 @@ class ClientApp {
         if (!this.webRTCManager.peerConnection) {
           this.webRTCManager.createPeerConnection();
           console.log('✅ Customer peer connection created');
+          // ICE gathering tamamlanana kadar bekle
+          await this.waitForIceGathering();
         }
         await this.startCall();
       }
@@ -152,6 +160,31 @@ class ClientApp {
     }
   }
 
+  async waitForIceGathering() {
+    return new Promise((resolve) => {
+      const pc = this.webRTCManager.peerConnection;
+      if (pc.iceGatheringState === 'complete') {
+        console.log('✅ ICE gathering already complete');
+        resolve();
+        return;
+      }
+      
+      const timeout = setTimeout(() => {
+        console.log('⏱️ ICE gathering timeout, continuing anyway');
+        resolve();
+      }, 3000);
+      
+      pc.onicegatheringstatechange = () => {
+        console.log('🧊 ICE gathering state:', pc.iceGatheringState);
+        if (pc.iceGatheringState === 'complete') {
+          clearTimeout(timeout);
+          console.log('✅ ICE gathering complete');
+          resolve();
+        }
+      };
+    });
+  }
+  
   endCall() {
     this.timer.stop();
     this.webRTCManager.endCall();

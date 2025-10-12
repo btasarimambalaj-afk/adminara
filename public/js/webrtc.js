@@ -74,7 +74,12 @@ class WebRTCManager {
   createPeerConnection() {
     console.log('🔗 Creating peer connection');
     
-    this.peerConnection = new RTCPeerConnection(this.config);
+    this.peerConnection = new RTCPeerConnection({
+      ...this.config,
+      iceTransportPolicy: 'all',
+      bundlePolicy: 'max-bundle',
+      rtcpMuxPolicy: 'require'
+    });
     
     // Add local tracks
     this.localStream.getTracks().forEach(track => {
@@ -118,10 +123,18 @@ class WebRTCManager {
         setTimeout(() => this.checkRelayUsage(), 1000);
       }
       
+      if (state === 'connecting') {
+        console.log('🔄 Connecting...');
+      }
+      
       if (state === 'disconnected') {
         this.showUserMessage('Bağlantı koptu, yeniden deneniyor...', 'warning');
         this.stopHeartbeat();
-        this.scheduleReconnect();
+        setTimeout(() => {
+          if (this.peerConnection?.connectionState === 'disconnected') {
+            this.handleConnectionFailure();
+          }
+        }, 3000);
       }
       
       if (state === 'failed') {
@@ -356,14 +369,7 @@ class WebRTCManager {
     return !this.isUsingEarpiece;
   }
 
-  scheduleReconnect() {
-    clearTimeout(this.reconnectTimer);
-    this.reconnectTimer = setTimeout(() => {
-      if (this.peerConnection?.connectionState === 'disconnected') {
-        this.handleConnectionFailure();
-      }
-    }, 2000);
-  }
+
 
   async handleConnectionFailure() {
     if (this.maxReconnectAttempts !== Infinity && this.reconnectAttempts >= this.maxReconnectAttempts) {
