@@ -205,16 +205,28 @@
           requestBtn.disabled = true;
           requestBtn.textContent = 'Gönderiliyor...';
           try {
-            await fetch('/admin/otp/request', {
+            const response = await fetch('/admin/otp/request', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ adminId: 'admin' })
             });
-            otpSuccess.style.display = 'block';
-            otpSection.style.display = 'block';
-            requestBtn.style.display = 'none';
-            otpInput.focus();
+            console.log('OTP request response:', response.status);
+            if (response.ok) {
+              otpSuccess.style.display = 'block';
+              otpSection.style.display = 'block';
+              requestBtn.style.display = 'none';
+              otpInput.focus();
+            } else {
+              console.error('OTP request failed:', response.status);
+              otpError.textContent = 'Şifre gönderilemedi';
+              otpError.style.display = 'block';
+              requestBtn.disabled = false;
+              requestBtn.textContent = 'Şifre İste 📱';
+            }
           } catch (e) {
+            console.error('OTP request error:', e);
+            otpError.textContent = 'Bağlantı hatası';
+            otpError.style.display = 'block';
             requestBtn.disabled = false;
             requestBtn.textContent = 'Şifre İste 📱';
           }
