@@ -181,14 +181,18 @@ module.exports = (io, socket, state) => {
     
     if (state.adminSocket?.id === socket.id) {
       logger.info('Admin disconnected - channel still available for reconnect');
+      state.adminSocket = null;
       startRoomTimeout(state, io);
     }
     
     if (customerSockets.has(socket.id)) {
+      logger.info('Customer disconnected', { socketId: socket.id });
       customerSockets.delete(socket.id);
       socket.to('support-room').emit('user:disconnected', { userId: socket.id });
-      if (customerSockets.size === 0 && !state.adminSocket) {
-        startRoomTimeout(state, io);
+      
+      if (customerSockets.size === 0) {
+        state.channelStatus = state.adminSocket ? 'READY' : 'AVAILABLE';
+        logger.info('No customers remaining', { status: state.channelStatus });
       }
     }
     

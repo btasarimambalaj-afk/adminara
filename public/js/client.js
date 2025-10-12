@@ -36,6 +36,7 @@ class ClientApp {
       console.log('✅ Customer WebRTC stream hazır, admin bekleniyor...');
     } else {
       console.error('❌ Customer WebRTC başlamadı');
+      this.showError('Mikrofon erişimi reddedildi');
     }
   }
   
@@ -80,6 +81,8 @@ class ClientApp {
           console.log('✅ Customer peer connection created');
           // ICE gathering tamamlanana kadar bekle
           await this.waitForIceGathering();
+        } else {
+          console.log('♻️ Peer connection already exists, reusing');
         }
         await this.startCall();
       }
@@ -113,9 +116,19 @@ class ClientApp {
     const callButton = document.getElementById('callButton');
     const endButton = document.getElementById('endButton');
     const customerNameInput = document.getElementById('customerName');
+    const reconnectButton = document.getElementById('reconnect-button');
+    const retryButton = document.getElementById('retry-button');
 
     callButton.onclick = () => this.handleCallButton();
     endButton.onclick = () => this.endCall();
+    
+    if (reconnectButton) {
+      reconnectButton.onclick = () => window.location.reload();
+    }
+    
+    if (retryButton) {
+      retryButton.onclick = () => window.location.reload();
+    }
 
     customerNameInput.onkeypress = (e) => {
       if (e.key === 'Enter') this.handleCallButton();
@@ -189,10 +202,10 @@ class ClientApp {
     this.timer.stop();
     this.webRTCManager.endCall();
     document.getElementById('call-ended-message').classList.remove('hidden');
+    document.getElementById('callInfo').classList.add('hidden');
     document.getElementById('endButton').classList.add('hidden');
     document.querySelector('.control-buttons').classList.add('hidden');
-    // Kanal açık kalıyor, sadece video kapanıyor
-    console.log('✅ Görüşme bitti, kanal açık');
+    console.log('✅ Görüşme bitti');
   }
 
   showError(message) {

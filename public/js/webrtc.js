@@ -513,7 +513,6 @@ class WebRTCManager {
   }
 
   endCall(keepConnection = false) {
-    clearTimeout(this.reconnectTimer);
     console.log('📴 Ending call, keepConnection:', keepConnection);
     
     if (!keepConnection) {
@@ -521,10 +520,12 @@ class WebRTCManager {
       
       if (this.localStream) {
         this.localStream.getTracks().forEach(track => track.stop());
+        console.log('✅ Local stream tracks stopped');
       }
       
       if (this.peerConnection) {
         this.peerConnection.close();
+        console.log('✅ Peer connection closed');
       }
       
       const localVideo = document.getElementById('localVideo');
@@ -535,6 +536,10 @@ class WebRTCManager {
       this.localStream = null;
       this.remoteStream = null;
       this.peerConnection = null;
+      this.perfectNegotiation = null;
+      this.connectionMonitor = null;
+      this.reconnectAttempts = 0;
+      this.connectionState = 'disconnected';
     } else {
       console.log('✅ Keeping connection alive for next customer');
       const remoteVideo = document.getElementById('remoteVideo');
