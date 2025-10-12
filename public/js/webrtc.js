@@ -52,7 +52,11 @@ class WebRTCManager {
       
       this.localStream = await navigator.mediaDevices.getUserMedia({
         video: false,
-        audio: true
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
       });
       
       console.log('✅ Got local stream:', this.localStream.getTracks().length, 'tracks');
@@ -113,10 +117,23 @@ class WebRTCManager {
       this.iceCandidateQueue = [];
     }
     
-    // Add local tracks
+    // Add local tracks with DTX optimization
     this.localStream.getTracks().forEach(track => {
-      this.peerConnection.addTrack(track, this.localStream);
+      const sender = this.peerConnection.addTrack(track, this.localStream);
       console.log('✅ Added track:', track.kind);
+      
+      // Optimize audio with DTX and bitrate
+      if (track.kind === 'audio') {
+        const params = sender.getParameters();
+        if (!params.encodings) params.encodings = [{}];
+        params.encodings[0] = { 
+          maxBitrate: 64000,
+          dtx: true
+        };
+        sender.setParameters(params).catch(err => 
+          console.warn('⚠️ Audio params error:', err)
+        );
+      }
     });
     
     // Handle remote tracks
@@ -353,41 +370,36 @@ class WebRTCManager {
     const remoteVideo = document.getElementById('remoteVideo');
     if (!remoteVideo) return false;
     
-    // iOS kontrolü
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     
     if (isIOS) {
-      // iOS: Proximity sensor kullanıyor, manuel değiştirme yok
-      console.log('🍎 iOS: Proximity sensor aktif - Telefonu uzaklaştırın/yaklaştırın');
-      // Buton durumunu toggle et (görsel için)
+      console.log('🍎 iOS: Proximity sensor aktif');
       this.isUsingEarpiece = !this.isUsingEarpiece;
       return !this.isUsingEarpiece;
     }
     
-    // Android/Desktop: setSinkId ile değiştir
     if (typeof remoteVideo.setSinkId !== 'undefined') {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audioOutputs = devices.filter(d => d.kind === 'audiooutput');
         
+        // localStorage'dan son seçimi oku
+        const savedDeviceId = localStorage.getItem('preferredAudioOutput');
+        
         if (this.isUsingEarpiece) {
-          // Hoparlör modu
           const speaker = audioOutputs.find(d => 
             d.label.toLowerCase().includes('speaker') ||
             d.label.toLowerCase().includes('hoparlör') ||
             d.label.toLowerCase().includes('loud')
-          );
+          ) || audioOutputs[0];
           
           if (speaker) {
             await remoteVideo.setSinkId(speaker.deviceId);
+            localStorage.setItem('preferredAudioOutput', speaker.deviceId);
             console.log('🔊 Hoparlör:', speaker.label);
-          } else if (audioOutputs.length > 0) {
-            await remoteVideo.setSinkId(audioOutputs[0].deviceId);
-            console.log('🔊 Hoparlör:', audioOutputs[0].label);
           }
           this.isUsingEarpiece = false;
         } else {
-          // Ahize modu
           const earpiece = audioOutputs.find(d => 
             d.label.toLowerCase().includes('earpiece') ||
             d.label.toLowerCase().includes('receiver') ||
@@ -396,24 +408,42 @@ class WebRTCManager {
           
           if (earpiece) {
             await remoteVideo.setSinkId(earpiece.deviceId);
+            localStorage.setItem('preferredAudioOutput', earpiece.deviceId);
             console.log('👂 Ahize:', earpiece.label);
           } else {
             await remoteVideo.setSinkId('');
+            localStorage.removeItem('preferredAudioOutput');
             console.log('👂 Ahize: Varsayılan');
           }
           this.isUsingEarpiece = true;
         }
       } catch (error) {
-        console.error('❌ setSinkId hatası:', error);
+        console.error('❌ setSinkId error:', error);
+        this.showUserMessage('Hoparlöre geçilemedi', 'warning');
         this.isUsingEarpiece = !this.isUsingEarpiece;
       }
     } else {
-      // setSinkId desteklenmiyorsa sadece state değiştir
-      console.warn('⚠️ setSinkId desteklenmiyor');
+      console.warn('⚠️ setSinkId not supported');
       this.isUsingEarpiece = !this.isUsingEarpiece;
     }
     
     return !this.isUsingEarpiece;
+  }
+  
+  async restoreAudioOutput() {
+    const remoteVideo = document.getElementById('remoteVideo');
+    if (!remoteVideo || typeof remoteVideo.setSinkId !== 'function') return;
+    
+    const savedDeviceId = localStorage.getItem('preferredAudioOutput');
+    if (savedDeviceId) {
+      try {
+        await remoteVideo.setSinkId(savedDeviceId);
+        console.log('✅ Restored audio output:', savedDeviceId);
+      } catch (err) {
+        console.warn('⚠️ Could not restore audio output:', err);
+        localStorage.removeItem('preferredAudioOutput');
+      }
+    }
   }
 
 
@@ -426,6 +456,11 @@ class WebRTCManager {
       return;
     }
     
+    if (!this.peerConnection) {
+      console.error('❌ No peer connection for restart');
+      return;
+    }
+    
     this.reconnectAttempts++;
     const backoff = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 8000);
     const startTime = Date.now();
@@ -435,10 +470,12 @@ class WebRTCManager {
     this.connectionState = 'reconnecting';
     
     this.sendMetric('/metrics/reconnect-attempt');
+    this.socket.emit('metrics:reconnect-attempt');
     
     await new Promise(resolve => setTimeout(resolve, backoff));
     
     try {
+      await this.peerConnection.restartIce();
       const offer = await this.peerConnection.createOffer({ iceRestart: true });
       await this.peerConnection.setLocalDescription(offer);
       this.socket.emit('rtc:description', { description: offer, restart: true });

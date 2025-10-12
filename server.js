@@ -11,6 +11,10 @@ const logger = require('./utils/logger');
 const metrics = require('./utils/metrics');
 const { initSentry, Sentry } = require('./utils/sentry');
 
+if (process.env.NODE_ENV === 'production' && !process.env.COOKIE_SECRET) {
+  throw new Error('COOKIE_SECRET is required in production');
+}
+
 const app = express();
 const cookieParser = require('cookie-parser');
 app.use(express.json());
@@ -99,13 +103,20 @@ const bot = process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !==
   : null;
 
 // Middleware
+app.enable('trust proxy');
 app.use(compression());
+
+app.use((req, res, next) => {
+  res.locals.cspNonce = require('crypto').randomBytes(16).toString('base64');
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`, "https://www.googletagmanager.com"],
+      styleSrc: ["'self'"],
       mediaSrc: ["'self'", "blob:"],
       connectSrc: ["'self'", "wss:", "https:", "stun:", "turn:"],
       imgSrc: ["'self'", "data:", "blob:"],

@@ -40,10 +40,14 @@ class ConnectionMonitor {
     try {
       const stats = await this.pc.getStats();
       let inboundStats = null;
+      let rtt = 0;
       
       stats.forEach(report => {
         if (report.type === 'inbound-rtp' && report.kind === 'audio') {
           inboundStats = report;
+        }
+        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+          rtt = report.currentRoundTripTime || 0;
         }
       });
       
@@ -59,13 +63,14 @@ class ConnectionMonitor {
         
         // Jitter (latency)
         this.stats.latency = inboundStats.jitter || 0;
+        this.stats.rtt = rtt;
         
         // Kalite değerlendirmesi
         const oldQuality = this.stats.quality;
         
-        if (this.stats.packetLoss > 5 || this.stats.latency > 0.1) {
+        if (this.stats.packetLoss > 10 || this.stats.latency > 0.15 || rtt > 0.5) {
           this.stats.quality = 'poor';
-        } else if (this.stats.packetLoss > 2 || this.stats.latency > 0.05) {
+        } else if (this.stats.packetLoss > 5 || this.stats.latency > 0.08 || rtt > 0.3) {
           this.stats.quality = 'fair';
         } else {
           this.stats.quality = 'good';
@@ -78,9 +83,9 @@ class ConnectionMonitor {
             this.onQualityChange(this.stats.quality);
           }
           
-          // Kötü kalitede bitrate düşür
+          // Kötü kalitede adaptasyon
           if (this.stats.quality === 'poor') {
-            await this.reduceBitrate();
+            await this.handlePoorQuality();
           }
         }
         
@@ -88,7 +93,8 @@ class ConnectionMonitor {
         if (this.stats.quality !== 'good') {
           console.log('📊 Stats:', {
             packetLoss: this.stats.packetLoss.toFixed(2) + '%',
-            latency: (this.stats.latency * 1000).toFixed(0) + 'ms',
+            jitter: (this.stats.latency * 1000).toFixed(0) + 'ms',
+            rtt: (rtt * 1000).toFixed(0) + 'ms',
             quality: this.stats.quality
           });
         }
@@ -98,23 +104,40 @@ class ConnectionMonitor {
     }
   }
   
+  async handlePoorQuality() {
+    console.warn('⚠️ Poor connection quality detected');
+    
+    // Video varsa kapat (audio-only mode)
+    const senders = this.pc.getSenders();
+    for (const sender of senders) {
+      if (sender.track && sender.track.kind === 'video') {
+        sender.track.enabled = false;
+        console.log('📵 Video disabled due to poor quality');
+      }
+    }
+    
+    // Bitrate düşür
+    await this.reduceBitrate();
+  }
+  
   async reduceBitrate() {
     try {
       const senders = this.pc.getSenders();
       
       for (const sender of senders) {
-        if (sender.track && sender.track.kind === 'video') {
-          const params = sender.getParameters();
-          
-          if (!params.encodings) {
-            params.encodings = [{}];
-          }
-          
-          // Bitrate'i 500kbps'e düşür
-          params.encodings[0].maxBitrate = 500000;
-          
+        if (!sender.track) continue;
+        
+        const params = sender.getParameters();
+        if (!params.encodings) params.encodings = [{}];
+        
+        if (sender.track.kind === 'video') {
+          params.encodings[0].maxBitrate = 300000; // 300kbps
           await sender.setParameters(params);
-          console.log('⚠️ Video bitrate düşürüldü: 500kbps');
+          console.log('⚠️ Video bitrate reduced: 300kbps');
+        } else if (sender.track.kind === 'audio') {
+          params.encodings[0].maxBitrate = 32000; // 32kbps
+          await sender.setParameters(params);
+          console.log('⚠️ Audio bitrate reduced: 32kbps');
         }
       }
     } catch (error) {
