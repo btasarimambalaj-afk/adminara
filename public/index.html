@@ -37,7 +37,7 @@
     </footer>
   </div>
 
-  <div id="callScreen" class="container" style="display:none;">
+  <div id="callScreen" class="container hidden">
     <div class="phone-interface">
       <div class="status-bar">
         <span id="connection-status">Bağlanıyor...</span>
@@ -82,7 +82,7 @@
 
       <div class="controls">
         <input type="hidden" id="customerName" />
-        <button id="callButton" style="display:none;"></button>
+        <button id="callButton" class="hidden"></button>
         <button id="endButton" class="btn end-btn hidden">📴 Bitir</button>
 
         <div class="control-buttons hidden">
@@ -140,8 +140,8 @@
       const name = nameInput.value.trim();
       if (name.length >= 2) {
         document.getElementById('customerName').value = name;
-        document.getElementById('welcomeWrapper').style.display = 'none';
-        document.getElementById('callScreen').style.display = 'block';
+        document.getElementById('welcomeWrapper').classList.add('hidden');
+        document.getElementById('callScreen').classList.remove('hidden');
         document.getElementById('callButton').click();
       }
     };
