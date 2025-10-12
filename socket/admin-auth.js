@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const logger = require('../utils/logger');
-const authManager = require('../utils/auth');
+const adminSession = require('../utils/admin-session');
 const rateLimiter = require('../utils/rate-limiter');
 const metrics = require('../utils/metrics');
 
@@ -67,7 +67,7 @@ module.exports = (socket, state) => {
     return;
   }
   
-  socket.on('admin:session:verify', (data) => {
+  socket.on('admin:session:verify', async (data) => {
     try {
       const { token } = data;
       if (!token) {
@@ -75,12 +75,11 @@ module.exports = (socket, state) => {
         return;
       }
       
-      const session = authManager.validateSession(token);
-      if (session && session.expires > Date.now()) {
+      const session = await adminSession.validateSession(token);
+      if (session) {
         socket.emit('admin:session:valid');
         logger.info('Session validated - auto-joining room', { socketId: socket.id });
         
-        // Otomatik odaya katıl (permanent channel)
         if (socket.handleRoomJoin) {
           socket.handleRoomJoin(socket, { isAdmin: true });
         }
@@ -98,7 +97,7 @@ module.exports = (socket, state) => {
     generateAndSendOTP(socket, bot);
   });
 
-  socket.on('admin:password:verify', (data) => {
+  socket.on('admin:password:verify', async (data) => {
     try {
       const { password } = data;
       const stored = adminPasswordStore.get(socket.id);
@@ -111,11 +110,10 @@ module.exports = (socket, state) => {
       if (stored.password === password) {
         adminPasswordStore.delete(socket.id);
         failedAttempts.delete(socket.id);
-        const token = authManager.createSession();
+        const token = await adminSession.createSession('admin');
         socket.emit('admin:password:verified', { token });
         logger.info('Admin password verified - auto-joining room', { socketId: socket.id });
         
-        // Otomatik odaya katıl (permanent channel)
         if (socket.handleRoomJoin) {
           socket.handleRoomJoin(socket, { isAdmin: true });
         }
@@ -127,7 +125,7 @@ module.exports = (socket, state) => {
 
           if (attempts >= OTP_FAIL_LIMIT) {
             const lockKey = `otp_fail_${socket.id}`;
-            rateLimiter.lockout(lockKey, OTP_LOCKOUT_DURATION, 'failed_attempts');
+            await rateLimiter.lockout(lockKey, OTP_LOCKOUT_DURATION, 'failed_attempts');
             metrics.otpLockouts.inc({ reason: 'failures' });
             failedAttempts.delete(socket.id);
             

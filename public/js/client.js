@@ -12,6 +12,7 @@ class ClientApp {
     this.customerName = '';
     this.timer = Helpers.createTimer();
     this.reconnecting = false;
+    this.queueUI = new QueueUI();
     this.init();
   }
 
@@ -109,6 +110,18 @@ class ClientApp {
         });
         setTimeout(() => { this.reconnecting = false; }, 1000);
       }
+    });
+    
+    this.socket.on('queue:joined', (data) => {
+      console.log('Joined queue, position:', data.position);
+      this.queueUI.show(data.position);
+      document.getElementById('waiting-message').classList.add('hidden');
+    });
+    
+    this.socket.on('queue:ready', () => {
+      console.log('Queue ready, joining channel');
+      this.queueUI.hide();
+      this.joinChannelImmediately();
     });
   }
 

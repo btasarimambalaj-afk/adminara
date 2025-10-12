@@ -114,8 +114,11 @@ function createHandleRoomJoin(io, state) {
         
         if (bot && process.env.TELEGRAM_ADMIN_CHAT_ID) {
           const adminUrl = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/admin.html` : `http://localhost:${process.env.PORT || 3000}/admin.html`;
-          bot.sendMessage(process.env.TELEGRAM_ADMIN_CHAT_ID, 
-            `🔔 Yeni müşteri aramaya hazır!\n\n👤 Müşteri: ${name}\n⏰ Saat: ${new Date().toLocaleTimeString('tr-TR')}\n\n👨💼 Admin Paneli:\n${adminUrl}`);
+          const telegramQueue = require('../jobs/telegram');
+          await telegramQueue.enqueueTelegramMessage({
+            chatId: process.env.TELEGRAM_ADMIN_CHAT_ID,
+            text: `🔔 Yeni müşteri aramaya hazır!\n\n👤 Müşteri: ${name}\n⏰ Saat: ${new Date().toLocaleTimeString('tr-TR')}\n\n👨💼 Admin Paneli:\n${adminUrl}`
+          });
         }
         
         logger.info('Customer joined', { socketId: socket.id, customerName: name });

@@ -1,31 +1,44 @@
 const logger = require('./logger');
+const store = require('./state-store');
 
 class RateLimiter {
   constructor() {
-    this.requests = new Map(); // key -> { count, resetAt }
-    this.locks = new Map();    // key -> { lockedUntil, reason }
-    this.cleanupInterval = setInterval(() => this.cleanup(), 60000); // Cleanup every minute
+    this.requests = new Map();
+    this.locks = new Map();
+    this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
   }
 
-  // Check if key is rate limited
-  isLimited(key, limit, windowMs) {
+  async isLimited(key, limit, windowMs) {
     const now = Date.now();
     
-    // Check if locked
+    if (process.env.REDIS_URL) {
+      const lockKey = `lock:${key}`;
+      const lockReason = await store.get(lockKey);
+      if (lockReason) {
+        const ttl = await store.ttl(lockKey);
+        return { limited: true, retryAfter: Math.ceil(ttl / 1000), reason: lockReason };
+      }
+      
+      const counterKey = `rate:${key}`;
+      const current = await store.incrWithExpiry(counterKey, windowMs);
+      if (current > limit) {
+        const ttl = await store.ttl(counterKey);
+        return { limited: true, retryAfter: Math.ceil(ttl / 1000), reason: 'rate_limit' };
+      }
+      return { limited: false };
+    }
+    
     const lock = this.locks.get(key);
     if (lock && lock.lockedUntil > now) {
       return { limited: true, retryAfter: Math.ceil((lock.lockedUntil - now) / 1000), reason: lock.reason };
     }
     
-    // Remove expired lock
     if (lock && lock.lockedUntil <= now) {
       this.locks.delete(key);
     }
     
-    // Check rate limit
     const record = this.requests.get(key);
     if (!record || record.resetAt <= now) {
-      // New window
       this.requests.set(key, { count: 1, resetAt: now + windowMs });
       return { limited: false };
     }
@@ -50,10 +63,13 @@ class RateLimiter {
     }
   }
 
-  // Add lockout
-  lockout(key, durationMs, reason = 'failed_attempts') {
-    const lockedUntil = Date.now() + durationMs;
-    this.locks.set(key, { lockedUntil, reason });
+  async lockout(key, durationMs, reason = 'failed_attempts') {
+    if (process.env.REDIS_URL) {
+      await store.setWithExpiry(`lock:${key}`, reason, durationMs);
+    } else {
+      const lockedUntil = Date.now() + durationMs;
+      this.locks.set(key, { lockedUntil, reason });
+    }
     logger.warn('Rate limiter lockout', { key: this.maskKey(key), reason, durationMs });
   }
 

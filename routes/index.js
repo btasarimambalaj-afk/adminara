@@ -5,8 +5,11 @@ const metrics = require('../utils/metrics');
 module.exports = (state) => {
   const router = express.Router();
 
-  router.get('/health', (req, res) => {
+  router.get('/health', async (req, res) => {
     const memUsage = process.memoryUsage();
+    const stateStore = require('../utils/state-store');
+    const telegramQueue = require('../jobs/telegram');
+    
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -25,7 +28,9 @@ module.exports = (state) => {
         activeSessions: state.customerSockets.size,
         reconnectAttempts: state.reconnectAttempts || 0,
         turnServers: process.env.TURN_URL ? 'configured' : 'none'
-      }
+      },
+      redis: await stateStore.isHealthy(),
+      queue: await telegramQueue.isHealthy()
     });
   });
 

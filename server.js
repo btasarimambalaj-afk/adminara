@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
-const TelegramBot = require('node-telegram-bot-api');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
@@ -10,6 +9,8 @@ const compression = require('compression');
 const logger = require('./utils/logger');
 const metrics = require('./utils/metrics');
 const { initSentry, Sentry } = require('./utils/sentry');
+const stateStore = require('./utils/state-store');
+const telegramQueue = require('./jobs/telegram');
 
 if (process.env.NODE_ENV === 'production' && !process.env.COOKIE_SECRET) {
   throw new Error('COOKIE_SECRET is required in production');
@@ -69,6 +70,12 @@ const corsOptions = {
   credentials: true
 };
 
+async function initializeApp() {
+  await stateStore.init();
+  telegramQueue.init();
+  logger.info('State store and queue initialized');
+}
+
 const io = socketIO(server, { 
   cors: corsOptions,
   allowRequest: (req, callback) => {
@@ -103,10 +110,7 @@ const io = socketIO(server, {
   maxHttpBufferSize: 1e6
 });
 
-// Telegram Bot
-const bot = process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== 'demo-token'
-  ? new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false })
-  : null;
+const { bot } = require('./utils/telegram-bot');
 
 // Middleware
 app.enable('trust proxy');
@@ -181,7 +185,7 @@ const otpCleanupInterval = setInterval(() => {
       logger.info('OTP expired and cleaned', { socketId });
     }
   }
-  require('./utils/auth').cleanupExpiredSessions();
+  adminSession.cleanupExpiredSessions();
 }, 60000);
 
 // State object with Proxy pattern for debugging
@@ -253,8 +257,8 @@ app.post('/metrics/candidate-type', metricsOriginGuard, (req, res) => {
 });
 
 // Session helpers
-const { issueToken, validateToken, revokeToken, SESS_TTL_MS } = require('./utils/session');
-function setSessionCookie(res, token, ttl = SESS_TTL_MS) {
+const adminSession = require('./utils/admin-session');
+function setSessionCookie(res, token, ttl = adminSession.SESSION_TTL_MS) {
   const prod = process.env.NODE_ENV === 'production';
   res.cookie('adminSession', token, {
     httpOnly: true,
@@ -265,7 +269,6 @@ function setSessionCookie(res, token, ttl = SESS_TTL_MS) {
   });
 }
 
-// OTP HTTP endpoints
 const { createOtpForAdmin, verifyAdminOtp } = require('./socket/admin-auth');
 
 app.post('/admin/otp/request', (req, res) => {
@@ -274,25 +277,26 @@ app.post('/admin/otp/request', (req, res) => {
   res.sendStatus(204);
 });
 
-app.post('/admin/otp/verify', (req, res) => {
+app.post('/admin/otp/verify', async (req, res) => {
   const adminId = String(req.body?.adminId || 'admin');
   const code = String(req.body?.code || '');
   const ok = verifyAdminOtp(adminId, code);
   if (!ok) return res.status(401).json({ ok: false, error: 'invalid_otp' });
-  const token = issueToken(adminId);
+  const token = await adminSession.createSession(adminId);
   setSessionCookie(res, token);
   res.sendStatus(204);
 });
 
-app.get('/admin/session/verify', (req, res) => {
+app.get('/admin/session/verify', async (req, res) => {
   const t = req.cookies?.adminSession;
-  if (!t || !validateToken(t)) return res.status(401).json({ ok: false });
+  const session = await adminSession.validateSession(t);
+  if (!session) return res.status(401).json({ ok: false });
   res.json({ ok: true });
 });
 
-app.post('/admin/logout', (req, res) => {
+app.post('/admin/logout', async (req, res) => {
   const t = req.cookies?.adminSession;
-  if (t) revokeToken(t);
+  if (t) await adminSession.revokeSession(t);
   res.clearCookie('adminSession', { path: '/' });
   res.sendStatus(204);
 });
@@ -312,13 +316,14 @@ if (process.env.ENABLE_CSRF === 'true') {
 }
 
 // Socket.IO admin cookie guard
-io.use((socket, next) => {
+io.use(async (socket, next) => {
   const isAdmin = socket.handshake?.auth?.isAdmin === true || socket.handshake?.query?.role === 'admin';
   if (!isAdmin) return next();
   try {
     const raw = socket.request.headers.cookie || '';
     const token = (raw.match(/(?:^|; )adminSession=([^;]+)/)||[])[1];
-    if (!token || !validateToken(decodeURIComponent(token))) {
+    const session = await adminSession.validateSession(decodeURIComponent(token));
+    if (!session) {
       return next(new Error('unauthorized'));
     }
     return next();
@@ -392,7 +397,8 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Start server
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
+  await initializeApp();
   logger.info('Server started', { port: PORT });
   logger.info('Customer URL', { url: process.env.PUBLIC_URL || `http://localhost:${PORT}` });
   logger.info('Admin URL', { url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/admin` });
