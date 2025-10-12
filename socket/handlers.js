@@ -159,11 +159,15 @@ module.exports = (io, socket, state) => {
   // Export handleRoomJoin for admin-auth
   socket.handleRoomJoin = handleRoomJoin;
 
-  // Perfect Negotiation Pattern - rtc:description (offer/answer)
-  socket.on('rtc:description', (data) => {
+  // Perfect Negotiation Pattern - rtc:description (offer/answer) with ack
+  socket.on('rtc:description', (data, ack) => {
     logger.info('Description', { from: socket.id, type: data.description?.type });
     socket.to('support-room').emit('rtc:description', data);
     metrics.webrtcEvents.inc({ event_type: data.description?.type || 'description' });
+    
+    if (typeof ack === 'function') {
+      ack({ ok: true });
+    }
   });
 
   socket.on('rtc:ice:candidate', (data) => socket.to('support-room').emit('rtc:ice:candidate', data));

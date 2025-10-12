@@ -234,7 +234,7 @@ class WebRTCManager {
         this.peerConnection,
         (quality) => {
           console.log('📊 Kalite değişti:', quality);
-          // UI'da gösterilebilir
+          this.updateConnectionQualityUI(quality);
         }
       );
       console.log('✅ Connection Monitor aktif');
@@ -585,6 +585,29 @@ class WebRTCManager {
     if (this.keepAliveInterval) {
       clearInterval(this.keepAliveInterval);
       this.keepAliveInterval = null;
+    }
+  }
+  
+  updateConnectionQualityUI(quality) {
+    const statusEl = document.getElementById('connection-status');
+    if (!statusEl) return;
+    
+    const indicator = statusEl.querySelector('.connection-indicator');
+    if (!indicator) return;
+    
+    indicator.className = 'connection-indicator';
+    
+    if (quality === 'good') {
+      indicator.classList.add('connected');
+      statusEl.innerHTML = '<span class="connection-indicator connected"></span>Bağlantı iyi';
+    } else if (quality === 'fair') {
+      indicator.classList.add('connecting');
+      statusEl.innerHTML = '<span class="connection-indicator connecting"></span>Bağlantı orta';
+      this.showUserMessage('Bağlantı kalitesi düştü', 'warning');
+    } else if (quality === 'poor') {
+      indicator.classList.add('disconnected');
+      statusEl.innerHTML = '<span class="connection-indicator disconnected"></span>Bağlantı zayıf';
+      this.showUserMessage('Bağlantı zayıf - lütfen internetinizi kontrol edin', 'error');
     }
   }
   

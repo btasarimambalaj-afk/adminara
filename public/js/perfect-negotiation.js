@@ -22,6 +22,15 @@ class PerfectNegotiation {
         console.log('📤 Perfect Negotiation: Sending', this.pc.localDescription.type);
         this.socket.emit('rtc:description', { 
           description: this.pc.localDescription 
+        }, (ack) => {
+          if (ack?.ok) {
+            console.log('✅ Description acknowledged');
+          } else {
+            console.warn('⚠️ Description not acknowledged, retrying...');
+            setTimeout(() => {
+              this.socket.emit('rtc:description', { description: this.pc.localDescription });
+            }, 1000);
+          }
         });
       } catch (error) {
         console.error('❌ Negotiation error:', error);
@@ -59,6 +68,12 @@ class PerfectNegotiation {
           console.log('📤 Perfect Negotiation: Sending answer');
           this.socket.emit('rtc:description', { 
             description: this.pc.localDescription 
+          }, (ack) => {
+            if (ack?.ok) {
+              console.log('✅ Answer acknowledged');
+            } else {
+              console.warn('⚠️ Answer not acknowledged');
+            }
           });
         }
       } catch (error) {
