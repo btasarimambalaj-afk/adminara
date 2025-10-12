@@ -115,6 +115,13 @@ const io = socketIO(server, {
 });
 
 const { bot } = require('./utils/telegram-bot');
+if (!bot) {
+  logger.warn('⚠️ Telegram bot not configured - OTP will not be sent!');
+} else if (!process.env.TELEGRAM_ADMIN_CHAT_ID) {
+  logger.warn('⚠️ TELEGRAM_ADMIN_CHAT_ID not set - OTP will not be sent!');
+} else {
+  logger.info('✅ Telegram bot configured and ready');
+}
 
 // Middleware
 app.enable('trust proxy');
@@ -423,6 +430,11 @@ server.listen(PORT, async () => {
   logger.info('Customer URL', { url: process.env.PUBLIC_URL || `http://localhost:${PORT}` });
   logger.info('Admin URL', { url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/admin` });
   logger.info('Health URL', { url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/health` });
+  logger.info('Telegram config', { 
+    botConfigured: !!bot, 
+    chatIdConfigured: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
+    tokenLength: process.env.TELEGRAM_BOT_TOKEN?.length || 0
+  });
   
   if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
     const pingUrl = process.env.RENDER_EXTERNAL_URL;
