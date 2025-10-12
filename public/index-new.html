@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>HayDay Canlı Destek</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components/hero.css">
+  <link rel="stylesheet" href="css/toast.css">
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="hero-tag">HayDay Destek</span>
+      <h1>Canlı yardım, profesyonel ekip.</h1>
+      <p>Bağlantı sorunlarını saniyeler içinde çözmek için güvenli görüntülü görüşme başlat.</p>
+      <div class="hero-cta">
+        <input type="text" id="welcomeNameInput" placeholder="Adınızı girin" maxlength="50" style="padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:1rem;">
+        <button id="startCallBtn" class="btn-primary" disabled>Görüşmeyi Başlat</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div style="width:420px;height:320px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:24px;display:flex;align-items:center;justify-content:center;color:white;font-size:3rem;">📞</div>
+    </div>
+  </section>
+
+  <div id="callScreen" class="container" style="display:none;">
+    <div class="phone-interface">
+      <header class="call-header" style="padding:16px;background:#f8f9fa;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
+        <span id="connection-status" class="status status--connecting">Bağlanıyor...</span>
+        <span class="privacy-note">256-bit şifreleme</span>
+      </header>
+
+      <div class="video-container">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="localVideo" autoplay playsinline muted></video>
+        <input type="hidden" id="customerName">
+        <button id="callButton" style="display:none;"></button>
+        <button id="endButton" class="btn end-btn hidden">Bitir</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/webrtc.js"></script>
+  <script src="js/client.js"></script>
+  <script>
+    const input = document.getElementById('welcomeNameInput');
+    const button = document.getElementById('startCallBtn');
+    
+    input.oninput = () => {
+      button.disabled = input.value.trim().length < 2;
+    };
+    
+    button.onclick = () => {
+      const name = input.value.trim();
+      if (name.length >= 2) {
+        document.getElementById('customerName').value = name;
+        document.querySelector('.hero').style.display = 'none';
+        document.getElementById('callScreen').style.display = 'block';
+        document.getElementById('callButton').click();
+      }
+    };
+  </script>
+</body>
+</html>
