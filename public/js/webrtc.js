@@ -17,6 +17,7 @@ class WebRTCManager {
     this.connectionState = 'disconnected';
     this.persistentMode = false;
     this.keepAliveInterval = null;
+    this.iceCandidateQueue = [];
   }
 
   async loadIceConfig() {
@@ -39,6 +40,16 @@ class WebRTCManager {
       this.config = await this.loadIceConfig();
       console.log('✅ ICE config loaded:', this.config.iceServers.length, 'servers');
       
+      // TURN server check
+      const turnServers = this.config.iceServers.filter(s => 
+        (Array.isArray(s.urls) ? s.urls.some(u => u.includes('turn:')) : s.urls.includes('turn:'))
+      );
+      if (turnServers.length > 0) {
+        console.log('✅ TURN servers available:', turnServers.length);
+      } else {
+        console.warn('⚠️ No TURN servers - NAT traversal may fail');
+      }
+      
       this.localStream = await navigator.mediaDevices.getUserMedia({
         video: false,
         audio: true
@@ -59,15 +70,23 @@ class WebRTCManager {
   setupSocketListeners() {
     console.log('📡 Setting up socket listeners');
     
-    // ICE candidates (her zaman gerekli)
+    // ICE candidates with buffering
     this.socket.on('rtc:ice:candidate', async ({ candidate }) => {
-      if (this.peerConnection && candidate) {
-        console.log('🧊 Adding ICE candidate');
-        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      if (!candidate) return;
+      
+      if (!this.peerConnection) {
+        console.log('🧊 Buffering ICE candidate (no peer connection yet)');
+        this.iceCandidateQueue.push(candidate);
+      } else {
+        try {
+          await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          console.log('🧊 Added ICE candidate');
+        } catch (err) {
+          console.warn('⚠️ ICE candidate error:', err);
+        }
       }
     });
     
-    // Perfect Negotiation kullanılıyor, legacy listener'lar gereksiz
     console.log('✅ Perfect Negotiation exclusive mode - legacy disabled');
   }
 
@@ -80,6 +99,19 @@ class WebRTCManager {
       bundlePolicy: 'max-bundle',
       rtcpMuxPolicy: 'require'
     });
+    
+    // Process buffered ICE candidates
+    if (this.iceCandidateQueue.length > 0) {
+      console.log('🧊 Processing', this.iceCandidateQueue.length, 'buffered ICE candidates');
+      this.iceCandidateQueue.forEach(async (candidate) => {
+        try {
+          await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.warn('⚠️ Buffered ICE candidate error:', err);
+        }
+      });
+      this.iceCandidateQueue = [];
+    }
     
     // Add local tracks
     this.localStream.getTracks().forEach(track => {
@@ -106,10 +138,21 @@ class WebRTCManager {
       }
     };
     
-    // Connection state
+    // Connection state with detailed debug
     this.peerConnection.onconnectionstatechange = () => {
       const state = this.peerConnection.connectionState;
-      console.log('🔌 Connection state:', state);
+      console.log('━━━ CONNECTION STATE ━━━');
+      console.log('Connection:', state);
+      console.log('Signaling:', this.peerConnection.signalingState);
+      console.log('ICE Connection:', this.peerConnection.iceConnectionState);
+      console.log('ICE Gathering:', this.peerConnection.iceGatheringState);
+      
+      const senders = this.peerConnection.getSenders();
+      const receivers = this.peerConnection.getReceivers();
+      console.log('Local tracks:', senders.length, senders.map(s => s.track?.kind));
+      console.log('Remote tracks:', receivers.length, receivers.map(r => r.track?.kind));
+      console.log('━━━━━━━━━━━━━━━━━━━━━━');
+      
       this.connectionState = state;
       
       if (state === 'connected') {
@@ -147,11 +190,15 @@ class WebRTCManager {
     };
     
     this.peerConnection.oniceconnectionstatechange = () => {
-      console.log('🧊 ICE state:', this.peerConnection.iceConnectionState);
+      console.log('🧊 ICE Connection state:', this.peerConnection.iceConnectionState);
       
       if (this.peerConnection.iceConnectionState === 'failed') {
         this.handleConnectionFailure();
       }
+    };
+    
+    this.peerConnection.onicegatheringstatechange = () => {
+      console.log('🧊 ICE Gathering state:', this.peerConnection.iceGatheringState);
     };
     
     // Perfect Negotiation Pattern aktive et
@@ -540,6 +587,7 @@ class WebRTCManager {
       this.connectionMonitor = null;
       this.reconnectAttempts = 0;
       this.connectionState = 'disconnected';
+      this.iceCandidateQueue = [];
     } else {
       console.log('✅ Keeping connection alive for next customer');
       const remoteVideo = document.getElementById('remoteVideo');
