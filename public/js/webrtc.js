@@ -18,8 +18,9 @@ class WebRTCManager {
 
   async loadIceConfig() {
     try {
-      const r = await fetch('/config', { cache: 'no-store' });
-      return await r.json();
+      const r = await fetch('/config/ice-servers', { cache: 'no-store' });
+      const data = await r.json();
+      return data.error ? { iceServers: data.iceServers } : data;
     } catch {
       return { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
     }
