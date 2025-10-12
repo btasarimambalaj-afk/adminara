@@ -5,69 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="description" content="HayDay oyunu için canlı video destek hattı. Anında görüntülü bağlantı kurun!" />
   <meta name="theme-color" content="#3498db" />
-  
-  <!-- iOS Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="HayDay Destek" />
-  
-  <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.json" />
   <title>HayDay Destek Hattı - Canlı Video Destek</title>
-  
-  <!-- Open Graph Meta Tags -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://adminara.onrender.com/" />
-  <meta property="og:title" content="📞 HayDay Canlı Destek - Anında Görüntülü Yardım" />
-  <meta property="og:description" content="HayDay oyunu için profesyonel canlı destek hattı. Hızlı, güvenli ve kolay görüntülü iletişim! 🚀" />
-  <meta property="og:image" content="https://adminara.onrender.com/icons/hayday.webp" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="HayDay Canlı Destek Sistemi" />
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="📞 HayDay Canlı Destek" />
-  <meta name="twitter:description" content="Anında görüntülü yardım alın!" />
-  <meta name="twitter:image" content="https://adminara.onrender.com/icons/hayday.webp" />
-  
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/components/hero.css" />
   <link rel="stylesheet" href="css/mobile.css" />
   <link rel="stylesheet" href="css/accessibility.css" />
   <link rel="stylesheet" href="css/toast.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>" />
 </head>
 <body>
-  <div class="hero-wrapper">
-    <div class="brand" aria-label="Profesyonel Destek Merkezi">
-      <div class="brand-badge" aria-hidden="true">📞</div>
+  <div class="hero-wrapper" id="welcomeWrapper">
+    <div class="brand">
+      <div class="brand-badge">📞</div>
       <div class="brand-name">Profesyonel Destek Merkezi</div>
     </div>
 
-    <div class="card" id="welcomeScreen" role="main">
-      <p>Uzman ekibimizle anında güvenli bağlantı kurun. Hızlı, profesyonel ve kesintisiz destek.</p>
-      <div class="support-info">👨‍💼 Destek Hizmetini veren: <strong>Muhsin</strong></div>
-      <input type="text" id="welcomeNameInput" placeholder="Adınız" maxlength="50" autocomplete="name" aria-label="Adınız" />
-      <button id="startCallBtn" disabled aria-disabled="true">Görüşmeyi Başlat</button>
+    <div class="card">
+      <p>Uzman ekibimizle anında güvenli bağlantı kurun.</p>
+      <div class="support-info">👨💼 Destek: <strong>Muhsin</strong></div>
+      <input type="text" id="welcomeNameInput" placeholder="Adınız" maxlength="50" autocomplete="name" />
+      <button id="startCallBtn" disabled>Görüşmeyi Başlat</button>
     </div>
 
     <footer>
-      Bu platform üzerinden gerçekleştirilen tüm görüşmeler;
-      telefon numarası, e-posta veya benzeri kişisel iletişim bilgileri talep edilmeksizin,
-      yalnızca web sitemizin altyapısı üzerinden güvenli bağlantı protokolleriyle yürütülür.
       <div class="legal">
-        <strong>Güvenlik ve Veri Koruma İlkeleri</strong><br/>
-        🔒 İletişim TLS/SSL ile şifrelenir<br/>
-        🛡️ Görüşme verileri üçüncü taraflarla paylaşılmaz<br/>
-        📜 KVKK/GDPR kapsamında işlenir.
+        🔒 TLS/SSL şifreleme | 🛡️ Veri koruması | 📜 KVKK/GDPR uyumlu
       </div>
-      <button onclick="window.location.reload()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 16px;border-radius:8px;font-size:.75rem;cursor:pointer;margin-top:12px;width:100%;">🔄 Sayfayı Yenile</button>
     </footer>
   </div>
 
-  <!-- Müşteri Görüşme Ekranı -->
   <div id="callScreen" class="container" style="display:none;">
     <div class="phone-interface">
       <div class="status-bar">
@@ -150,13 +119,12 @@
     function updateBtn(){
       const ok = nameInput.value.trim().length >= 2;
       startBtn.disabled = !ok;
-      startBtn.setAttribute('aria-disabled', String(!ok));
       startBtn.classList.toggle('ready', ok);
     }
 
     window.addEventListener('load', () => {
       updateBtn();
-      try { nameInput.focus({ preventScroll: true }); } catch(_) { nameInput.focus(); }
+      nameInput.focus();
     });
 
     nameInput.addEventListener('input', updateBtn);
@@ -164,7 +132,6 @@
     nameInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !startBtn.disabled) {
         e.preventDefault();
-        if (navigator.vibrate) navigator.vibrate(15);
         startBtn.click();
       }
     });
@@ -173,13 +140,8 @@
       const name = nameInput.value.trim();
       if (name.length >= 2) {
         document.getElementById('customerName').value = name;
-        // Giriş ekranını tamamen gizle
-        const heroWrapper = document.querySelector('.hero-wrapper');
-        if (heroWrapper) heroWrapper.style.display = 'none';
-        // Görüşme ekranını göster
-        const callScreen = document.getElementById('callScreen');
-        if (callScreen) callScreen.style.display = 'block';
-        // Aramayı başlat
+        document.getElementById('welcomeWrapper').style.display = 'none';
+        document.getElementById('callScreen').style.display = 'block';
         document.getElementById('callButton').click();
       }
     };
