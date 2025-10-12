@@ -88,7 +88,13 @@
   <script>
     class AdminApp {
       constructor() {
-        this.socket = io();
+        this.socket = io({
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: Infinity,
+          transports: ['websocket', 'polling']
+        });
         this.webRTCManager = new WebRTCManager();
         this.authenticated = false;
         this.timer = Helpers.createTimer();
@@ -229,16 +235,25 @@
       setupEvents() {
 
         
-        this.socket.on('disconnect', () => {
-          console.log('Admin socket disconnected - will auto-reconnect');
+        this.socket.on('disconnect', (reason) => {
+          console.log('🔴 Socket disconnected:', reason);
+          if (typeof window.showToast === 'function') {
+            window.showToast('warning', 'Bağlantı koptu, yeniden bağlanılıyor...');
+          }
         });
         
-        this.socket.on('reconnect', async () => {
-          console.log('Admin socket reconnected');
+        this.socket.on('reconnect', async (attemptNumber) => {
+          console.log('🟢 Socket reconnected after', attemptNumber, 'attempts');
+          if (typeof window.showToast === 'function') {
+            window.showToast('success', 'Bağlantı yeniden kuruldu');
+          }
           if (this.authenticated) {
             try {
               const r = await fetch('/admin/session/verify');
-              if (!r.ok) {
+              if (r.ok) {
+                this.socket.emit('room:join', { isAdmin: true });
+                console.log('✅ Re-joined room after reconnect');
+              } else {
                 this.authenticated = false;
                 window.location.reload();
               }
@@ -247,6 +262,22 @@
               window.location.reload();
             }
           }
+        });
+        
+        this.socket.on('reconnect_attempt', (attemptNumber) => {
+          console.log('🔄 Reconnect attempt:', attemptNumber);
+        });
+        
+        this.socket.on('reconnect_error', (error) => {
+          console.error('❌ Reconnect error:', error.message);
+        });
+        
+        this.socket.on('reconnect_failed', () => {
+          console.error('❌ Reconnect failed permanently');
+          if (typeof window.showToast === 'function') {
+            window.showToast('error', 'Bağlantı kurulamadı, sayfa yenileniyor...');
+          }
+          setTimeout(() => window.location.reload(), 3000);
         });
         
         this.socket.on('room:joined', (data) => {

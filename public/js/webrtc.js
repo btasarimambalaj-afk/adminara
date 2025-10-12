@@ -10,12 +10,13 @@ class WebRTCManager {
     this.retryCount = 0;
     this.maxRetries = 10;
     this.reconnectTimer = null;
-    this.maxReconnectAttempts = 10;
+    this.maxReconnectAttempts = Infinity;
     this.reconnectAttempts = 0;
     this.config = null;
     this.heartbeatInterval = null;
     this.connectionState = 'disconnected';
     this.persistentMode = false;
+    this.keepAliveInterval = null;
   }
 
   async loadIceConfig() {
@@ -365,7 +366,7 @@ class WebRTCManager {
   }
 
   async handleConnectionFailure() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+    if (this.maxReconnectAttempts !== Infinity && this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('❌ Max reconnect attempts reached');
       this.showUserMessage('Bağlantı kurulamadı. Lütfen sayfayı yenileyin.', 'error');
       this.connectionState = 'failed';
@@ -468,6 +469,8 @@ class WebRTCManager {
         this.stopHeartbeat();
       }
     }, 5000);
+    
+    this.startKeepAlive();
   }
   
   stopHeartbeat() {
@@ -475,6 +478,23 @@ class WebRTCManager {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
       console.log('❤️ Heartbeat stopped');
+    }
+    this.stopKeepAlive();
+  }
+  
+  startKeepAlive() {
+    this.stopKeepAlive();
+    this.keepAliveInterval = setInterval(() => {
+      if (this.socket && this.socket.connected) {
+        this.socket.emit('ping');
+      }
+    }, 25000);
+  }
+  
+  stopKeepAlive() {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+      this.keepAliveInterval = null;
     }
   }
   
