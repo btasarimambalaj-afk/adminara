@@ -1,8 +1,8 @@
 # AdminAra - Detaylı Proje Dokümantasyonu
 
-**Version**: 1.3.6  
+**Version**: 1.3.7  
 **Live**: https://adminara.onrender.com  
-**Status**: Production Ready  
+**Status**: Beta (Critical fixes completed)  
 
 Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı açıklar.
 
@@ -130,7 +130,7 @@ Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı a
 
 **utils/admin-session.js** - Admin session management (createSession, validateSession, revokeSession, 12h TTL, sliding expiration)
 
-**utils/auth.js** - Authentication utilities (generateOTP, hashPassword, comparePassword, generateSessionId)
+
 
 **utils/error-handler.js** - Global error handler (Express middleware, Winston log, Sentry, hide stack trace)
 
@@ -146,7 +146,7 @@ Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı a
 
 **utils/sentry.js** - Sentry error tracking (init, captureException, breadcrumbs, release tracking)
 
-**utils/session.js** - Session utilities (createSessionCookie, parseSessionCookie, clearSessionCookie, httpOnly, secure, sameSite)
+
 
 **utils/telegram-bot.js** - Telegram bot wrapper (sendMessage, error handling)
 
