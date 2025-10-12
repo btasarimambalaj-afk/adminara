@@ -273,6 +273,14 @@
           }
         });
         
+        this.socket.on('customer:name:updated', (data) => {
+          console.log('👤 Müşteri ismi güncellendi:', data.customerName);
+          const nameDisplay = document.getElementById('customerNameDisplay');
+          if (nameDisplay && data.customerName) {
+            nameDisplay.textContent = `👤 ${data.customerName}`;
+          }
+        });
+        
         this.socket.on('room:timeout', () => {
           console.log('Room timeout');
           // Session'u koruyoruz, sadece waiting mesajı göster
@@ -295,23 +303,25 @@
           document.getElementById('waiting-message').classList.remove('hidden');
           document.getElementById('callInfo').classList.add('hidden');
           
-          // Peer connection'u kapat ama WebRTC stream'i koru
+          // Peer connection'u kapat ve yeniden oluştur
           if (this.webRTCManager.peerConnection) {
             this.webRTCManager.peerConnection.close();
             this.webRTCManager.peerConnection = null;
-            console.log('✅ Peer connection kapatıldı, yeni müşteri için hazır');
           }
+          this.webRTCManager.createPeerConnection();
+          console.log('✅ Yeni peer connection hazır');
         };
         
         this.socket.on('call:ended', () => {
           console.log('📞 Müşteri görüşmeyi bitirdi');
           this.timer.stop();
           
-          // Peer connection'u kapat ama WebRTC stream'i koru
+          // Peer connection'u kapat ve yeniden oluştur
           if (this.webRTCManager.peerConnection) {
             this.webRTCManager.peerConnection.close();
             this.webRTCManager.peerConnection = null;
           }
+          this.webRTCManager.createPeerConnection();
           
           // Admin bağlı kalır, yeni müşteri bekler
           document.getElementById('waiting-message').classList.remove('hidden');
