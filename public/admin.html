@@ -116,6 +116,8 @@
               this.webRTCManager.createPeerConnection();
               console.log('✅ Admin WebRTC ready');
             }
+            this.socket.emit('room:join', { isAdmin: true });
+            console.log('✅ Admin joined room');
           }
         } catch (e) {
           console.log('❌ No valid session');
@@ -199,6 +201,8 @@
                 this.webRTCManager.createPeerConnection();
                 console.log('✅ Admin WebRTC ready');
               }
+              this.socket.emit('room:join', { isAdmin: true });
+              console.log('✅ Admin joined room');
             } else {
               otpError.textContent = 'Hatalı şifre!';
               otpError.style.display = 'block';
