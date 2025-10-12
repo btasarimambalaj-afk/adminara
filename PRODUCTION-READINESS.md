@@ -268,21 +268,118 @@
 
 ---
 
+## ⚠️ BİLİNEN UX/UI SORUNLARI (Summary'den)
+
+### 13. Müşteri Akışı Sorunları
+**Durum**: ⚠️ UX iyileştirmesi gerekli
+
+**Sorunlar**:
+1. ❌ Sayfa yüklenir yüklenmez "Misafir" olarak odaya katılıyor
+2. ❌ İsim girişi sonradan gönderiliyor (UX kafa karıştırıcı)
+3. ❌ QueueUI hiç başlatılmıyor (sıra bildirimi yok)
+4. ❌ Kullanıcı beklemede olduğunu bilmiyor
+
+**Önerilen Düzeltme**:
+```javascript
+// index.html - İsim girişi SONRA odaya katıl
+1. Kullanıcı isim girer
+2. "Görüşmeyi Başlat" butonuna basar
+3. O ZAMAN socket bağlan + room:join
+4. QueueUI başlat (sıra pozisyonu göster)
+```
+
+**Öncelik**: YÜKSEK (UX için kritik)
+
+---
+
+### 14. Admin Panel Eksikleri
+**Durum**: ⚠️ Fonksiyonel ama eksik
+
+**Sorunlar**:
+1. ❌ Müşteri kuyruğu paneli görünmüyor
+2. ❌ queue:updated olayları dinlenmiyor
+3. ❌ Tek operatör sınırı (çoklu müşteri desteklenmiyor)
+4. ❌ Oturum kapatma/güvenli çıkış eksik
+
+**Önerilen Düzeltme**:
+```javascript
+// admin.html - Queue panel ekle
+1. socket.on('queue:updated') dinle
+2. Bekleyen müşterileri listele
+3. "Sonraki Müşteri" butonu ekle
+4. "Oturumu Kapat" butonu ekle
+```
+
+**Öncelik**: ORTA (beta için kabul edilebilir)
+
+---
+
+### 15. WebRTC Video Sorunları
+**Durum**: ⚠️ Sadece ses, video manuel
+
+**Sorunlar**:
+1. ❌ Varsayılan olarak sadece ses izni isteniyor
+2. ❌ Kamera kapalı (UI'de video placeholder var ama çalışmıyor)
+3. ❌ Manuel kamera açma yönergesi yok
+4. ❌ Hoparlör/diagnostics kontrolleri için kullanıcı yönergesi eksik
+
+**Önerilen Düzeltme**:
+```javascript
+// webrtc.js - Video + ses iste
+navigator.mediaDevices.getUserMedia({ 
+  video: true,  // ✅ Video ekle
+  audio: true 
+})
+
+// UI'de kamera aç/kapa butonu ekle
+// Diagnostics için tooltip/yardım ekle
+```
+
+**Öncelik**: ORTA (ses yeterli ama video bekleniyor)
+
+---
+
+### 16. Test Sayfası İyileştirmeleri
+**Durum**: ⚠️ Temel testler var, entegrasyon eksik
+
+**Sorunlar**:
+1. ❌ 17 test var ama çoğu sadece log yazıyor
+2. ❌ Gerçek entegrasyon doğrulaması yok (OTP, reconnect, TURN, Redis)
+3. ❌ Test sonuçları görsel değil (sadece console)
+4. ❌ Otomatik test suite yok
+
+**Önerilen Düzeltme**:
+```javascript
+// test-suite.html - Gerçek testler ekle
+1. OTP request/verify testi (gerçek API çağrısı)
+2. WebRTC reconnect süresi ölçümü
+3. TURN server erişim testi
+4. Redis connection testi
+5. Görsel test sonuçları (✅/❌)
+```
+
+**Öncelik**: DÜŞÜK (development tool)
+
+---
+
 ## 🎯 SONUÇ
 
-**Mevcut Durum**: **Beta Production Ready** ✅
+**Mevcut Durum**: **Beta Production Ready** ✅ (UX iyileştirmeleri ile)
 
-**Yayına Girme Hazırlığı**: **%90** 🚀
+**Yayına Girme Hazırlığı**: **%85** 🚀 (UX sorunları nedeniyle %90'dan düştü)
 
 **Önerilen Aksiyon**: 
-1. ✅ **ŞİMDİ**: Beta launch yap (sınırlı kullanıcı)
-2. ⚠️ **1 HAFTA**: Monitoring + feedback
-3. ⚠️ **1 AY**: Test coverage + dokümantasyon
-4. ✅ **3 AY**: Full production grade
+1. ⚠️ **ÖNCE**: UX sorunlarını düzelt (müşteri akışı, queue UI)
+2. ✅ **SONRA**: Beta launch yap (sınırlı kullanıcı)
+3. ⚠️ **1 HAFTA**: Monitoring + feedback
+4. ⚠️ **1 AY**: Test coverage + dokümantasyon
+5. ✅ **3 AY**: Full production grade
 
-**Risk Seviyesi**: **DÜŞÜK** (Beta için)
+**Risk Seviyesi**: **ORTA** (UX sorunları kullanıcı deneyimini etkiler)
 
-**Güven Seviyesi**: **YÜKSEK** (Kritik sorunlar yok)
+**Güven Seviyesi**: **YÜKSEK** (Teknik olarak sağlam, UX iyileştirmesi gerekli)
+
+**KRİTİK NOT**: Müşteri "Misafir" olarak otomatik katılma sorunu düzeltilmeden yayına ÇIKMAMALI
 
 ---
 
