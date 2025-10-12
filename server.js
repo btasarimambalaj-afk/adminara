@@ -324,7 +324,6 @@ io.use((socket, next) => {
 
 // Socket handlers
 const socketHandlers = require('./socket/handlers');
-const otpHandlers = require('./socket/otp');
 const adminAuthHandlers = require('./socket/admin-auth');
 
 io.on('connection', (socket) => {
@@ -342,8 +341,7 @@ io.on('connection', (socket) => {
   logger.info('New connection', { socketId: socket.id, total: state.connectionCount });
 
   socketHandlers(io, socket, state);
-  otpHandlers(socket, state);
-  adminAuthHandlers(socket, state);
+  adminAuthHandlers(io, socket, state);
 });
 
 // Error handlers
