@@ -1,4 +1,5 @@
 require('dotenv').config();
+const crypto = require('crypto');
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
@@ -19,7 +20,6 @@ if (process.env.NODE_ENV === 'production' && !process.env.COOKIE_SECRET) {
   logger.warn('COOKIE_SECRET not set, generated random secret (will change on restart)');
 }
 
-const crypto = require('crypto');
 const app = express();
 const cookieParser = require('cookie-parser');
 app.use(express.json());
