@@ -113,11 +113,13 @@
             document.getElementById('controlButtons').classList.remove('hidden');
             const ok = await this.webRTCManager.start(this.socket, false);
             if (ok) {
-              this.webRTCManager.createPeerConnection();
-              console.log('✅ Admin WebRTC ready');
+              console.log('✅ Admin WebRTC stream ready');
             }
+            // Room'a katıl
             this.socket.emit('room:join', { isAdmin: true });
-            console.log('✅ Admin joined room');
+            console.log('✅ Admin joining room...');
+            
+            // Peer connection'u room:joined sonrası oluştur
           }
         } catch (e) {
           console.log('❌ No valid session');
@@ -249,8 +251,12 @@
         
         this.socket.on('room:joined', (data) => {
           if (data.role === 'admin') {
-            console.log('Admin joined room - waiting for customer');
-            // Waiting message zaten görünüyor, müşteri gelince gizlenecek
+            console.log('✅ Admin room:joined event received');
+            // Şimdi peer connection oluştur
+            if (!this.webRTCManager.peerConnection) {
+              this.webRTCManager.createPeerConnection();
+              console.log('✅ Admin peer connection created, waiting for customer...');
+            }
           }
         });
         
@@ -268,8 +274,22 @@
             
             this.timer.start();
             
-            // Peer connection zaten oluşturuldu (admin login'de), Perfect Negotiation otomatik bağlanacak
-            console.log('✅ Admin peer connection hazır, Perfect Negotiation başlayacak');
+            // Peer connection kontrolü
+            if (this.webRTCManager.peerConnection) {
+              const pc = this.webRTCManager.peerConnection;
+              console.log('✅ Admin peer connection hazır');
+              console.log('🔄 Signaling state:', pc.signalingState);
+              console.log('🔄 Connection state:', pc.connectionState);
+              console.log('🔄 ICE state:', pc.iceConnectionState);
+              
+              // Perfect Negotiation onnegotiationneeded ile otomatik başlayacak
+              // Eğer başlamazsa, manuel trigger
+              if (pc.signalingState === 'stable') {
+                console.log('🔄 Waiting for onnegotiationneeded...');
+              }
+            } else {
+              console.error('❌ Admin peer connection yok!');
+            }
           }
         });
         
