@@ -41,16 +41,16 @@
 </head>
 <body>
   <div class="hero-wrapper">
-    <div class="brand">
-      <div class="brand-badge">📞</div>
-      <div class="brand-name">Canlı Destek</div>
+    <div class="brand" aria-label="Profesyonel Destek Merkezi">
+      <div class="brand-badge" aria-hidden="true">📞</div>
+      <div class="brand-name">Profesyonel Destek Merkezi</div>
     </div>
 
-    <div class="card" id="welcomeScreen">
-      <h1>Canlı Sesli ve Görüntülü Destek</h1>
-      <p>Deneyimli ekibimizle güvenli ve profesyonel destek alın.</p>
-      <input type="text" id="welcomeNameInput" placeholder="Adınız" maxlength="50" autocomplete="name" />
-      <button id="startCallBtn" disabled>Görüşmeyi Başlat</button>
+    <div class="card" id="welcomeScreen" role="main">
+      <p>Uzman ekibimizle anında güvenli bağlantı kurun. Hızlı, profesyonel ve kesintisiz destek.</p>
+      <div class="support-info">👨‍💼 Destek Hizmetini veren: <strong>Muhsin</strong></div>
+      <input type="text" id="welcomeNameInput" placeholder="Adınız" maxlength="50" autocomplete="name" aria-label="Adınız" />
+      <button id="startCallBtn" disabled aria-disabled="true">Görüşmeyi Başlat</button>
     </div>
 
     <footer>
@@ -149,6 +149,7 @@
     function updateBtn(){
       const ok = nameInput.value.trim().length >= 2;
       startBtn.disabled = !ok;
+      startBtn.setAttribute('aria-disabled', String(!ok));
       startBtn.classList.toggle('ready', ok);
     }
 
