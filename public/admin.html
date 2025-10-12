@@ -14,63 +14,40 @@
   <link rel="stylesheet" href="css/toast.css" />
 </head>
 <body>
-  <!-- Karşılama Ekranı - OTP -->
+  <!-- Admin Giriş Ekranı -->
   <div class="hero-wrapper" id="welcomeScreen">
-    <div class="brand" aria-label="Admin Paneli">
-      <div class="brand-badge" aria-hidden="true">🔐</div>
+    <div class="brand">
+      <div class="brand-badge">🔐</div>
       <div class="brand-name">Admin Paneli</div>
     </div>
 
-    <div class="card" role="main">
-      <p>Telegram üzerinden aldığınız tek seferlik kodla giriş yapın.</p>
+    <div class="card">
+      <p>Telegram üzerinden aldığınız 6 haneli kodu girin.</p>
       <button id="requestOtpBtn" class="ready">Kod Gönder</button>
-      <div id="otpInputSection" style="display:none;margin-top:12px;">
-        <input id="otpInput" inputmode="numeric" maxlength="6" placeholder="6 haneli kod" aria-label="OTP Kodu" style="margin-bottom:12px;" />
-        <button id="verifyOtpBtn" disabled aria-disabled="true">Panele Gir</button>
+      
+      <div id="otpInputSection" class="hidden">
+        <input id="otpInput" type="text" inputmode="numeric" maxlength="6" placeholder="6 haneli kod" />
+        <button id="verifyOtpBtn" disabled>Panele Gir</button>
       </div>
-      <p id="otpError" style="display:none;color:#ff6b6b;font-size:.8rem;margin-top:8px;"></p>
-      <p id="otpSuccess" style="display:none;color:#51cf66;font-size:.8rem;margin-top:8px;">Kod gönderildi!</p>
+      
+      <p id="otpError" class="hidden error-text"></p>
+      <p id="otpSuccess" class="hidden success-text">Kod gönderildi!</p>
     </div>
 
     <footer>
-      <button onclick="window.location.reload()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 16px;border-radius:8px;font-size:.75rem;cursor:pointer;margin-top:12px;width:100%;">🔄 Sayfayı Yenile</button>
+      <button onclick="window.location.reload()" class="btn secondary">🔄 Yenile</button>
     </footer>
   </div>
 
-  <!-- Admin Paneli -->
+  <!-- Admin Görüşme Paneli -->
   <div id="adminPanel" class="container" style="display:none;">
-    <div class="admin-queue-panel" id="adminQueuePanel" style="display:none;">
-      <div class="admin-queue-title">📋 Müşteri Bilgileri</div>
-      
-      <div class="admin-current-call" id="adminCurrentCall" style="display:none;">
-        <div class="admin-current-call-title">Aktif Görüşme</div>
-        <div class="admin-current-call-name" id="adminCurrentName">-</div>
-        <div class="admin-current-call-duration" id="adminCurrentDuration">00:00</div>
-      </div>
-      
-      <div class="admin-queue-list" id="adminQueueList">
-        <div class="admin-queue-empty">Sırada bekleyen yok</div>
-      </div>
-      
-      <div class="admin-stats">
-        <div class="admin-stat">
-          <div class="admin-stat-value" id="adminTotalCalls">0</div>
-          <div class="admin-stat-label">Toplam Görüşme</div>
-        </div>
-        <div class="admin-stat">
-          <div class="admin-stat-value" id="adminQueueCount">0</div>
-          <div class="admin-stat-label">Sırada</div>
-        </div>
-      </div>
-    </div>
-    
     <div class="phone-interface admin-interface">
       <div class="status-bar">
         <span>HayDay Admin Paneli</span>
         <button id="refreshButton" class="refresh-btn" title="Sayfayı Yenile">🔄</button>
       </div>
 
-      <div class="video-container" id="videoContainer">
+      <div class="video-container">
         <video id="remoteVideo" autoplay playsinline></video>
         <video id="localVideo" autoplay playsinline muted></video>
         
@@ -78,7 +55,7 @@
         <button id="diagnosticsToggle" class="diagnostics-toggle" title="Diagnostics">📊</button>
         
         <div id="diagnosticsPanel" class="diagnostics-panel hidden">
-          <div class="diagnostics-title">📊 Call Diagnostics</div>
+          <div class="diagnostics-title">📊 Bağlantı Durumu</div>
           <div class="diagnostics-row">
             <span class="diagnostics-label">RTT:</span>
             <span class="diagnostics-value" id="diagRTT">--</span>
@@ -92,11 +69,11 @@
             <span class="diagnostics-value" id="diagJitter">--</span>
           </div>
           <div class="diagnostics-row">
-            <span class="diagnostics-label">Connection:</span>
+            <span class="diagnostics-label">Bağlantı:</span>
             <span class="diagnostics-value" id="diagConnection">--</span>
           </div>
           <div class="diagnostics-row">
-            <span class="diagnostics-label">ICE State:</span>
+            <span class="diagnostics-label">ICE:</span>
             <span class="diagnostics-value" id="diagICE">--</span>
           </div>
         </div>
@@ -107,7 +84,6 @@
           <div class="info-line" id="callDuration">00:00</div>
         </div>
         
-        
         <div id="waiting-message" class="status-message hidden">
           <div class="spinner"></div>
           <p>Müşteri bekleniyor...</p>
@@ -115,15 +91,15 @@
       </div>
 
       <div class="controls">
+        <button id="endButton" class="btn end-btn hidden">📴 Bitir</button>
+        
         <div class="control-buttons hidden" id="controlButtons">
-          <button id="muteButton" class="btn control-btn" title="Mikrofon Açık">🎙️</button>
-          <button id="cameraButton" class="btn control-btn active" title="Kamera Kapalı">📵</button>
-          <button id="speakerButton" class="btn control-btn" title="Hoparlör Kapalı">🔈</button>
+          <button id="muteButton" class="btn control-btn" title="Mikrofon">🎙️</button>
+          <button id="cameraButton" class="btn control-btn active" title="Kamera">📵</button>
+          <button id="speakerButton" class="btn control-btn" title="Hoparlör">🔈</button>
           <button id="fullscreenButton" class="btn control-btn" title="Tam Ekran">⛶</button>
-          <button id="restartICEButton" class="btn control-btn" title="Bağlantıyı Yeniden Başlat">🔄</button>
-          <button id="audioOnlyButton" class="btn control-btn" title="Sadece Sese Geç">🔊</button>
-          <button id="testButton" class="btn secondary" title="Test">🧪</button>
-          <button id="endButton" class="btn end-btn">Bitir</button>
+          <button id="restartICEButton" class="btn control-btn" title="Yeniden Başlat">🔄</button>
+          <button id="testButton" class="btn control-btn" title="Test">🧪</button>
         </div>
       </div>
     </div>
@@ -460,20 +436,6 @@
           }
         };
         
-        document.getElementById('audioOnlyButton').onclick = () => {
-          console.log('🔊 Switching to audio-only mode');
-          const senders = this.webRTCManager.peerConnection?.getSenders() || [];
-          senders.forEach(sender => {
-            if (sender.track && sender.track.kind === 'video') {
-              sender.track.enabled = false;
-              console.log('📵 Video disabled');
-            }
-          });
-          if (typeof window.showToast === 'function') {
-            window.showToast('info', 'Sadece ses moduna geçildi');
-          }
-        };
-        
         setInterval(() => {
           if (this.webRTCManager.connectionMonitor) {
             const stats = this.webRTCManager.connectionMonitor.getStats();
@@ -514,8 +476,11 @@
           }
         }, 2000);
         
-        document.getElementById('testButton').onclick = () => window.open('/test-suite.html', '_blank');
-        document.getElementById('refreshButton').onclick = () => window.location.reload();
+        const testBtn = document.getElementById('testButton');
+        const refreshBtn = document.getElementById('refreshButton');
+        
+        if (testBtn) testBtn.onclick = () => window.open('/test-suite.html', '_blank');
+        if (refreshBtn) refreshBtn.onclick = () => window.location.reload();
       }
     }
     

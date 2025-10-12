@@ -67,17 +67,17 @@
     </footer>
   </div>
 
-  <!-- Arama Ekranı -->
+  <!-- Müşteri Görüşme Ekranı -->
   <div id="callScreen" class="container" style="display:none;">
     <div class="phone-interface">
-      <header class="call-header" style="padding:16px;background:#f8f9fa;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
-        <span id="connection-status" class="status status--connecting">Bağlanıyor...</span>
-        <span class="privacy-note" style="color:#6f7a85;font-size:0.9rem;">256-bit şifreleme</span>
-      </header>
+      <div class="status-bar">
+        <span id="connection-status">Bağlanıyor...</span>
+        <span class="privacy-note">🔒 Şifreli</span>
+      </div>
 
       <div class="video-container">
-        <video id="remoteVideo" autoplay playsinline aria-label="Destek personeli videosu"></video>
-        <video id="localVideo" autoplay playsinline muted aria-label="Kendi kameranız"></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="localVideo" autoplay playsinline muted></video>
         
         <button id="exitFullscreenBtn" class="exit-fullscreen-btn" title="Tam Ekrandan Çık">⛶</button>
         
@@ -89,10 +89,10 @@
 
         <div id="waiting-message" class="status-message hidden">
           <div class="spinner"></div>
-          <p>HayDay destek hattına bağlanılıyor...</p>
+          <p>Destek hattına bağlanılıyor...</p>
         </div>
 
-        <div id="error-message" class="status-message hidden" role="alert" aria-live="polite">
+        <div id="error-message" class="status-message hidden">
           <div class="icon">⚠️</div>
           <p id="error-text">Bağlantı hatası</p>
           <button id="retry-button" class="btn secondary">Tekrar Dene</button>
@@ -114,13 +114,13 @@
       <div class="controls">
         <input type="hidden" id="customerName" />
         <button id="callButton" style="display:none;"></button>
-        <button id="endButton" class="btn end-btn hidden"><span class="btn-icon">📴</span>Bitir</button>
+        <button id="endButton" class="btn end-btn hidden">📴 Bitir</button>
 
         <div class="control-buttons hidden">
-          <button id="muteButton" class="btn control-btn" title="Mikrofon Açık" aria-pressed="false" tabindex="0"><span class="icon">🎙️</span></button>
-          <button id="cameraButton" class="btn control-btn active" title="Kamera Kapalı" aria-pressed="true" tabindex="0"><span class="icon">📵</span></button>
-          <button id="speakerButton" class="btn control-btn" title="Hoparlör Kapalı" aria-pressed="false" tabindex="0"><span class="icon">🔈</span></button>
-          <button id="fullscreenButton" class="btn control-btn" title="Tam Ekran" aria-pressed="false" tabindex="0"><span class="icon">⛶</span></button>
+          <button id="muteButton" class="btn control-btn" title="Mikrofon">🎙️</button>
+          <button id="cameraButton" class="btn control-btn active" title="Kamera">📵</button>
+          <button id="speakerButton" class="btn control-btn" title="Hoparlör">🔈</button>
+          <button id="fullscreenButton" class="btn control-btn" title="Tam Ekran">⛶</button>
         </div>
       </div>
     </div>

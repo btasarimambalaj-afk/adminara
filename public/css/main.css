@@ -232,3 +232,62 @@ body{
 @media (max-width:480px) {
   .exit-fullscreen-btn { width: 40px; height: 40px; font-size: 20px; top: 10px; left: 10px; }
 }
+
+/* Admin & Customer Panel Separation */
+.privacy-note {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+}
+
+.error-text {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.success-text {
+  color: #27ae60;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+#otpInputSection {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#otpInputSection.hidden {
+  display: none !important;
+}
+
+#otpInput {
+  padding: 12px;
+  font-size: 18px;
+  text-align: center;
+  border: 2px solid #bdc3c7;
+  border-radius: 8px;
+  letter-spacing: 4px;
+}
+
+#verifyOtpBtn {
+  padding: 12px 24px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#verifyOtpBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#verifyOtpBtn:hover:not(:disabled) {
+  background: #2980b9;
+  transform: translateY(-2px);
+}

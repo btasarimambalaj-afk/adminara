@@ -104,6 +104,12 @@ async function queueLength() {
 }
 
 // OTP
+async function setOtp(adminId, data) {
+  if (!client) return;
+  const ttlMs = data.expires - Date.now();
+  await client.set(key(`otp:${adminId}`), JSON.stringify(data), { PX: ttlMs });
+}
+
 async function storeOtp(adminId, otp, ttlMs) {
   if (!client) return;
   await client.set(key(`otp:${adminId}`), otp, { PX: ttlMs });
@@ -179,6 +185,7 @@ module.exports = {
   enqueueCustomer,
   dequeueCustomer,
   queueLength,
+  setOtp,
   storeOtp,
   consumeOtp,
   storeSession,
