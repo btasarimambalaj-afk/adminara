@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="description" content="HayDay oyunu için canlı video destek hattı. Anında görüntülü bağlantı kurun!" />
   <meta name="theme-color" content="#3498db" />
   
@@ -40,21 +40,36 @@
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>" />
 </head>
 <body>
-  <!-- Karşılama Ekranı -->
-  <section class="hero">
-    <div class="hero-copy">
-      <span class="hero-tag">⚡ Canlı Destek</span>
-      <h1>Anında bağlan, hızlı çöz.</h1>
-      <p>Profesyonel ekibimizle güvenli görüntülü görüşme başlatın. Sorunlarınızı gerçek zamanlı olarak çözün.</p>
-      <div class="hero-cta">
-        <input type="text" id="welcomeNameInput" placeholder="Adınızı girin" maxlength="50" style="padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:1rem;flex:1;">
-        <button id="startCallBtn" class="btn-primary" disabled>Görüşmeyi Başlat</button>
-      </div>
+  <div class="brand" aria-label="Marka">
+    <div class="brand-badge" aria-hidden="true">📞</div>
+    <div class="brand-name">Canlı Destek</div>
+  </div>
+
+  <div class="container" role="main" aria-labelledby="title" id="welcomeScreen">
+    <h1 id="title">Canlı Sesli ve Görüntülü</h1>
+    <h2>Destek Hizmeti</h2>
+    <p class="lead">Deneyimli ekibimizle güvenli, hızlı ve profesyonel bir şekilde sesli veya görüntülü destek alın.</p>
+
+    <div class="field">
+      <input type="text" id="welcomeNameInput" placeholder="Adınız" maxlength="50" autocomplete="name" inputmode="text" aria-label="Adınız" />
     </div>
-    <div class="hero-visual">
-      <div class="hero-visual-card">📞</div>
+
+    <button id="startCallBtn" disabled aria-disabled="true">Görüşmeyi Başlat</button>
+  </div>
+
+  <footer>
+    <span class="foot-main">
+      Bu platform üzerinden gerçekleştirilen tüm görüşmeler;
+      telefon numarası, e-posta veya benzeri kişisel iletişim bilgileri talep edilmeksizin,
+      yalnızca web sitemizin altyapısı üzerinden güvenli bağlantı protokolleriyle yürütülür.
+    </span>
+    <div class="foot-legal">
+      <strong>Güvenlik ve Veri Koruma İlkeleri</strong><br/>
+      🔒 İletişim TLS/SSL ile şifrelenir<br/>
+      🛡️ Görüşme verileri üçüncü taraflarla paylaşılmaz<br/>
+      📜 KVKK/GDPR kapsamında işlenir.
     </div>
-  </section>
+  </footer>
 
   <!-- Arama Ekranı -->
   <div id="callScreen" class="container" style="display:none;">
@@ -134,21 +149,36 @@
     }
   </script>
   <script>
-    const welcomeNameInput = document.getElementById('welcomeNameInput');
-    const startCallBtn = document.getElementById('startCallBtn');
-    
-    welcomeNameInput.oninput = function() {
-      startCallBtn.disabled = this.value.trim().length < 2;
-    };
-    
-    welcomeNameInput.onkeypress = function(e) {
-      if (e.key === 'Enter' && this.value.trim().length >= 2) {
-        startCallBtn.click();
+    const nameInput = document.getElementById('welcomeNameInput');
+    const startBtn = document.getElementById('startCallBtn');
+
+    function updateBtn(){
+      const ok = nameInput.value.trim().length >= 2;
+      startBtn.disabled = !ok;
+      startBtn.setAttribute('aria-disabled', String(!ok));
+      startBtn.classList.toggle('ready', ok);
+    }
+
+    window.addEventListener('load', () => {
+      updateBtn();
+      try { nameInput.focus({ preventScroll: true }); } catch(_) { nameInput.focus(); }
+    });
+
+    nameInput.addEventListener('input', updateBtn);
+
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!startBtn.disabled) {
+          startBtn.classList.add('ready');
+          if (navigator.vibrate) navigator.vibrate(15);
+          startBtn.click();
+        }
       }
-    };
-    
-    startCallBtn.onclick = function() {
-      const name = welcomeNameInput.value.trim();
+    });
+
+    startBtn.onclick = function() {
+      const name = nameInput.value.trim();
       if (name.length >= 2) {
         document.getElementById('customerName').value = name;
         document.getElementById('welcomeScreen').style.display = 'none';
