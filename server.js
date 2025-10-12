@@ -258,6 +258,8 @@ app.post('/metrics/candidate-type', metricsOriginGuard, (req, res) => {
 
 // Session helpers
 const adminSession = require('./utils/admin-session');
+const { celebrate, Joi, errors } = require('celebrate');
+
 function setSessionCookie(res, token, ttl = adminSession.SESSION_TTL_MS) {
   const prod = process.env.NODE_ENV === 'production';
   res.cookie('adminSession', token, {
@@ -271,13 +273,22 @@ function setSessionCookie(res, token, ttl = adminSession.SESSION_TTL_MS) {
 
 const { createOtpForAdmin, verifyAdminOtp } = require('./socket/admin-auth');
 
-app.post('/admin/otp/request', (req, res) => {
+app.post('/admin/otp/request', celebrate({
+  body: Joi.object({
+    adminId: Joi.string().trim().max(64).default('admin')
+  })
+}), (req, res) => {
   const adminId = String(req.body?.adminId || 'admin');
   createOtpForAdmin(adminId, state.bot);
   res.sendStatus(204);
 });
 
-app.post('/admin/otp/verify', async (req, res) => {
+app.post('/admin/otp/verify', celebrate({
+  body: Joi.object({
+    adminId: Joi.string().trim().max(64).default('admin'),
+    code: Joi.string().pattern(/^\d{6}$/).required()
+  })
+}), async (req, res) => {
   const adminId = String(req.body?.adminId || 'admin');
   const code = String(req.body?.code || '');
   const ok = verifyAdminOtp(adminId, code);
@@ -303,6 +314,9 @@ app.post('/admin/logout', async (req, res) => {
 
 // Routes
 app.use('/', require('./routes')(state));
+
+// Celebrate error handler
+app.use(errors());
 
 // OTP attempts tracking
 const otpAttempts = new Map();

@@ -48,9 +48,12 @@ const startRoomTimeout = withClearTimeout((state, io) => {
   }, ROOM_TIMEOUT_MS);
 });
 
-function createHandleRoomJoin(io, state) {
-  const handleRoomJoin = function(socket, data) {
+async function createHandleRoomJoin(io, state) {
+  const handleRoomJoin = async function(socket, data) {
     const { customerSockets, bot } = state;
+    const stateStore = require('../utils/state-store');
+    const enableQueue = process.env.ENABLE_QUEUE === 'true';
+    
     try {
       const { isAdmin, customerName } = data;
       
@@ -82,9 +85,22 @@ function createHandleRoomJoin(io, state) {
         });
       } else {
         if (customerSockets.size >= 1) {
-          socket.emit('room:full', { message: 'Hat meşgul' });
-          socket.emit('channel:busy', { message: 'Hat meşgul' });
-          return;
+          if (enableQueue) {
+            const name = customerName || 'Misafir';
+            await stateStore.enqueueCustomer(socket.id, { customerName: name, joinedAt: Date.now() });
+            const position = await stateStore.queueLength();
+            socket.emit('queue:joined', { position });
+            logger.info('Customer queued', { socketId: socket.id, position });
+            
+            if (state.adminSocket) {
+              state.adminSocket.emit('queue:updated', { queueLength: position });
+            }
+            return;
+          } else {
+            socket.emit('room:full', { message: 'Hat meşgul' });
+            socket.emit('channel:busy', { message: 'Hat meşgul' });
+            return;
+          }
         }
         
         const name = customerName || 'Misafir';
@@ -182,7 +198,7 @@ module.exports = (io, socket, state) => {
     startRoomTimeout(state, io);
   }));
 
-  socket.on('disconnect', withClearTimeout(() => {
+  socket.on('disconnect', withClearTimeout(async () => {
     state.connectionCount = Math.max(0, state.connectionCount - 1);
     logger.info('Disconnected', { socketId: socket.id, remaining: state.connectionCount });
     
@@ -200,6 +216,18 @@ module.exports = (io, socket, state) => {
       if (customerSockets.size === 0) {
         state.channelStatus = state.adminSocket ? 'READY' : 'AVAILABLE';
         logger.info('No customers remaining', { status: state.channelStatus });
+        
+        if (process.env.ENABLE_QUEUE === 'true') {
+          const stateStore = require('../utils/state-store');
+          const nextCustomer = await stateStore.dequeueCustomer();
+          if (nextCustomer && state.adminSocket) {
+            const queuedSocket = io.sockets.sockets.get(nextCustomer.socketId);
+            if (queuedSocket) {
+              queuedSocket.emit('queue:ready');
+              logger.info('Next customer from queue', { socketId: nextCustomer.socketId });
+            }
+          }
+        }
       }
     }
     

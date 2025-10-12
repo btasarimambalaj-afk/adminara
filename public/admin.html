@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/mobile.css" />
   <link rel="stylesheet" href="css/accessibility.css" />
   <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="css/admin-panel.css" />
 </head>
 <body>
   <!-- Karşılama Ekranı - OTP -->
@@ -31,6 +32,31 @@
 
   <!-- Admin Paneli -->
   <div id="adminPanel" class="container" style="display:none;">
+    <div class="admin-queue-panel" id="adminQueuePanel" style="display:none;">
+      <div class="admin-queue-title">📋 Müşteri Bilgileri</div>
+      
+      <div class="admin-current-call" id="adminCurrentCall" style="display:none;">
+        <div class="admin-current-call-title">Aktif Görüşme</div>
+        <div class="admin-current-call-name" id="adminCurrentName">-</div>
+        <div class="admin-current-call-duration" id="adminCurrentDuration">00:00</div>
+      </div>
+      
+      <div class="admin-queue-list" id="adminQueueList">
+        <div class="admin-queue-empty">Sırada bekleyen yok</div>
+      </div>
+      
+      <div class="admin-stats">
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="adminTotalCalls">0</div>
+          <div class="admin-stat-label">Toplam Görüşme</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="adminQueueCount">0</div>
+          <div class="admin-stat-label">Sırada</div>
+        </div>
+      </div>
+    </div>
+    
     <div class="phone-interface admin-interface">
       <div class="status-bar">
         <span>HayDay Admin Paneli</span>
