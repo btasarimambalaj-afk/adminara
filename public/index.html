@@ -40,36 +40,31 @@
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>" />
 </head>
 <body>
-  <div class="brand" aria-label="Marka">
-    <div class="brand-badge" aria-hidden="true">📞</div>
-    <div class="brand-name">Canlı Destek</div>
-  </div>
-
-  <div class="container" role="main" aria-labelledby="title" id="welcomeScreen">
-    <h1 id="title">Canlı Sesli ve Görüntülü</h1>
-    <h2>Destek Hizmeti</h2>
-    <p class="lead">Deneyimli ekibimizle güvenli, hızlı ve profesyonel bir şekilde sesli veya görüntülü destek alın.</p>
-
-    <div class="field">
-      <input type="text" id="welcomeNameInput" placeholder="Adınız" maxlength="50" autocomplete="name" inputmode="text" aria-label="Adınız" />
+  <div class="hero-wrapper">
+    <div class="brand">
+      <div class="brand-badge">📞</div>
+      <div class="brand-name">Canlı Destek</div>
     </div>
 
-    <button id="startCallBtn" disabled aria-disabled="true">Görüşmeyi Başlat</button>
-  </div>
+    <div class="card" id="welcomeScreen">
+      <h1>Canlı Sesli ve Görüntülü Destek</h1>
+      <p>Deneyimli ekibimizle güvenli ve profesyonel destek alın.</p>
+      <input type="text" id="welcomeNameInput" placeholder="Adınız" maxlength="50" autocomplete="name" />
+      <button id="startCallBtn" disabled>Görüşmeyi Başlat</button>
+    </div>
 
-  <footer>
-    <span class="foot-main">
+    <footer>
       Bu platform üzerinden gerçekleştirilen tüm görüşmeler;
       telefon numarası, e-posta veya benzeri kişisel iletişim bilgileri talep edilmeksizin,
       yalnızca web sitemizin altyapısı üzerinden güvenli bağlantı protokolleriyle yürütülür.
-    </span>
-    <div class="foot-legal">
-      <strong>Güvenlik ve Veri Koruma İlkeleri</strong><br/>
-      🔒 İletişim TLS/SSL ile şifrelenir<br/>
-      🛡️ Görüşme verileri üçüncü taraflarla paylaşılmaz<br/>
-      📜 KVKK/GDPR kapsamında işlenir.
-    </div>
-  </footer>
+      <div class="legal">
+        <strong>Güvenlik ve Veri Koruma İlkeleri</strong><br/>
+        🔒 İletişim TLS/SSL ile şifrelenir<br/>
+        🛡️ Görüşme verileri üçüncü taraflarla paylaşılmaz<br/>
+        📜 KVKK/GDPR kapsamında işlenir.
+      </div>
+    </footer>
+  </div>
 
   <!-- Arama Ekranı -->
   <div id="callScreen" class="container" style="display:none;">
@@ -86,7 +81,7 @@
         <button id="exitFullscreenBtn" class="exit-fullscreen-btn" title="Tam Ekrandan Çık">⛶</button>
         
         <div id="callInfo" class="call-info-center hidden">
-          <div class="info-line">👨‍💼 Muhsin</div>
+          <div class="info-line">👨💼 Muhsin</div>
           <div class="info-line" id="callTime">--:--</div>
           <div class="info-line" id="callDuration">00:00</div>
         </div>
@@ -141,7 +136,6 @@
   <script src="js/queue-ui.js"></script>
   <script src="js/client.js"></script>
   <script>
-    // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
         .then(() => console.log('✅ Service Worker registered'))
@@ -155,7 +149,6 @@
     function updateBtn(){
       const ok = nameInput.value.trim().length >= 2;
       startBtn.disabled = !ok;
-      startBtn.setAttribute('aria-disabled', String(!ok));
       startBtn.classList.toggle('ready', ok);
     }
 
@@ -167,13 +160,10 @@
     nameInput.addEventListener('input', updateBtn);
 
     nameInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && !startBtn.disabled) {
         e.preventDefault();
-        if (!startBtn.disabled) {
-          startBtn.classList.add('ready');
-          if (navigator.vibrate) navigator.vibrate(15);
-          startBtn.click();
-        }
+        if (navigator.vibrate) navigator.vibrate(15);
+        startBtn.click();
       }
     });
 
@@ -182,6 +172,7 @@
       if (name.length >= 2) {
         document.getElementById('customerName').value = name;
         document.getElementById('welcomeScreen').style.display = 'none';
+        document.querySelector('.hero-wrapper').style.display = 'none';
         document.getElementById('callScreen').style.display = 'block';
         document.getElementById('callButton').click();
       }
