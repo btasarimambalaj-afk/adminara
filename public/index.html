@@ -173,9 +173,13 @@
       const name = nameInput.value.trim();
       if (name.length >= 2) {
         document.getElementById('customerName').value = name;
-        document.getElementById('welcomeScreen').style.display = 'none';
-        document.querySelector('.hero-wrapper').style.display = 'none';
-        document.getElementById('callScreen').style.display = 'block';
+        // Giriş ekranını tamamen gizle
+        const heroWrapper = document.querySelector('.hero-wrapper');
+        if (heroWrapper) heroWrapper.style.display = 'none';
+        // Görüşme ekranını göster
+        const callScreen = document.getElementById('callScreen');
+        if (callScreen) callScreen.style.display = 'block';
+        // Aramayı başlat
         document.getElementById('callButton').click();
       }
     };
