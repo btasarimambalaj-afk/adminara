@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="description" content="HayDay oyunu için canlı video destek hattı. Anında görüntülü bağlantı kurun!" />
   <meta name="theme-color" content="#3498db" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="HayDay Destek" />
   <link rel="manifest" href="/manifest.json" />
@@ -105,46 +105,6 @@
   <script src="js/webrtc.js"></script>
   <script src="js/queue-ui.js"></script>
   <script src="js/client.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(() => console.log('✅ Service Worker registered'))
-        .catch((err) => console.error('❌ Service Worker registration failed:', err));
-    }
-  </script>
-  <script>
-    const nameInput = document.getElementById('welcomeNameInput');
-    const startBtn = document.getElementById('startCallBtn');
-
-    function updateBtn(){
-      const ok = nameInput.value.trim().length >= 2;
-      startBtn.disabled = !ok;
-      startBtn.classList.toggle('ready', ok);
-    }
-
-    window.addEventListener('load', () => {
-      updateBtn();
-      nameInput.focus();
-    });
-
-    nameInput.addEventListener('input', updateBtn);
-
-    nameInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !startBtn.disabled) {
-        e.preventDefault();
-        startBtn.click();
-      }
-    });
-
-    startBtn.onclick = function() {
-      const name = nameInput.value.trim();
-      if (name.length >= 2) {
-        document.getElementById('customerName').value = name;
-        document.getElementById('welcomeWrapper').classList.add('hidden');
-        document.getElementById('callScreen').classList.remove('hidden');
-        document.getElementById('callButton').click();
-      }
-    };
-  </script>
+  <script src="js/customer-app.js"></script>
 </body>
 </html>
