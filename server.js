@@ -292,8 +292,15 @@ app.post('/admin/otp/request', celebrate({
   })
 }), async (req, res) => {
   const adminId = String(req.body?.adminId || 'admin');
-  await createOtpForAdmin(adminId, bot);
-  res.sendStatus(204);
+  logger.info('OTP request received', { adminId, botConfigured: !!bot, chatId: process.env.TELEGRAM_ADMIN_CHAT_ID });
+  try {
+    await createOtpForAdmin(adminId, bot);
+    logger.info('OTP creation completed');
+    res.sendStatus(204);
+  } catch (err) {
+    logger.error('OTP request failed', { err: err.message });
+    res.status(500).json({ error: 'OTP send failed' });
+  }
 });
 
 app.post('/admin/otp/verify', celebrate({
