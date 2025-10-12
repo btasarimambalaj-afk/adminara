@@ -19,18 +19,22 @@ class ClientApp {
   init() {
     this.setupSocketEvents();
     this.setupUIEvents();
-    this.joinChannelImmediately();
+    // ✅ Artık otomatik katılmıyor - kullanıcı butona basınca katılacak
   }
   
-  async joinChannelImmediately() {
-    // Sayfa açılır açılmaz kanala gir ve WebRTC başlat
-    console.log('✅ Müşteri kanala katılıyor...');
+  async joinChannel() {
+    // ✅ İsim girildikten SONRA kanala katıl
+    console.log('✅ Müşteri kanala katılıyor:', this.customerName);
+    
+    // Waiting mesajını göster
+    document.getElementById('waiting-message').classList.remove('hidden');
+    
     this.socket.emit('room:join', {
       isAdmin: false,
-      customerName: 'Misafir'
+      customerName: this.customerName
     });
     
-    // WebRTC stream'i başlat ama peer connection'u admin gelene kadar bekleme
+    // WebRTC stream'i başlat
     console.log('🎥 Customer WebRTC stream başlatılıyor...');
     const ok = await this.webRTCManager.start(this.socket, true);
     if (ok) {
@@ -113,15 +117,17 @@ class ClientApp {
     });
     
     this.socket.on('queue:joined', (data) => {
-      console.log('Joined queue, position:', data.position);
+      console.log('✅ Kuyruğa katıldı, sıra:', data.position);
+      // ✅ QueueUI göster
       this.queueUI.show(data.position);
       document.getElementById('waiting-message').classList.add('hidden');
     });
     
     this.socket.on('queue:ready', () => {
-      console.log('Queue ready, joining channel');
+      console.log('✅ Sıra geldi, kanala katılıyor');
       this.queueUI.hide();
-      this.joinChannelImmediately();
+      // ✅ Kuyruk hazır, şimdi kanala katıl (isim zaten var)
+      this.joinChannel();
     });
   }
 
@@ -162,9 +168,9 @@ class ClientApp {
 
     document.getElementById('callButton').disabled = true;
     
-    // İsim güncellemesi gönder (WebRTC zaten başlamış)
-    this.socket.emit('customer:update:name', { customerName: this.customerName });
-    console.log('✅ Müşteri ismi güncellendi:', this.customerName);
+    // ✅ İsim girildikten SONRA kanala katıl ve WebRTC başlat
+    await this.joinChannel();
+    console.log('✅ Müşteri bağlandı:', this.customerName);
   }
 
   async startCall() {
