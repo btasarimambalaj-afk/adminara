@@ -31,7 +31,10 @@ module.exports = (state) => {
       res.json({ iceServers });
     } catch (error) {
       logger.error('ICE servers error', { error: error.message });
-      res.json({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      res.status(500).json({ 
+        error: 'ICE servers unavailable',
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
+      });
     }
   });
 

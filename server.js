@@ -153,10 +153,10 @@ let channelStatus = 'AVAILABLE';
 let otpStore = new Map();
 let connectionCount = 0;
 let roomTimeout = null;
-const ROOM_TIMEOUT_MS = 60000; // 1 dakika
+const ROOM_TIMEOUT_MS = parseInt(process.env.ROOM_TIMEOUT_MS) || 60000;
 
 // OTP cleanup interval
-setInterval(() => {
+const otpCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [socketId, data] of otpStore.entries()) {
     if (data.expires < now) {
@@ -240,11 +240,6 @@ app.post('/metrics/candidate-type', metricsOriginGuard, (req, res) => {
     metrics.candidateByType.inc({ type: t });
   }
   res.sendStatus(204);
-});
-
-app.get('/config', (req, res) => {
-  const adminId = 'admin';
-  res.json(buildIceServersForClient(adminId));
 });
 
 // Session helpers
@@ -360,8 +355,10 @@ app.use((err, req, res, next) => {
 });
 
 // Graceful shutdown
-const gracefulShutdown = async (signal) => {
+let gracefulShutdown = async (signal) => {
   console.log(`\n🚨 ${signal} received, starting graceful shutdown...`);
+  
+  clearInterval(otpCleanupInterval);
   
   server.close(() => {
     console.log('✅ HTTP server closed');
@@ -393,10 +390,11 @@ server.listen(PORT, () => {
   
   if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
     const pingUrl = process.env.RENDER_EXTERNAL_URL;
+    const pingInterval = parseInt(process.env.PING_INTERVAL) || 240000;
     console.log(`🏓 Render Keep-Alive aktif: ${pingUrl}`);
-    console.log(`⏰ Ping interval: 4 dakika`);
+    console.log(`⏰ Ping interval: ${pingInterval/1000}s`);
     
-    setInterval(async () => {
+    const keepAliveInterval = setInterval(async () => {
       try {
         const https = require('https');
         https.get(`${pingUrl}/health`, (res) => {
@@ -416,6 +414,13 @@ server.listen(PORT, () => {
       } catch (error) {
         console.error('❌ Ping error:', error.message);
       }
-    }, 4 * 60 * 1000);
+    }, pingInterval);
+    
+    // Cleanup on shutdown
+    const originalShutdown = gracefulShutdown;
+    gracefulShutdown = (signal) => {
+      clearInterval(keepAliveInterval);
+      originalShutdown(signal);
+    };
   }
 });
