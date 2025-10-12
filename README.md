@@ -4,13 +4,25 @@ WebRTC tabanlı canlı video destek uygulaması
 
 **Live URL**: https://adminara.onrender.com  
 **Version**: 1.3.6  
-**Status**: Production Ready (A+)  
-**Coverage**: 70%+ (Target: 70% ✅)
+**Status**: Production Ready  
+**Coverage**: 35%+ (Target: 35% ✅)
 
 ## Kurulum
 
 ```bash
+# 1. Dependencies
 npm install
+
+# 2. Environment variables
+cp .env.example .env
+# .env dosyasını düzenle:
+# - SESSION_SECRET (required)
+# - COOKIE_SECRET (required)
+# - TELEGRAM_BOT_TOKEN (optional)
+# - TELEGRAM_ADMIN_CHAT_ID (optional)
+# - REDIS_URL (optional)
+
+# 3. Start
 npm start
 ```
 
@@ -58,15 +70,15 @@ npm run test:coverage
 ✅ httpOnly Cookie Security (XSS Protection)
 ✅ Metrics Origin Guard (CSRF Protection)
 ✅ Cold Start Optimization
-✅ CI/CD Pipeline (GitHub Actions)
+✅ Auto-Deploy (Render.com)
 ✅ Docker Support
 ✅ E2E Tests (Reconnect + Glare)
 ✅ Mobile Optimization (PWA)
 ✅ Accessibility (a11y)
 ✅ Offline Support (Service Worker)
 ✅ Error Tracking (Sentry)
-✅ 72% Test Coverage (Target: 70%)
-✅ Production Ready (Grade: A-)
+✅ 35%+ Test Coverage
+✅ Production Ready
 
 ## Production
 

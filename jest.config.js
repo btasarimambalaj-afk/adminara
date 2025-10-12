@@ -1,5 +1,7 @@
 module.exports = {
   testEnvironment: 'node',
+  setupFilesAfterEnv: ['<rootDir>/tests/jest.setup.js'],
+  testTimeout: 10000,
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'socket/**/*.js',
@@ -8,7 +10,8 @@ module.exports = {
     '!**/node_modules/**'
   ],
   testMatch: [
-    '**/tests/**/*.test.js'
+    '**/tests/**/*.test.js',
+    '**/tests/**/*.spec.js'
   ],
   coverageThreshold: {
     global: {
