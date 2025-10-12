@@ -58,8 +58,14 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
 // CORS configuration
+const originGuard = require('./utils/origin-guard');
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' ? process.env.PUBLIC_URL : '*',
+  origin(origin, callback) {
+    return originGuard.isAllowed(origin, originGuard.corsWhitelist)
+      ? callback(null, origin)
+      : callback(new Error('Origin not allowed by CORS'));
+  },
   credentials: true
 };
 
@@ -205,19 +211,12 @@ const state = new Proxy(stateTarget, {
 function metricsOriginGuard(req, res, next) {
   const origin = String(req.headers.origin || '');
   const referer = String(req.headers.referer || '');
-  const allowed = [
-    process.env.PUBLIC_URL,
-    'https://adminara.onrender.com',
-    'http://localhost:3000'
-  ].filter(Boolean);
-  
-  const badOrigin = origin && !allowed.some(a => origin.startsWith(a));
-  const badReferer = referer && !allowed.some(a => referer.startsWith(a));
-  
-  if (badOrigin || badReferer) {
+  const whitelist = originGuard.metricsWhitelist;
+
+  if (!originGuard.isAllowed(origin, whitelist) && !originGuard.isAllowed(referer, whitelist)) {
     return res.status(403).json({ error: 'Forbidden' });
   }
-  next();
+  return next();
 }
 
 // Metrics endpoints (protected)

@@ -42,6 +42,31 @@
         <video id="localVideo" autoplay playsinline muted></video>
         
         <button id="exitFullscreenBtn" class="exit-fullscreen-btn" title="Tam Ekrandan Çık">⛶</button>
+        <button id="diagnosticsToggle" class="diagnostics-toggle" title="Diagnostics">📊</button>
+        
+        <div id="diagnosticsPanel" class="diagnostics-panel hidden">
+          <div class="diagnostics-title">📊 Call Diagnostics</div>
+          <div class="diagnostics-row">
+            <span class="diagnostics-label">RTT:</span>
+            <span class="diagnostics-value" id="diagRTT">--</span>
+          </div>
+          <div class="diagnostics-row">
+            <span class="diagnostics-label">Packet Loss:</span>
+            <span class="diagnostics-value" id="diagPacketLoss">--</span>
+          </div>
+          <div class="diagnostics-row">
+            <span class="diagnostics-label">Jitter:</span>
+            <span class="diagnostics-value" id="diagJitter">--</span>
+          </div>
+          <div class="diagnostics-row">
+            <span class="diagnostics-label">Connection:</span>
+            <span class="diagnostics-value" id="diagConnection">--</span>
+          </div>
+          <div class="diagnostics-row">
+            <span class="diagnostics-label">ICE State:</span>
+            <span class="diagnostics-value" id="diagICE">--</span>
+          </div>
+        </div>
         
         <div id="callInfo" class="call-info-center hidden">
           <div class="info-line" id="customerNameDisplay">👤 Müşteri</div>
@@ -62,6 +87,8 @@
           <button id="cameraButton" class="btn control-btn active" title="Kamera Kapalı">📵</button>
           <button id="speakerButton" class="btn control-btn" title="Hoparlör Kapalı">🔈</button>
           <button id="fullscreenButton" class="btn control-btn" title="Tam Ekran">⛶</button>
+          <button id="restartICEButton" class="btn control-btn" title="Bağlantıyı Yeniden Başlat">🔄</button>
+          <button id="audioOnlyButton" class="btn control-btn" title="Sadece Sese Geç">🔊</button>
           <button id="testButton" class="btn secondary" title="Test">🧪</button>
           <button id="endButton" class="btn end-btn">Bitir</button>
         </div>
@@ -369,6 +396,75 @@
           document.getElementById('waiting-message').classList.remove('hidden');
           document.getElementById('callInfo').classList.add('hidden');
         });
+        document.getElementById('diagnosticsToggle').onclick = () => {
+          const panel = document.getElementById('diagnosticsPanel');
+          panel.classList.toggle('hidden');
+        };
+        
+        document.getElementById('restartICEButton').onclick = async () => {
+          console.log('🔄 Manual ICE restart triggered');
+          if (this.webRTCManager.peerConnection) {
+            await this.webRTCManager.handleConnectionFailure();
+            if (typeof window.showToast === 'function') {
+              window.showToast('info', 'Bağlantı yeniden başlatılıyor...');
+            }
+          }
+        };
+        
+        document.getElementById('audioOnlyButton').onclick = () => {
+          console.log('🔊 Switching to audio-only mode');
+          const senders = this.webRTCManager.peerConnection?.getSenders() || [];
+          senders.forEach(sender => {
+            if (sender.track && sender.track.kind === 'video') {
+              sender.track.enabled = false;
+              console.log('📵 Video disabled');
+            }
+          });
+          if (typeof window.showToast === 'function') {
+            window.showToast('info', 'Sadece ses moduna geçildi');
+          }
+        };
+        
+        setInterval(() => {
+          if (this.webRTCManager.connectionMonitor) {
+            const stats = this.webRTCManager.connectionMonitor.getStats();
+            const rttEl = document.getElementById('diagRTT');
+            const plEl = document.getElementById('diagPacketLoss');
+            const jitterEl = document.getElementById('diagJitter');
+            const connEl = document.getElementById('diagConnection');
+            const iceEl = document.getElementById('diagICE');
+            
+            if (rttEl && stats.rtt) {
+              const rtt = Math.round(stats.rtt * 1000);
+              rttEl.textContent = rtt + 'ms';
+              rttEl.className = 'diagnostics-value ' + (rtt < 100 ? 'good' : rtt < 300 ? 'warning' : 'error');
+            }
+            
+            if (plEl) {
+              const pl = stats.packetLoss.toFixed(1);
+              plEl.textContent = pl + '%';
+              plEl.className = 'diagnostics-value ' + (pl < 2 ? 'good' : pl < 5 ? 'warning' : 'error');
+            }
+            
+            if (jitterEl && stats.latency) {
+              const jitter = Math.round(stats.latency * 1000);
+              jitterEl.textContent = jitter + 'ms';
+              jitterEl.className = 'diagnostics-value ' + (jitter < 30 ? 'good' : jitter < 100 ? 'warning' : 'error');
+            }
+            
+            if (connEl) {
+              connEl.textContent = stats.quality;
+              connEl.className = 'diagnostics-value ' + (stats.quality === 'good' ? 'good' : stats.quality === 'fair' ? 'warning' : 'error');
+            }
+            
+            if (iceEl && this.webRTCManager.peerConnection) {
+              const iceState = this.webRTCManager.peerConnection.iceConnectionState;
+              iceEl.textContent = iceState;
+              iceEl.className = 'diagnostics-value ' + (iceState === 'connected' ? 'good' : iceState === 'checking' ? 'warning' : 'error');
+            }
+          }
+        }, 2000);
+        
         document.getElementById('testButton').onclick = () => window.open('/test-suite.html', '_blank');
         document.getElementById('refreshButton').onclick = () => window.location.reload();
       }
