@@ -63,6 +63,7 @@ class WebRTCManager {
       console.log('📹 Kamera kapalı başlatıldı');
       
       this.setupSocketListeners();
+      this.setupDeviceChangeListener();
       
       return true;
     } catch (error) {
@@ -314,6 +315,26 @@ class WebRTCManager {
     }
   }
 
+  setupDeviceChangeListener() {
+    if (typeof navigator.mediaDevices === 'undefined') return;
+    
+    navigator.mediaDevices.addEventListener('devicechange', async () => {
+      console.log('🎧 Audio device changed');
+      const remoteVideo = document.getElementById('remoteVideo');
+      if (!remoteVideo) return;
+      
+      const savedDeviceId = localStorage.getItem('preferredAudioOutput');
+      if (savedDeviceId && typeof remoteVideo.setSinkId === 'function') {
+        try {
+          await remoteVideo.setSinkId(savedDeviceId);
+          console.log('✅ Restored audio output after device change');
+        } catch (err) {
+          console.warn('⚠️ Could not restore audio output:', err);
+        }
+      }
+    });
+  }
+  
   async setAudioOutputToEarpiece(videoElement) {
     // VARSAYILAN: Ahize modu (kulaklık)
     this.isUsingEarpiece = true;

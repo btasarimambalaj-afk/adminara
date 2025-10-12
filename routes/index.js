@@ -20,7 +20,12 @@ module.exports = (state) => {
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB'
       },
-      telegram: state.bot ? 'connected' : 'disabled'
+      telegram: state.bot ? 'connected' : 'disabled',
+      webrtc: {
+        activeSessions: state.customerSockets.size,
+        reconnectAttempts: state.reconnectAttempts || 0,
+        turnServers: process.env.TURN_URL ? 'configured' : 'none'
+      }
     });
   });
 
