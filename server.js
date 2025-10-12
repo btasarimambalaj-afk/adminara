@@ -12,14 +12,18 @@ const { initSentry, Sentry } = require('./utils/sentry');
 const stateStore = require('./utils/state-store');
 const telegramQueue = require('./jobs/telegram');
 
+const COOKIE_SECRET = process.env.COOKIE_SECRET || 
+  (process.env.NODE_ENV === 'production' ? crypto.randomBytes(32).toString('hex') : 'dev-secret');
+
 if (process.env.NODE_ENV === 'production' && !process.env.COOKIE_SECRET) {
-  throw new Error('COOKIE_SECRET is required in production');
+  logger.warn('COOKIE_SECRET not set, generated random secret (will change on restart)');
 }
 
+const crypto = require('crypto');
 const app = express();
 const cookieParser = require('cookie-parser');
 app.use(express.json());
-app.use(cookieParser(process.env.COOKIE_SECRET || 'dev-secret'));
+app.use(cookieParser(COOKIE_SECRET));
 initSentry(app);
 
 // TURN config (static or REST)
@@ -259,6 +263,8 @@ app.post('/metrics/candidate-type', metricsOriginGuard, (req, res) => {
 // Session helpers
 const adminSession = require('./utils/admin-session');
 const { celebrate, Joi, errors } = require('celebrate');
+
+module.exports.COOKIE_SECRET = COOKIE_SECRET;
 
 function setSessionCookie(res, token, ttl = adminSession.SESSION_TTL_MS) {
   const prod = process.env.NODE_ENV === 'production';
