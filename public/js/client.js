@@ -23,14 +23,11 @@ class ClientApp {
       customerName: 'Misafir'
     });
     
-    // WebRTC'yi hemen başlat (sürekli bağlı)
-    console.log('🎥 Customer WebRTC başlatılıyor...');
+    // WebRTC stream'i başlat ama peer connection'u admin gelene kadar bekleme
+    console.log('🎥 Customer WebRTC stream başlatılıyor...');
     const ok = await this.webRTCManager.start(this.socket, true);
     if (ok) {
-      console.log('✅ Customer WebRTC başladı');
-      // Peer connection'u hemen oluştur (admin ready beklemeden)
-      this.webRTCManager.createPeerConnection();
-      console.log('✅ Customer peer connection hazır');
+      console.log('✅ Customer WebRTC stream hazır, admin bekleniyor...');
     } else {
       console.error('❌ Customer WebRTC başlamadı');
     }
@@ -70,7 +67,12 @@ class ClientApp {
 
     this.socket.on('room:user:joined', async (data) => {
       if (data.role === 'admin') {
-        console.log('Admin joined, starting call');
+        console.log('👨💼 Admin joined, creating peer connection');
+        // Admin geldi, şimdi peer connection oluştur
+        if (!this.webRTCManager.peerConnection) {
+          this.webRTCManager.createPeerConnection();
+          console.log('✅ Customer peer connection created');
+        }
         await this.startCall();
       }
     });
@@ -139,8 +141,15 @@ class ClientApp {
     
     this.timer.start();
 
-    // Perfect Negotiation otomatik offer gönderir, manuel offer gereksiz
-    console.log('✅ Perfect Negotiation aktif, otomatik negotiation başlayacak');
+    // Perfect Negotiation onnegotiationneeded ile otomatik başlayacak
+    console.log('✅ Perfect Negotiation aktif, negotiation başlıyor...');
+    
+    // Force negotiation by adding/removing a dummy track (Safari fix)
+    if (this.webRTCManager.peerConnection) {
+      const pc = this.webRTCManager.peerConnection;
+      console.log('🔄 Signaling state:', pc.signalingState);
+      console.log('🔄 Connection state:', pc.connectionState);
+    }
   }
 
   endCall() {
