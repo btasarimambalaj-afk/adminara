@@ -232,10 +232,18 @@ class AdminApp {
     
     const testBtn = document.getElementById('testButton');
     const refreshBtn = document.getElementById('refreshButton');
+    const reloadBtn = document.getElementById('reloadBtn');
     
     if (testBtn) testBtn.onclick = () => window.open('/test-suite.html', '_blank');
     if (refreshBtn) refreshBtn.onclick = () => window.location.reload();
+    if (reloadBtn) reloadBtn.onclick = () => window.location.reload();
   }
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log('✅ Service Worker registered'))
+    .catch((err) => console.error('❌ Service Worker registration failed:', err));
 }
 
 new AdminApp();

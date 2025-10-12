@@ -112,13 +112,5 @@
   <script src="js/helpers.js"></script>
   <script src="js/webrtc.js"></script>
   <script src="js/admin-app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(() => console.log('✅ Service Worker registered'))
-        .catch((err) => console.error('❌ Service Worker registration failed:', err));
-    }
-    document.getElementById('reloadBtn').onclick = () => window.location.reload();
-  </script>
 </body>
 </html>
