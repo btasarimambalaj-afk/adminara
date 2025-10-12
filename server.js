@@ -356,24 +356,24 @@ app.use((err, req, res, next) => {
 
 // Graceful shutdown
 let gracefulShutdown = async (signal) => {
-  console.log(`\n🚨 ${signal} received, starting graceful shutdown...`);
+  logger.info('Graceful shutdown started', { signal });
   
   clearInterval(otpCleanupInterval);
   
   server.close(() => {
-    console.log('✅ HTTP server closed');
+    logger.info('HTTP server closed');
   });
   
   io.emit('server:shutdown', { message: 'Server restarting' });
   io.close(() => {
-    console.log('✅ Socket.IO closed');
+    logger.info('Socket.IO closed');
   });
   
   if (state.adminSocket) state.adminSocket.disconnect();
   state.customerSockets.forEach(socket => socket.disconnect());
   
   setTimeout(() => {
-    console.log('✅ Graceful shutdown complete');
+    logger.info('Graceful shutdown complete');
     process.exit(0);
   }, 5000);
 };
@@ -383,16 +383,15 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`👤 Customer: ${process.env.PUBLIC_URL || `http://localhost:${PORT}`}`);
-  console.log(`👨💼 Admin: ${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/admin`);
-  console.log(`❤️ Health: ${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/health`);
+  logger.info('Server started', { port: PORT });
+  logger.info('Customer URL', { url: process.env.PUBLIC_URL || `http://localhost:${PORT}` });
+  logger.info('Admin URL', { url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/admin` });
+  logger.info('Health URL', { url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/health` });
   
   if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
     const pingUrl = process.env.RENDER_EXTERNAL_URL;
     const pingInterval = parseInt(process.env.PING_INTERVAL) || 240000;
-    console.log(`🏓 Render Keep-Alive aktif: ${pingUrl}`);
-    console.log(`⏰ Ping interval: ${pingInterval/1000}s`);
+    logger.info('Keep-alive enabled', { url: pingUrl, interval: `${pingInterval/1000}s` });
     
     const keepAliveInterval = setInterval(async () => {
       try {
@@ -403,16 +402,16 @@ server.listen(PORT, () => {
           res.on('end', () => {
             try {
               const json = JSON.parse(data);
-              console.log(`🏓 Ping OK - Uptime: ${Math.floor(json.uptime)}s`);
+              logger.debug('Ping OK', { uptime: Math.floor(json.uptime) });
             } catch (e) {
-              console.log('🏓 Ping OK');
+              logger.debug('Ping OK');
             }
           });
         }).on('error', (error) => {
-          console.error('❌ Ping error:', error.message);
+          logger.error('Ping error', { error: error.message });
         });
       } catch (error) {
-        console.error('❌ Ping error:', error.message);
+        logger.error('Ping error', { error: error.message });
       }
     }, pingInterval);
     

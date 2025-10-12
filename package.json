@@ -1,6 +1,6 @@
 {
   "name": "hayday-webrtc-support",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "HayDay WebRTC destek uygulaması - Production Ready",
   "main": "server.js",
   "scripts": {
