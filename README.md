@@ -68,9 +68,8 @@ npm run test:coverage
 ✅ 72% Test Coverage (Target: 70%)
 ✅ Production Ready (Grade: A-)
 
-## Docs
+## Production
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Go-Live Runbook](docs/GO-LIVE.md)
-- [SRE Runbooks](docs/SRE-RUNBOOKS.md)
-- [Contributing](CONTRIBUTING.md)
+- Live: https://adminara.onrender.com
+- Admin: https://adminara.onrender.com/admin
+- Health: https://adminara.onrender.com/health
