@@ -313,7 +313,7 @@
         Helpers.setupControlButtons(this.webRTCManager);
         
         document.getElementById('endButton').onclick = () => {
-          console.log('📴 Admin müşteriyi bitirdi, yeni müşteri bekleniyor...');
+          console.log('📴 Admin müşteriyi bitirdi, bağlantı korunuyor...');
           this.timer.stop();
           
           // Müşteriye call:ended gönder
@@ -323,30 +323,20 @@
           document.getElementById('waiting-message').classList.remove('hidden');
           document.getElementById('callInfo').classList.add('hidden');
           
-          // Peer connection'u kapat ve yeniden oluştur
-          if (this.webRTCManager.peerConnection) {
-            this.webRTCManager.peerConnection.close();
-            this.webRTCManager.peerConnection = null;
-          }
-          this.webRTCManager.createPeerConnection();
-          console.log('✅ Yeni peer connection hazır');
+          // Admin için peer connection'u KORU (persistent)
+          console.log('✅ Peer connection korunuyor, yeni müşteri için hazır');
         };
         
         this.socket.on('call:ended', () => {
           console.log('📞 Müşteri görüşmeyi bitirdi');
           this.timer.stop();
           
-          // Peer connection'u kapat ve yeniden oluştur
-          if (this.webRTCManager.peerConnection) {
-            this.webRTCManager.peerConnection.close();
-            this.webRTCManager.peerConnection = null;
-          }
-          this.webRTCManager.createPeerConnection();
+          // Admin için peer connection'u KORU (persistent)
+          console.log('✅ Peer connection korunuyor, yeni müşteri için hazır');
           
           // Admin bağlı kalır, yeni müşteri bekler
           document.getElementById('waiting-message').classList.remove('hidden');
           document.getElementById('callInfo').classList.add('hidden');
-          console.log('✅ Yeni müşteri bekleniyor...');
         });
         document.getElementById('testButton').onclick = () => window.open('/test-suite.html', '_blank');
         document.getElementById('refreshButton').onclick = () => window.location.reload();

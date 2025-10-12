@@ -8,12 +8,14 @@ class WebRTCManager {
     this.perfectNegotiation = null;
     this.connectionMonitor = null;
     this.retryCount = 0;
-    this.maxRetries = 3;
+    this.maxRetries = 10;
     this.reconnectTimer = null;
-    // PR-6: Hard ceiling to avoid infinite reconnect loops
-    this.maxReconnectAttempts = 5;
+    this.maxReconnectAttempts = 10;
     this.reconnectAttempts = 0;
     this.config = null;
+    this.heartbeatInterval = null;
+    this.connectionState = 'disconnected';
+    this.persistentMode = false;
   }
 
   async loadIceConfig() {
@@ -100,27 +102,32 @@ class WebRTCManager {
     
     // Connection state
     this.peerConnection.onconnectionstatechange = () => {
-      console.log('🔌 Connection state:', this.peerConnection.connectionState);
+      const state = this.peerConnection.connectionState;
+      console.log('🔌 Connection state:', state);
+      this.connectionState = state;
       
-      if (this.peerConnection.connectionState === 'connected') {
+      if (state === 'connected') {
         this.retryCount = 0;
-        this.reconnectAttempts = 0; // PR-6: Reset on success
+        this.reconnectAttempts = 0;
         if (this.connectionMonitor) {
           this.connectionMonitor.start();
         }
         this.showUserMessage('Bağlantı kuruldu', 'success');
+        this.startHeartbeat();
         setTimeout(() => this.checkRelayUsage(), 1000);
       }
       
-      if (this.peerConnection.connectionState === 'disconnected') {
+      if (state === 'disconnected') {
         this.showUserMessage('Bağlantı koptu, yeniden deneniyor...', 'warning');
+        this.stopHeartbeat();
         this.scheduleReconnect();
       }
       
-      if (this.peerConnection.connectionState === 'failed') {
+      if (state === 'failed') {
         if (this.connectionMonitor) {
           this.connectionMonitor.stop();
         }
+        this.stopHeartbeat();
         this.handleConnectionFailure();
       }
     };
@@ -358,45 +365,37 @@ class WebRTCManager {
   }
 
   async handleConnectionFailure() {
-    // PR-6: Check hard ceiling first
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('❌ Max reconnect attempts reached');
-      this.showUserMessage('Connection failed. Please refresh the page.', 'error');
-      return;
-    }
-    
-    if (this.retryCount >= this.maxRetries) {
-      // Track final failure
-      this.sendMetric('/metrics/reconnect-failure');
       this.showUserMessage('Bağlantı kurulamadı. Lütfen sayfayı yenileyin.', 'error');
-      console.error('❌ Max retries reached');
+      this.connectionState = 'failed';
       return;
     }
     
-    this.retryCount++;
-    this.reconnectAttempts++; // PR-6: Track total attempts
+    this.reconnectAttempts++;
+    const backoff = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 8000);
     const startTime = Date.now();
-    console.log(`🔄 ICE restart attempt ${this.retryCount}/${this.maxRetries}`);
-    this.showUserMessage(`Yeniden bağlanılıyor... (${this.retryCount}/${this.maxRetries})`, 'info');
     
-    // Track attempt
+    console.log(`🔄 Reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} (backoff: ${backoff}ms)`);
+    this.showUserMessage(`Yeniden bağlanılıyor... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'info');
+    this.connectionState = 'reconnecting';
+    
     this.sendMetric('/metrics/reconnect-attempt');
     
+    await new Promise(resolve => setTimeout(resolve, backoff));
+    
     try {
-      // Safari-compatible: Use createOffer with iceRestart instead of restartIce()
       const offer = await this.peerConnection.createOffer({ iceRestart: true });
       await this.peerConnection.setLocalDescription(offer);
       this.socket.emit('rtc:description', { description: offer, restart: true });
       
-      // Track success
       const duration = Date.now() - startTime;
       this.sendMetric('/metrics/reconnect-success', { duration });
-      console.log(`✅ ICE restart initiated (Safari-compatible) - ${duration}ms`);
+      console.log(`✅ ICE restart initiated - ${duration}ms`);
     } catch (err) {
-      // Track failure
       this.sendMetric('/metrics/reconnect-failure');
       console.error('❌ ICE restart failed:', err);
-      this.showUserMessage('Yeniden bağlanma başarısız', 'error');
+      setTimeout(() => this.handleConnectionFailure(), backoff);
     }
   }
 
@@ -448,6 +447,37 @@ class WebRTCManager {
     }
   }
 
+  startHeartbeat() {
+    this.stopHeartbeat();
+    console.log('❤️ Starting heartbeat...');
+    this.heartbeatInterval = setInterval(() => {
+      if (this.peerConnection && this.peerConnection.connectionState === 'connected') {
+        this.peerConnection.getStats().then(stats => {
+          let rtt = 0;
+          stats.forEach(report => {
+            if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+              rtt = report.currentRoundTripTime || 0;
+            }
+          });
+          if (rtt > 0) {
+            console.log('❤️ Heartbeat OK - RTT:', Math.round(rtt * 1000), 'ms');
+          }
+        }).catch(() => {});
+      } else {
+        console.warn('⚠️ Heartbeat failed - connection not stable');
+        this.stopHeartbeat();
+      }
+    }, 5000);
+  }
+  
+  stopHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+      console.log('❤️ Heartbeat stopped');
+    }
+  }
+  
   showUserMessage(message, type = 'info') {
     if (typeof window.showToast === 'function') {
       window.showToast(type, message);
@@ -456,26 +486,34 @@ class WebRTCManager {
     }
   }
 
-  endCall() {
+  endCall(keepConnection = false) {
     clearTimeout(this.reconnectTimer);
-    console.log('📴 Ending call');
+    console.log('📴 Ending call, keepConnection:', keepConnection);
     
-    if (this.localStream) {
-      this.localStream.getTracks().forEach(track => track.stop());
+    if (!keepConnection) {
+      this.stopHeartbeat();
+      
+      if (this.localStream) {
+        this.localStream.getTracks().forEach(track => track.stop());
+      }
+      
+      if (this.peerConnection) {
+        this.peerConnection.close();
+      }
+      
+      const localVideo = document.getElementById('localVideo');
+      const remoteVideo = document.getElementById('remoteVideo');
+      if (localVideo) localVideo.srcObject = null;
+      if (remoteVideo) remoteVideo.srcObject = null;
+      
+      this.localStream = null;
+      this.remoteStream = null;
+      this.peerConnection = null;
+    } else {
+      console.log('✅ Keeping connection alive for next customer');
+      const remoteVideo = document.getElementById('remoteVideo');
+      if (remoteVideo) remoteVideo.srcObject = null;
     }
-    
-    if (this.peerConnection) {
-      this.peerConnection.close();
-    }
-    
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    if (localVideo) localVideo.srcObject = null;
-    if (remoteVideo) remoteVideo.srcObject = null;
-    
-    this.localStream = null;
-    this.remoteStream = null;
-    this.peerConnection = null;
     
     if (this.socket) {
       this.socket.emit('call:end');
