@@ -26,30 +26,29 @@ app.use(express.json());
 app.use(cookieParser(COOKIE_SECRET));
 initSentry(app);
 
-// TURN config (static or REST)
-const TURN_URL = process.env.TURN_URL;
-const TURN_USER = process.env.TURN_USER;
-const TURN_PASS = process.env.TURN_PASS;
-const TURN_MODE = process.env.TURN_MODE || 'static';
-const TURN_SECRET = process.env.TURN_SECRET;
+// TURN config (static or REST) - using config values
+const TURN_SERVER_URL = config.TURN_SERVER_URL;
+const TURN_USERNAME = config.TURN_USERNAME;
+const TURN_CREDENTIAL = config.TURN_CREDENTIAL;
+const TURN_MODE = config.TURN_MODE;
+const TURN_SECRET = config.TURN_SECRET;
 
 function buildIceServersForClient(adminId = 'admin') {
   const ice = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' }
   ];
-  if (!TURN_URL) return { iceServers: ice };
+  if (!TURN_SERVER_URL) return { iceServers: ice };
 
   if (TURN_MODE === 'rest' && TURN_SECRET) {
     const ttlSecs = 3600;
     const username = `${Math.floor(Date.now() / 1000) + ttlSecs}:${adminId}`;
-    const crypto = require('crypto');
     const hmac = crypto.createHmac('sha1', TURN_SECRET);
     hmac.update(username);
     const credential = hmac.digest('base64');
-    ice.push({ urls: TURN_URL, username, credential });
-  } else if (TURN_USER && TURN_PASS) {
-    ice.push({ urls: TURN_URL, username: TURN_USER, credential: TURN_PASS });
+    ice.push({ urls: TURN_SERVER_URL, username, credential });
+  } else if (TURN_USERNAME && TURN_CREDENTIAL) {
+    ice.push({ urls: TURN_SERVER_URL, username: TURN_USERNAME, credential: TURN_CREDENTIAL });
   }
   return { iceServers: ice };
 }

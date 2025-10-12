@@ -21,6 +21,7 @@ cp .env.example .env
 # - TELEGRAM_BOT_TOKEN (optional)
 # - TELEGRAM_ADMIN_CHAT_ID (optional)
 # - REDIS_URL (optional)
+# - ALLOWED_METRICS_ORIGINS (optional, production recommended)
 
 # 3. Start
 npm start

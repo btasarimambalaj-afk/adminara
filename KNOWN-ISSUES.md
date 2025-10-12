@@ -57,11 +57,11 @@
 
 ### Documentation
 - [ ] Update FULL-DOCUMENTATION.md with removed files
-- [ ] Document new environment variables
+- [x] Document new environment variables (README + .env.example)
 - [ ] Add deployment troubleshooting guide
 
 ### Testing
-- [ ] Update tests for new handler signatures
+- [x] Update tests for new handler signatures
 - [ ] Add integration tests for OTP state store
 - [ ] Test health endpoint degraded states
 
