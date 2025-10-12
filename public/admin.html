@@ -7,28 +7,34 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>HayDay Admin Paneli</title>
   <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/welcome.css" />
+  <link rel="stylesheet" href="css/components/admin.css" />
   <link rel="stylesheet" href="css/mobile.css" />
   <link rel="stylesheet" href="css/accessibility.css" />
   <link rel="stylesheet" href="css/toast.css" />
-  <link rel="stylesheet" href="css/admin-panel.css" />
 </head>
 <body>
   <!-- Karşılama Ekranı - OTP -->
-  <div id="welcomeScreen" class="welcome-screen">
-    <div class="welcome-container">
-      <div class="welcome-logo">🔐</div>
-      <h1 class="welcome-title">Admin Girişi</h1>
-      <p class="welcome-text">Telegram'dan şifre alın ve giriş yapın</p>
-      <button id="requestOtpBtn" class="welcome-btn">Şifre İste 📱</button>
-      <div id="otpInputSection" style="display:none;margin-top:20px;width:100%">
-        <input type="text" id="otpInput" class="welcome-input" placeholder="6 haneli şifre" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" />
-        <button id="verifyOtpBtn" class="welcome-btn" disabled>Giriş Yap 🔓</button>
+  <section class="auth-card" id="welcomeScreen">
+    <header>
+      <h1>Admin girişi</h1>
+      <p>Telegram üzerinden aldığınız tek seferlik kodla doğrulayın.</p>
+    </header>
+    <ol class="auth-steps">
+      <li>Admin botundan kod iste.</li>
+      <li>Kodu 60 saniye içinde gir.</li>
+      <li>Panel otomatik açılacak.</li>
+    </ol>
+    <div class="otp-fieldset">
+      <button id="requestOtpBtn" class="btn-primary">Kod gönder</button>
+      <div class="otp-inputs" id="otpInputSection" hidden>
+        <label for="otpInput">6 haneli kod</label>
+        <input id="otpInput" inputmode="numeric" maxlength="6" />
+        <button id="verifyOtpBtn" class="btn-primary" disabled>Panele gir</button>
       </div>
-      <p id="otpError" class="welcome-text" style="color:#f44336;display:none;margin-top:10px;font-size:14px"></p>
-      <p id="otpSuccess" class="welcome-text" style="color:#4CAF50;display:none;margin-top:10px;font-size:14px">Şifre gönderildi!</p>
+      <p id="otpError" class="inline-error" hidden></p>
+      <p id="otpSuccess" style="color:#4CAF50;display:none;margin:0;">Şifre gönderildi!</p>
     </div>
-  </div>
+  </section>
 
   <!-- Admin Paneli -->
   <div id="adminPanel" class="container" style="display:none;">

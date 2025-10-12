@@ -32,7 +32,7 @@
   <meta name="twitter:image" content="https://adminara.onrender.com/icons/hayday.webp" />
   
   <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/welcome.css" />
+  <link rel="stylesheet" href="css/components/hero.css" />
   <link rel="stylesheet" href="css/mobile.css" />
   <link rel="stylesheet" href="css/accessibility.css" />
   <link rel="stylesheet" href="css/toast.css" />
@@ -41,30 +41,28 @@
 </head>
 <body>
   <!-- Karşılama Ekranı -->
-  <div id="welcomeScreen" class="welcome-screen">
-    <div class="welcome-container">
-      <div class="welcome-logo">🎮</div>
-      <h1 class="welcome-title">HayDay Canlı Destek</h1>
-      <p class="welcome-text">Oyun içi sorunlarınız için anında görüntülü yardım alın</p>
-      <div class="welcome-features">
-        <div class="feature">✅ Hızlı Bağlantı</div>
-        <div class="feature">🔒 Güvenli</div>
-        <div class="feature">🚀 Kolay Kullanım</div>
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="hero-tag">HayDay Destek</span>
+      <h1>Canlı yardım, profesyonel ekip.</h1>
+      <p>Bağlantı sorunlarını saniyeler içinde çözmek için güvenli görüntülü görüşme başlat.</p>
+      <div class="hero-cta">
+        <input type="text" id="welcomeNameInput" placeholder="Adınızı girin" maxlength="50" style="padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:1rem;flex:1;">
+        <button id="startCallBtn" class="btn-primary" disabled>Görüşmeyi Başlat</button>
       </div>
-      <input type="text" id="welcomeNameInput" class="welcome-input" placeholder="Adınızı girin" maxlength="50" />
-      <button id="startCallBtn" class="welcome-btn" disabled>Destek Ara 📞</button>
     </div>
-  </div>
+    <div class="hero-visual">
+      <div style="width:100%;max-width:420px;height:320px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:24px;display:flex;align-items:center;justify-content:center;color:white;font-size:3rem;">📞</div>
+    </div>
+  </section>
 
   <!-- Arama Ekranı -->
   <div id="callScreen" class="container" style="display:none;">
     <div class="phone-interface">
-      <div class="status-bar">
-        <span id="status-text">HayDay Admin Destek ( Muhsin )</span>
-        <span id="connection-status" class="connection-status">
-          <span class="connection-indicator connecting"></span>Bağlanıyor...
-        </span>
-      </div>
+      <header class="call-header" style="padding:16px;background:#f8f9fa;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
+        <span id="connection-status" class="status status--connecting">Bağlanıyor...</span>
+        <span class="privacy-note" style="color:#6f7a85;font-size:0.9rem;">256-bit şifreleme</span>
+      </header>
 
       <div class="video-container">
         <video id="remoteVideo" autoplay playsinline aria-label="Destek personeli videosu"></video>
