@@ -73,3 +73,20 @@ npm run test:coverage
 - Live: https://adminara.onrender.com
 - Admin: https://adminara.onrender.com/admin
 - Health: https://adminara.onrender.com/health
+
+## 📚 Dokümantasyon
+
+**⚠️ ÖNEMLİ**: `FULL-DOCUMENTATION.md` dosyası **SİLİNMEMELİ** ve her değişiklikte **GÜNCELLENMELİDİR**.
+
+Bu dosya:
+- Tüm proje yapısını açıklar
+- Her dosyanın ne işe yaradığını detaylandırır
+- Sistem akışlarını gösterir
+- Yeni geliştiriciler için başlangıç noktasıdır
+- AI'ların projeyi anlaması için gereklidir
+
+**Güncelleme Kuralları:**
+- Yeni dosya eklendiğinde → FULL-DOCUMENTATION.md'ye ekle
+- Dosya silindiğinde → FULL-DOCUMENTATION.md'den çıkar
+- Dosya işlevi değiştiğinde → Açıklamasını güncelle
+- Version değiştiğinde → Version numarasını güncelle
