@@ -3,7 +3,7 @@
 WebRTC tabanlı canlı video destek uygulaması
 
 **Live URL**: https://adminara.onrender.com  
-**Version**: 1.3.5  
+**Version**: 1.3.6  
 **Status**: Production Ready (A+)  
 **Coverage**: 70%+ (Target: 70% ✅)
 
