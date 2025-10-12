@@ -283,9 +283,9 @@ app.post('/admin/otp/request', celebrate({
   body: Joi.object({
     adminId: Joi.string().trim().max(64).default('admin')
   })
-}), (req, res) => {
+}), async (req, res) => {
   const adminId = String(req.body?.adminId || 'admin');
-  createOtpForAdmin(adminId, state.bot);
+  await createOtpForAdmin(adminId, bot);
   res.sendStatus(204);
 });
 

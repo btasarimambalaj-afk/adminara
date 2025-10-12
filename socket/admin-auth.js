@@ -13,7 +13,7 @@ const OTP_FAIL_LIMIT = parseInt(process.env.OTP_FAIL_LIMIT) || 5;
 const OTP_LOCKOUT_DURATION = parseInt(process.env.OTP_LOCKOUT_DURATION) || 900000;
 const ENABLE_OTP_RATE_LIMIT = process.env.ENABLE_OTP_RATE_LIMIT !== 'false';
 
-function generateAndSendOTP(socket, bot) {
+async function generateAndSendOTP(socket, bot) {
   const password = crypto.randomInt(100000, 999999).toString();
   adminPasswordStore.set(socket.id, {
     password,
@@ -21,26 +21,40 @@ function generateAndSendOTP(socket, bot) {
   });
 
   if (bot && process.env.TELEGRAM_ADMIN_CHAT_ID) {
-    bot.sendMessage(
-      process.env.TELEGRAM_ADMIN_CHAT_ID,
-      `🔐 Admin Panel Şifresi: ${password}\n⏰ 5 dakika geçerli\n\n👨💼 Admin Paneli:\n${process.env.PUBLIC_URL || 'http://localhost:3000'}/admin.html`
-    );
+    try {
+      await bot.sendMessage(
+        process.env.TELEGRAM_ADMIN_CHAT_ID,
+        `🔐 Admin Panel Şifresi: ${password}\n⏰ 5 dakika geçerli\n\n👨💼 Admin Paneli:\n${process.env.PUBLIC_URL || 'http://localhost:3000'}/admin.html`
+      );
+      logger.info('OTP sent via Telegram', { socketId: socket.id });
+    } catch (err) {
+      logger.error('Telegram OTP send failed', { err: err.message });
+    }
+  } else {
+    logger.warn('Telegram not configured', { bot: !!bot, chatId: !!process.env.TELEGRAM_ADMIN_CHAT_ID });
   }
 
   socket.emit('admin:password:sent');
   logger.info('Admin password sent', { socketId: socket.id });
 }
 
-function createOtpForAdmin(adminId, bot) {
+async function createOtpForAdmin(adminId, bot) {
   const password = crypto.randomInt(100000, 999999).toString();
   const data = { password, expires: Date.now() + 300000 };
   adminPasswordStore.set(adminId, data);
 
   if (bot && process.env.TELEGRAM_ADMIN_CHAT_ID) {
-    bot.sendMessage(
-      process.env.TELEGRAM_ADMIN_CHAT_ID,
-      `🔐 Admin Panel Şifresi: ${password}\n⏰ 5 dakika geçerli\n\n👨💼 Admin Paneli:\n${process.env.PUBLIC_URL || 'http://localhost:3000'}/admin.html`
-    );
+    try {
+      await bot.sendMessage(
+        process.env.TELEGRAM_ADMIN_CHAT_ID,
+        `🔐 Admin Panel Şifresi: ${password}\n⏰ 5 dakika geçerli\n\n👨💼 Admin Paneli:\n${process.env.PUBLIC_URL || 'http://localhost:3000'}/admin.html`
+      );
+      logger.info('OTP sent via Telegram', { adminId });
+    } catch (err) {
+      logger.error('Telegram OTP send failed', { err: err.message });
+    }
+  } else {
+    logger.warn('Telegram not configured', { bot: !!bot, chatId: !!process.env.TELEGRAM_ADMIN_CHAT_ID });
   }
   return data;
 }
@@ -93,8 +107,8 @@ module.exports = (socket, state) => {
     }
   });
 
-  socket.on('admin:password:request', () => {
-    generateAndSendOTP(socket, bot);
+  socket.on('admin:password:request', async () => {
+    await generateAndSendOTP(socket, bot);
   });
 
   socket.on('admin:password:verify', async (data) => {
