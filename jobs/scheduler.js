@@ -14,6 +14,11 @@ const initScheduler = traceAsync('scheduler.init', async function() {
   try {
     logger.info('Initializing job scheduler...');
     
+    if (!process.env.REDIS_URL) {
+      logger.info('Job scheduler disabled - Redis not configured');
+      return {};
+    }
+    
     // Schedule TURN rotation (weekly)
     await turnRotation.scheduleTurnRotation();
     
@@ -36,7 +41,8 @@ const initScheduler = traceAsync('scheduler.init', async function() {
     };
   } catch (err) {
     logger.error('Job scheduler initialization failed', { error: err.message });
-    throw err;
+    logger.warn('Continuing without job scheduler');
+    return {};
   }
 });
 
@@ -45,13 +51,26 @@ const initScheduler = traceAsync('scheduler.init', async function() {
  */
 async function shutdownScheduler() {
   try {
+    if (!process.env.REDIS_URL) {
+      logger.info('Job scheduler not running - skipping shutdown');
+      return;
+    }
+    
     logger.info('Shutting down job scheduler...');
     
-    await Promise.all([
-      turnRotation.turnRotationWorker.close(),
-      sessionCleanup.sessionCleanupWorker.close(),
-      retention.retentionWorker.close()
-    ]);
+    const closePromises = [];
+    
+    if (turnRotation.turnRotationWorker) {
+      closePromises.push(turnRotation.turnRotationWorker.close());
+    }
+    if (sessionCleanup.sessionCleanupWorker) {
+      closePromises.push(sessionCleanup.sessionCleanupWorker.close());
+    }
+    if (retention.retentionWorker) {
+      closePromises.push(retention.retentionWorker.close());
+    }
+    
+    await Promise.all(closePromises);
     
     logger.info('Job scheduler shut down successfully');
   } catch (err) {

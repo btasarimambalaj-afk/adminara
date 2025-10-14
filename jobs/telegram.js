@@ -50,17 +50,25 @@ function triggerFallbackNotification(data) {
 }
 
 async function isHealthy() {
-  if (!queue) return true;
+  if (!queue) return true; // No queue = healthy (fallback mode)
   try {
     await queue.client.ping();
     return true;
-  } catch {
+  } catch (err) {
+    logger.warn('Queue health check failed', { error: err.message });
     return false;
   }
+}
+
+async function close() {
+  if (worker) await worker.close();
+  if (queue) await queue.close();
+  logger.info('Telegram queue closed');
 }
 
 module.exports = {
   init,
   enqueueTelegramMessage,
   isHealthy,
+  close,
 };
