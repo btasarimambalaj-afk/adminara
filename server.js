@@ -161,23 +161,12 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Static files with cache control for JS files
-app.use('/js', express.static('public/js', {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.js')) {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-    }
-  }
-}));
-app.use(express.static('public'));
-
 // Rate limiting
 if (process.env.NODE_ENV === 'production') {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX) || 100
+    max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
+    skip: (req) => req.path === '/health' || req.path === '/ready'
   });
   app.use(limiter);
 }
@@ -340,8 +329,20 @@ app.post('/admin/logout', async (req, res) => {
 const { correlationMiddleware } = require('./routes/middleware/correlation');
 app.use(correlationMiddleware);
 
-// Routes
+// Routes (BEFORE static files)
 app.use('/', require('./routes')(state));
+
+// Static files (AFTER routes)
+app.use('/js', express.static('public/js', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
+app.use(express.static('public'));
 
 // V1 API Routes
 const adminRoutes = require('./routes/v1/admin');
