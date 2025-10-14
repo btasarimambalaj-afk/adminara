@@ -10,11 +10,23 @@ module.exports = (state) => {
     const stateStore = require('../utils/state-store');
     const telegramQueue = require('../jobs/telegram');
     
-    const redisHealthy = await stateStore.isHealthy();
-    const queueHealthy = await telegramQueue.isHealthy();
-    const telegramConfigured = state.bot && process.env.TELEGRAM_ADMIN_CHAT_ID;
+    let redisHealthy = true;
+    let queueHealthy = true;
     
-    const allHealthy = redisHealthy && queueHealthy && telegramConfigured;
+    try {
+      redisHealthy = await stateStore.isHealthy();
+    } catch (e) {
+      redisHealthy = !process.env.REDIS_URL; // OK if Redis not configured
+    }
+    
+    try {
+      queueHealthy = await telegramQueue.isHealthy();
+    } catch (e) {
+      queueHealthy = !process.env.TELEGRAM_BOT_TOKEN; // OK if Telegram not configured
+    }
+    
+    const telegramConfigured = state.bot && process.env.TELEGRAM_ADMIN_CHAT_ID;
+    const allHealthy = redisHealthy && queueHealthy;
     
     res.status(allHealthy ? 200 : 503).json({
       status: allHealthy ? 'ok' : 'degraded',
@@ -64,14 +76,6 @@ module.exports = (state) => {
         error: 'ICE servers unavailable',
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
       });
-    }
-  });
-
-  router.get('/admin/session/verify', (req, res) => {
-    if (req.session && req.session.adminAuthenticated) {
-      res.status(200).json({ authenticated: true });
-    } else {
-      res.status(401).json({ authenticated: false });
     }
   });
 
