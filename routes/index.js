@@ -41,6 +41,17 @@ module.exports = (state) => {
       }
     });
   });
+  
+  router.get('/ready', async (req, res) => {
+    const stateStore = require('../utils/state-store');
+    const redisHealthy = await stateStore.isHealthy();
+    
+    if (redisHealthy || !process.env.REDIS_URL) {
+      res.status(200).json({ ready: true });
+    } else {
+      res.status(503).json({ ready: false, reason: 'redis_unavailable' });
+    }
+  });
 
   router.get('/config/ice-servers', async (req, res) => {
     try {

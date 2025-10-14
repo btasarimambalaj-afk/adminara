@@ -3,9 +3,9 @@
 WebRTC tabanlı canlı video destek uygulaması
 
 **Live URL**: https://adminara.onrender.com  
-**Version**: 1.3.7  
-**Status**: Beta (Critical fixes in progress)  
-**Coverage**: 35%+ (Target: 35% ✅)
+**Version**: 1.3.8  
+**Status**: Production Ready  
+**Coverage**: 54%+ (Target: 85%)
 
 ## Kurulum
 
@@ -31,13 +31,16 @@ npm start
 
 ```bash
 # Build
-npm run docker:build
+docker build -t adminara .
 
 # Run
-npm run docker:run
+docker run -p 3000:3000 --env-file .env adminara
+
+# Docker Compose
+docker-compose up -d
 
 # Stop
-npm run docker:stop
+docker-compose down
 ```
 
 ## Test
@@ -62,6 +65,8 @@ npm run test:coverage
 - **Admin**: https://adminara.onrender.com/admin
 - **Test**: https://adminara.onrender.com/test-suite.html
 - **Health**: https://adminara.onrender.com/health
+- **Readiness**: https://adminara.onrender.com/ready
+- **Metrics**: https://adminara.onrender.com/metrics
 
 ## Features
 
@@ -86,6 +91,27 @@ npm run test:coverage
 - Live: https://adminara.onrender.com
 - Admin: https://adminara.onrender.com/admin
 - Health: https://adminara.onrender.com/health
+- Metrics: https://adminara.onrender.com/metrics (auth required)
+
+## Monitoring
+
+### Prometheus Queries
+```promql
+# Uptime percentage (last 24h)
+100 * (1 - (sum(rate(http_requests_total{status=~"5.."}[24h])) / sum(rate(http_requests_total[24h]))))
+
+# Active WebSocket connections
+websocket_connections_total
+
+# Average response time
+rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])
+```
+
+### Sentry Integration
+```bash
+# Set Sentry DSN in .env
+SENTRY_DSN=https://your-dsn@sentry.io/project
+```
 
 ## 📚 Dokümantasyon
 

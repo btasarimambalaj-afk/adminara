@@ -6,7 +6,7 @@ const crypto = require('crypto');
  * @param {number} ttl - Time to live in seconds (default: 24 hours)
  * @returns {Object} - { username, credential, expiresAt }
  */
-function generateTurnCredentials(secret, ttl = 86400) {
+function generateTurnCredentials(secret, ttl = 300) {
   const timestamp = Math.floor(Date.now() / 1000) + ttl;
   const username = `${timestamp}:hayday`;
   const hmac = crypto.createHmac('sha1', secret);
@@ -16,7 +16,8 @@ function generateTurnCredentials(secret, ttl = 86400) {
   return {
     username,
     credential,
-    expiresAt: timestamp
+    expiresAt: timestamp,
+    ttl
   };
 }
 
@@ -31,8 +32,8 @@ let cacheExpiry = 0;
 async function getICEServers() {
   const now = Date.now();
   
-  // Return cached credentials if still valid (with 1 min buffer)
-  if (cachedCredentials && cacheExpiry > now + 60000) {
+  // Return cached credentials if still valid (with 30s buffer)
+  if (cachedCredentials && cacheExpiry > now + 30000) {
     return cachedCredentials;
   }
   
@@ -56,9 +57,10 @@ async function getICEServers() {
     
     // Add TURN with ephemeral credentials if configured
     if (process.env.TURN_SERVER_URL && process.env.TURN_SECRET) {
+      const ttl = parseInt(process.env.TURN_TTL || '300');
       const { username, credential } = generateTurnCredentials(
         process.env.TURN_SECRET,
-        parseInt(process.env.TURN_TTL || '86400')
+        ttl
       );
       
       iceServers.push({

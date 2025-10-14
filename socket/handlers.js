@@ -157,6 +157,27 @@ module.exports = (io, socket, state) => {
   const handleRoomJoin = createHandleRoomJoin(io, state);
 
   socket.on('visit', () => logger.info('Visitor', { socketId: socket.id }));
+  
+  socket.on('queue:get', async () => {
+    const stateStore = require('../utils/state-store');
+    const queueLength = await stateStore.queueLength();
+    socket.emit('queue:update', { queueLength });
+  });
+  
+  socket.on('queue:pop', async () => {
+    if (socket.id !== state.adminSocket?.id) return;
+    const stateStore = require('../utils/state-store');
+    const nextCustomer = await stateStore.dequeueCustomer();
+    if (nextCustomer) {
+      const queuedSocket = io.sockets.sockets.get(nextCustomer.socketId);
+      if (queuedSocket) {
+        queuedSocket.emit('queue:ready');
+        logger.info('Admin popped customer from queue', { socketId: nextCustomer.socketId });
+      }
+      const queueLength = await stateStore.queueLength();
+      socket.emit('queue:update', { queueLength });
+    }
+  });
   socket.on('channel:join', (data) => handleRoomJoin(socket, data));
   socket.on('room:join', (data) => handleRoomJoin(socket, data));
   
@@ -190,9 +211,38 @@ module.exports = (io, socket, state) => {
   });
 
   socket.on('rtc:ice:candidate', (data) => socket.to('support-room').emit('rtc:ice:candidate', data));
+  
+  socket.on('audio:level', (data) => {
+    const { level } = data;
+    if (level < -60) {
+      logger.warn('Silence detected - disconnecting', { socketId: socket.id, level });
+      socket.emit('silence:detected', { message: 'Sessizlik algılandı' });
+      setTimeout(() => socket.disconnect(true), 5000);
+    }
+  });
+  
+  socket.on('ice:failed', async (data) => {
+    logger.error('ICE connection failed', { socketId: socket.id, state: data.state });
+    socket.emit('ice:restart', { message: 'Bağlantı yeniden başlatılıyor' });
+  });
+  
+  socket.on('chat:send', (data) => {
+    const { message } = data;
+    if (!message || message.length > 500) return;
+    
+    logger.info('Chat message', { socketId: socket.id, length: message.length });
+    
+    // Broadcast to room
+    socket.to('support-room').emit('chat:message', {
+      message,
+      sender: socket.id,
+      timestamp: Date.now()
+    });
+  });
 
   socket.on('call:end', withClearTimeout(() => {
     socket.to('support-room').emit('call:ended');
+    socket.to('support-room').emit('chat:clear');
     customerSockets.clear();
     logger.info('Call ended - starting timeout');
     startRoomTimeout(state, io);

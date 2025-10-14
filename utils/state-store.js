@@ -170,6 +170,36 @@ async function del(keyName) {
   await client.del(key(keyName));
 }
 
+async function set(keyName, value, ttlSecs) {
+  if (!client) return;
+  if (ttlSecs) {
+    await client.set(key(keyName), JSON.stringify(value), { EX: ttlSecs });
+  } else {
+    await client.set(key(keyName), JSON.stringify(value));
+  }
+}
+
+async function isJtiRevoked(jti) {
+  if (!jti || !client) return false;
+  try {
+    const exists = await client.exists(key(`revoked:${jti}`));
+    return exists === 1;
+  } catch (err) {
+    logger.error('JTI check error', { error: err.message });
+    return false;
+  }
+}
+
+async function revokeJti(jti, ttlSecs = 86400) {
+  if (!jti || !client) return;
+  try {
+    await client.setEx(key(`revoked:${jti}`), ttlSecs, '1');
+    logger.info('JWT revoked', { jti });
+  } catch (err) {
+    logger.error('JTI revoke error', { error: err.message });
+  }
+}
+
 module.exports = {
   init,
   isHealthy,
@@ -195,5 +225,8 @@ module.exports = {
   setWithExpiry,
   ttl,
   get,
+  set,
   del,
+  isJtiRevoked,
+  revokeJti,
 };

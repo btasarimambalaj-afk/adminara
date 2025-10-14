@@ -44,6 +44,31 @@ const env = envalid.cleanEnv(process.env, {
   DEBUG_STATE: envalid.bool({ default: false }),
   ENABLE_CSRF: envalid.bool({ default: false }),
   ENABLE_QUEUE: envalid.bool({ default: false }),
+  
+  // Part 16-17: JWT & MFA
+  JWT_SECRET: envalid.str({ 
+    default: process.env.NODE_ENV === 'production' 
+      ? undefined 
+      : 'dev-jwt-secret-change-in-production',
+    desc: 'JWT signing secret (min 32 chars)'
+  }),
+  JWT_ACCESS_TTL: envalid.num({ default: 900 }),
+  JWT_REFRESH_TTL: envalid.num({ default: 604800 }),
+  MFA_ISSUER: envalid.str({ default: 'AdminAra' }),
+  
+  // Part 17: TURN TTL
+  TURN_TTL: envalid.num({ default: 300 }),
+  
+  // Part 19: GDPR/KVKK
+  RETENTION_DAYS: envalid.num({ default: 30 }),
+  ENABLE_PII_MASKING: envalid.bool({ default: true }),
+  ENCRYPTION_KEY: envalid.str({ default: '' }),
+  
+  // Part 6: Adaptive Bitrate
+  ADAPTIVE_BITRATE: envalid.bool({ default: true }),
+  MIN_BITRATE: envalid.num({ default: 300000 }),
+  MAX_BITRATE: envalid.num({ default: 1500000 }),
+  BATTERY_THRESHOLD: envalid.num({ default: 0.2 }),
 }, {
   strict: false,
 });

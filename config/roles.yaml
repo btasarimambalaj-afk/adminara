@@ -1,0 +1,78 @@
+# RBAC (Role-Based Access Control) Configuration
+# Part 16: Admin role separation
+
+# Resource definitions
+resources:
+  queue:
+    - read      # View queue status
+    - pop       # Take next customer from queue
+    - manage    # Add/remove customers manually
+  
+  reports:
+    - read      # View existing reports
+    - generate  # Create new reports
+    - export    # Download/email reports
+  
+  users:
+    - read      # View user list
+    - create    # Add new users
+    - update    # Modify user details
+    - disable   # Deactivate users
+    - delete    # Remove users (dangerous)
+  
+  settings:
+    - read      # View system settings
+    - update    # Modify settings
+  
+  metrics:
+    - read      # View metrics dashboard
+    - export    # Export metrics data
+
+# Role definitions
+roles:
+  # Super admin - full access
+  admin:
+    - queue:read
+    - queue:pop
+    - queue:manage
+    - reports:read
+    - reports:generate
+    - reports:export
+    - users:read
+    - users:create
+    - users:update
+    - users:disable
+    - users:delete
+    - settings:read
+    - settings:update
+    - metrics:read
+    - metrics:export
+  
+  # Operator - daily operations
+  operator:
+    - queue:read
+    - queue:pop
+    - reports:read
+    - reports:generate
+    - metrics:read
+  
+  # Viewer - read-only access
+  viewer:
+    - queue:read
+    - reports:read
+    - metrics:read
+  
+  # Support - customer interaction only
+  support:
+    - queue:read
+    - queue:pop
+
+# Default role for new users
+default_role: viewer
+
+# Role hierarchy (higher roles inherit lower roles)
+hierarchy:
+  - viewer
+  - support
+  - operator
+  - admin

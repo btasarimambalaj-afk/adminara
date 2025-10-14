@@ -21,6 +21,27 @@ nameInput.addEventListener('keydown', (e) => {
   }
 });
 
+const socket = io();
+let myPosition = null;
+
+socket.on('queue:joined', (data) => {
+  myPosition = data.position;
+  const statusEl = document.getElementById('queueStatus');
+  if (statusEl) {
+    statusEl.textContent = `Sırada: ${myPosition}. sıradasınız`;
+    statusEl.classList.remove('hidden');
+  }
+});
+
+socket.on('queue:ready', () => {
+  myPosition = null;
+  const statusEl = document.getElementById('queueStatus');
+  if (statusEl) {
+    statusEl.textContent = 'Sıranız geldi! Bağlanıyor...';
+  }
+  document.getElementById('callButton').click();
+});
+
 startBtn.onclick = function() {
   const name = nameInput.value.trim();
   if (name.length >= 2) {

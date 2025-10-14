@@ -291,3 +291,15 @@ body{
   background: #2980b9;
   transform: translateY(-2px);
 }
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  .chat-video { width: 100%; height: auto; }
+  .video-container { min-height: 300px; }
+  .controls { padding: 15px; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .video-container { height: 70vh; }
+  .controls { padding: 8px; }
+}

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hayday-support-v1.3.0';
+const CACHE_NAME = 'hayday-support-v1.3.8';
 const STATIC_CACHE = [
   '/',
   '/index.html',
@@ -7,14 +7,20 @@ const STATIC_CACHE = [
   '/css/welcome.css',
   '/css/mobile.css',
   '/css/accessibility.css',
+  '/css/toast.css',
   '/js/client.js',
   '/js/webrtc.js',
   '/js/perfect-negotiation.js',
   '/js/connection-monitor.js',
+  '/js/adaptive-quality.js',
   '/js/helpers.js',
   '/js/accessibility.js',
+  '/js/toast.js',
+  '/js/customer-app.js',
+  '/js/admin-app.js',
   '/manifest.json',
-  '/404.html'
+  '/404.html',
+  '/500.html'
 ];
 
 // Install event
@@ -88,6 +94,30 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncCalls() {
-  // Implement offline call queue sync if needed
   console.log('Syncing offline calls...');
 }
+
+// Message handler for offline detection
+self.addEventListener('message', (event) => {
+  if (event.data === 'CHECK_OFFLINE') {
+    const isOffline = !self.navigator.onLine;
+    event.ports[0].postMessage({ offline: isOffline });
+  }
+});
+
+// Notify clients when going offline/online
+self.addEventListener('online', () => {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({ type: 'ONLINE' });
+    });
+  });
+});
+
+self.addEventListener('offline', () => {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({ type: 'OFFLINE' });
+    });
+  });
+});

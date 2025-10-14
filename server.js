@@ -76,7 +76,12 @@ const corsOptions = {
 async function initializeApp() {
   await stateStore.init();
   telegramQueue.init();
-  logger.info('State store and queue initialized');
+  
+  // Initialize job scheduler
+  const scheduler = require('./jobs/scheduler');
+  await scheduler.initScheduler();
+  
+  logger.info('State store, queue, and scheduler initialized');
 }
 
 const io = socketIO(server, { 
@@ -331,8 +336,23 @@ app.post('/admin/logout', async (req, res) => {
   res.sendStatus(204);
 });
 
+// Middleware
+const { correlationMiddleware } = require('./routes/middleware/correlation');
+app.use(correlationMiddleware);
+
 // Routes
 app.use('/', require('./routes')(state));
+
+// V1 API Routes
+const adminRoutes = require('./routes/v1/admin');
+const customerRoutes = require('./routes/v1/customer');
+
+app.use('/v1/admin', adminRoutes);
+app.use('/v1/customer', customerRoutes);
+
+// Make state and io available to routes
+app.set('state', state);
+app.set('io', io);
 
 // Celebrate error handler
 app.use(errors());
@@ -382,6 +402,13 @@ io.on('connection', (socket) => {
   state.connectionCount++;
   metrics.socketConnections.set(state.connectionCount);
   logger.info('New connection', { socketId: socket.id, total: state.connectionCount });
+  
+  // WebSocket failover support
+  socket.on('reconnect:transfer', async (data) => {
+    const bridge = require('./utils/bridge');
+    const success = await bridge.failoverWebSocket(data.oldSocketId, socket.id, state);
+    socket.emit('reconnect:transferred', { success });
+  });
 
   socketHandlers(io, socket, state);
   adminAuthHandlers(io, socket, state);
@@ -407,6 +434,10 @@ let gracefulShutdown = async (signal) => {
   logger.info('Graceful shutdown started', { signal });
   
   clearInterval(otpCleanupInterval);
+  
+  // Shutdown job scheduler
+  const scheduler = require('./jobs/scheduler');
+  await scheduler.shutdownScheduler();
   
   server.close(() => {
     logger.info('HTTP server closed');

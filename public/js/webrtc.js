@@ -7,6 +7,7 @@ class WebRTCManager {
     this.isCaller = false;
     this.perfectNegotiation = null;
     this.connectionMonitor = null;
+    this.adaptiveQuality = null;
     this.retryCount = 0;
     this.maxRetries = 10;
     this.reconnectTimer = null;
@@ -211,6 +212,7 @@ class WebRTCManager {
       console.log('🧊 ICE Connection state:', this.peerConnection.iceConnectionState);
       
       if (this.peerConnection.iceConnectionState === 'failed') {
+        this.socket.emit('ice:failed', { state: 'failed' });
         this.handleConnectionFailure();
       }
     };
@@ -239,6 +241,13 @@ class WebRTCManager {
         }
       );
       console.log('✅ Connection Monitor aktif');
+    }
+    
+    // Adaptive Quality aktive et
+    if (typeof AdaptiveQuality !== 'undefined') {
+      this.adaptiveQuality = new AdaptiveQuality(this.peerConnection);
+      this.adaptiveQuality.start();
+      console.log('✅ Adaptive Quality aktif');
     }
   }
 
@@ -645,6 +654,11 @@ class WebRTCManager {
     
     if (!keepConnection) {
       this.stopHeartbeat();
+      
+      if (this.adaptiveQuality) {
+        this.adaptiveQuality.stop();
+        this.adaptiveQuality = null;
+      }
       
       if (this.localStream) {
         this.localStream.getTracks().forEach(track => track.stop());

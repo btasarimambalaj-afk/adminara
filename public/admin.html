@@ -85,6 +85,7 @@
         <div id="waiting-message" class="status-message hidden">
           <div class="spinner"></div>
           <p>Müşteri bekleniyor...</p>
+          <p class="subtext">Kuyruk: <span id="queueLength">0</span></p>
         </div>
       </div>
 
@@ -105,10 +106,12 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/toast.js"></script>
+  <script src="js/offline-handler.js"></script>
   <script src="js/warmup.js"></script>
   <script src="js/accessibility.js"></script>
   <script src="js/perfect-negotiation.js"></script>
   <script src="js/connection-monitor.js"></script>
+  <script src="js/adaptive-quality.js"></script>
   <script src="js/helpers.js"></script>
   <script src="js/webrtc.js"></script>
   <script src="js/admin-app.js"></script>

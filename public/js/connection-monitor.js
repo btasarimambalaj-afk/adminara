@@ -12,6 +12,9 @@ class ConnectionMonitor {
     };
     this.monitoring = false;
     this.monitorInterval = null;
+    this.batteryMonitor = null;
+    this.battery = null;
+    this.isLowPower = false;
   }
   
   start() {
@@ -23,12 +26,19 @@ class ConnectionMonitor {
     this.monitorInterval = setInterval(() => {
       this.checkConnection();
     }, 2000); // Her 2 saniyede bir kontrol
+    
+    // Battery monitoring
+    this.startBatteryMonitoring();
   }
   
   stop() {
     if (this.monitorInterval) {
       clearInterval(this.monitorInterval);
       this.monitorInterval = null;
+    }
+    if (this.batteryMonitor) {
+      clearInterval(this.batteryMonitor);
+      this.batteryMonitor = null;
     }
     this.monitoring = false;
     console.log('📊 Connection Monitor durduruldu');
@@ -147,5 +157,67 @@ class ConnectionMonitor {
   
   getStats() {
     return { ...this.stats };
+  }
+  
+  async startBatteryMonitoring() {
+    if (!navigator.getBattery) {
+      console.warn('⚠️ Battery API not supported');
+      return;
+    }
+    
+    try {
+      this.battery = await navigator.getBattery();
+      
+      const checkBattery = () => {
+        const level = this.battery.level;
+        const charging = this.battery.charging;
+        const wasLowPower = this.isLowPower;
+        
+        // Low power mode if battery < 20% and not charging
+        this.isLowPower = level < 0.2 && !charging;
+        
+        if (this.isLowPower && !wasLowPower) {
+          console.log('🔋 Low battery detected:', Math.round(level * 100) + '%');
+          this.handleLowBattery();
+        } else if (!this.isLowPower && wasLowPower) {
+          console.log('🔋 Battery recovered:', Math.round(level * 100) + '%');
+        }
+      };
+      
+      // Check immediately
+      checkBattery();
+      
+      // Check every minute
+      this.batteryMonitor = setInterval(checkBattery, 60000);
+      
+      // Listen to battery events
+      this.battery.addEventListener('levelchange', checkBattery);
+      this.battery.addEventListener('chargingchange', checkBattery);
+      
+      console.log('🔋 Battery monitoring started');
+    } catch (err) {
+      console.warn('⚠️ Battery monitoring failed:', err);
+    }
+  }
+  
+  async handleLowBattery() {
+    console.warn('🔋 Activating low power mode');
+    
+    // Pause video to save battery
+    const senders = this.pc.getSenders();
+    for (const sender of senders) {
+      if (sender.track && sender.track.kind === 'video') {
+        sender.track.enabled = false;
+        console.log('📵 Video paused (low battery)');
+      }
+    }
+    
+    // Reduce audio bitrate
+    await this.reduceBitrate();
+    
+    // Notify user
+    if (typeof window.showToast === 'function') {
+      window.showToast('warning', 'Düşük pil: Video kapatıldı');
+    }
   }
 }

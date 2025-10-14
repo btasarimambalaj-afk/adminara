@@ -189,6 +189,15 @@ class AdminApp {
       }
     });
     
+    this.socket.on('queue:update', (data) => {
+      const queueEl = document.getElementById('queueLength');
+      if (queueEl) {
+        queueEl.textContent = data.queueLength || 0;
+      }
+    });
+    
+    this.socket.emit('queue:get');
+    
     this.socket.on('customer:name:updated', (data) => {
       const nameDisplay = document.getElementById('customerNameDisplay');
       if (nameDisplay && data.customerName) {
