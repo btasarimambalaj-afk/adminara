@@ -1,11 +1,22 @@
-// OpenTelemetry observability for Node.js
-const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
-const { Resource } = require('@opentelemetry/resources');
-const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
-const { SimpleSpanProcessor, ConsoleSpanExporter } = require('@opentelemetry/sdk-trace-base');
-const { PrometheusExporter } = require('@opentelemetry/exporter-prometheus');
-const { MeterProvider, PeriodicExportingMetricReader } = require('@opentelemetry/sdk-metrics');
+// OpenTelemetry observability for Node.js (optional)
 const logger = require('./logger');
+
+let NodeTracerProvider, Resource, SemanticResourceAttributes;
+let SimpleSpanProcessor, ConsoleSpanExporter;
+let PrometheusExporter, MeterProvider, PeriodicExportingMetricReader;
+
+try {
+  NodeTracerProvider = require('@opentelemetry/sdk-trace-node').NodeTracerProvider;
+  Resource = require('@opentelemetry/resources').Resource;
+  SemanticResourceAttributes = require('@opentelemetry/semantic-conventions').SemanticResourceAttributes;
+  SimpleSpanProcessor = require('@opentelemetry/sdk-trace-base').SimpleSpanProcessor;
+  ConsoleSpanExporter = require('@opentelemetry/sdk-trace-base').ConsoleSpanExporter;
+  PrometheusExporter = require('@opentelemetry/exporter-prometheus').PrometheusExporter;
+  MeterProvider = require('@opentelemetry/sdk-metrics').MeterProvider;
+  PeriodicExportingMetricReader = require('@opentelemetry/sdk-metrics').PeriodicExportingMetricReader;
+} catch (err) {
+  logger.warn('OpenTelemetry dependencies not installed - observability disabled');
+}
 
 let tracer = null;
 let meter = null;
@@ -14,6 +25,11 @@ let initialized = false;
 // Initialize OpenTelemetry
 function initObservability(serviceName = 'adminara') {
   if (initialized) return { tracer, meter };
+  
+  if (!NodeTracerProvider) {
+    logger.info('OpenTelemetry not available - skipping initialization');
+    return { tracer: null, meter: null };
+  }
   
   try {
     // Tracer setup
@@ -73,6 +89,11 @@ function startSpan(name, attributes = {}) {
 
 // Wrap async function with tracing
 function traceAsync(name, fn) {
+  if (!tracer) {
+    // No tracing available, return original function
+    return fn;
+  }
+  
   return async (...args) => {
     const span = startSpan(name);
     const startTime = Date.now();

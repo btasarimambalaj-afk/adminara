@@ -7,7 +7,7 @@ const env = envalid.cleanEnv(process.env, {
   PUBLIC_URL: envalid.str({ default: '' }),
   
   SESSION_SECRET: envalid.str({ 
-    default: process.env.NODE_ENV === 'production' ? undefined : 'dev-session-secret',
+    default: crypto.randomBytes(32).toString('hex'),
     desc: 'Session secret for Express sessions'
   }),
   COOKIE_SECRET: envalid.str({ 
@@ -47,9 +47,7 @@ const env = envalid.cleanEnv(process.env, {
   
   // Part 16-17: JWT & MFA
   JWT_SECRET: envalid.str({ 
-    default: process.env.NODE_ENV === 'production' 
-      ? undefined 
-      : 'dev-jwt-secret-change-in-production',
+    default: crypto.randomBytes(32).toString('hex'),
     desc: 'JWT signing secret (min 32 chars)'
   }),
   JWT_ACCESS_TTL: envalid.num({ default: 900 }),
