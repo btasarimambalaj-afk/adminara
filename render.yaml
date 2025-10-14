@@ -2,49 +2,17 @@ services:
   - type: web
     name: adminara
     env: node
+    region: frankfurt
     plan: free
-    repo: https://github.com/btasarimambalaj-afk/adminara
-    branch: main
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
-    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
-      - key: PUBLIC_URL
-        sync: false
-      - key: RENDER_EXTERNAL_URL
-        sync: false
-      - key: TELEGRAM_BOT_TOKEN
-        sync: false
-      - key: TELEGRAM_ADMIN_CHAT_ID
-        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: COOKIE_SECRET
         generateValue: true
-      - key: RATE_LIMIT_MAX
-        value: 100
-      - key: MAX_CONNECTIONS
-        value: 50
-      - key: TURN_SERVER_URL
-        sync: false
-      - key: TURN_MODE
-        value: static
-      - key: TURN_USERNAME
-        sync: false
-      - key: TURN_CREDENTIAL
-        sync: false
-      - key: TURN_SECRET
-        generateValue: true
-      - key: ENABLE_QUEUE
-        value: true
-      - key: REDIS_URL
-        sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: SENTRY_DSN
-        sync: false
