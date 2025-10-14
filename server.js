@@ -148,6 +148,11 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "blob:"],
       frameSrc: ["'none'"]
     }
+  },
+  hsts: {
+    maxAge: 63072000, // 2 years
+    includeSubDomains: true,
+    preload: true
   }
 }));
 app.use(cors(corsOptions));
