@@ -372,9 +372,10 @@ app.use(errors());
 const otpAttempts = new Map();
 state.otpAttempts = otpAttempts;
 
-// CSRF Protection (optional)
+// CSRF Protection (production default: enabled)
 const { validateCSRF } = require('./utils/middleware');
-if (process.env.ENABLE_CSRF === 'true') {
+const csrfEnabled = process.env.ENABLE_CSRF !== 'false' && process.env.NODE_ENV === 'production';
+if (csrfEnabled) {
   io.use((socket, next) => validateCSRF(socket, next));
   logger.info('CSRF protection enabled');
 }
