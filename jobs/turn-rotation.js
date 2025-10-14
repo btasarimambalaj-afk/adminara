@@ -1,15 +1,27 @@
-const { Queue, Worker } = require('bullmq');
 const crypto = require('crypto');
 const config = require('../config');
 const logger = require('../utils/logger');
 
-const connection = config.REDIS_URL ? {
-  host: new URL(config.REDIS_URL).hostname,
-  port: new URL(config.REDIS_URL).port
-} : undefined;
+let Queue, Worker;
+let turnRotationQueue = null;
+let turnRotationWorker = null;
 
-// Queue for TURN secret rotation
-const turnRotationQueue = new Queue('turn-rotation', { connection });
+try {
+  if (config.REDIS_URL) {
+    const bullmq = require('bullmq');
+    Queue = bullmq.Queue;
+    Worker = bullmq.Worker;
+    
+    const connection = {
+      host: new URL(config.REDIS_URL).hostname,
+      port: new URL(config.REDIS_URL).port
+    };
+    
+    turnRotationQueue = new Queue('turn-rotation', { connection });
+  }
+} catch (err) {
+  logger.warn('BullMQ not available for TURN rotation', { error: err.message });
+}
 
 /**
  * Rotate TURN secret
@@ -44,26 +56,33 @@ async function rotateTurnSecret() {
 }
 
 // Worker to process rotation jobs
-const turnRotationWorker = new Worker('turn-rotation', async (job) => {
-  logger.info('Processing TURN rotation job', { jobId: job.id });
-  return await rotateTurnSecret();
-}, { connection });
+if (Worker && config.REDIS_URL) {
+  const connection = {
+    host: new URL(config.REDIS_URL).hostname,
+    port: new URL(config.REDIS_URL).port
+  };
+  
+  turnRotationWorker = new Worker('turn-rotation', async (job) => {
+    logger.info('Processing TURN rotation job', { jobId: job.id });
+    return await rotateTurnSecret();
+  }, { connection });
 
-turnRotationWorker.on('completed', (job) => {
-  logger.info('TURN rotation completed', { jobId: job.id });
-});
+  turnRotationWorker.on('completed', (job) => {
+    logger.info('TURN rotation completed', { jobId: job.id });
+  });
 
-turnRotationWorker.on('failed', (job, err) => {
-  logger.error('TURN rotation failed', { jobId: job?.id, error: err.message });
-});
+  turnRotationWorker.on('failed', (job, err) => {
+    logger.error('TURN rotation failed', { jobId: job?.id, error: err.message });
+  });
+}
 
 /**
  * Schedule weekly TURN rotation
  * Runs every Sunday at 00:00
  */
 async function scheduleTurnRotation() {
-  if (!connection) {
-    logger.warn('Redis not configured, skipping TURN rotation schedule');
+  if (!turnRotationQueue) {
+    logger.info('TURN rotation disabled - Redis not configured');
     return;
   }
   

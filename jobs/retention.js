@@ -1,15 +1,28 @@
-const { Queue, Worker } = require('bullmq');
 const fs = require('fs').promises;
 const path = require('path');
 const config = require('../config');
 const logger = require('../utils/logger');
 
-const connection = config.REDIS_URL ? {
-  host: new URL(config.REDIS_URL).hostname,
-  port: new URL(config.REDIS_URL).port
-} : undefined;
+let Queue, Worker;
+let retentionQueue = null;
+let retentionWorker = null;
 
-const retentionQueue = new Queue('retention', { connection });
+try {
+  if (config.REDIS_URL) {
+    const bullmq = require('bullmq');
+    Queue = bullmq.Queue;
+    Worker = bullmq.Worker;
+    
+    const connection = {
+      host: new URL(config.REDIS_URL).hostname,
+      port: new URL(config.REDIS_URL).port
+    };
+    
+    retentionQueue = new Queue('retention', { connection });
+  }
+} catch (err) {
+  logger.warn('BullMQ not available for retention', { error: err.message });
+}
 
 /**
  * Delete old log files based on retention policy
@@ -58,40 +71,47 @@ async function anonymizeOldSessions() {
   }
 }
 
-const retentionWorker = new Worker('retention', async (job) => {
-  logger.info('Processing retention job', { jobId: job.id, type: job.name });
+if (Worker && config.REDIS_URL) {
+  const connection = {
+    host: new URL(config.REDIS_URL).hostname,
+    port: new URL(config.REDIS_URL).port
+  };
   
-  if (job.name === 'delete-old-logs') {
-    return await deleteOldLogs();
-  } else if (job.name === 'anonymize-sessions') {
-    return await anonymizeOldSessions();
-  }
-  
-  throw new Error(`Unknown retention job: ${job.name}`);
-}, { connection });
+  retentionWorker = new Worker('retention', async (job) => {
+    logger.info('Processing retention job', { jobId: job.id, type: job.name });
+    
+    if (job.name === 'delete-old-logs') {
+      return await deleteOldLogs();
+    } else if (job.name === 'anonymize-sessions') {
+      return await anonymizeOldSessions();
+    }
+    
+    throw new Error(`Unknown retention job: ${job.name}`);
+  }, { connection });
 
-retentionWorker.on('completed', (job, result) => {
-  logger.info('Retention job completed', { 
-    jobId: job.id, 
-    type: job.name,
-    result 
+  retentionWorker.on('completed', (job, result) => {
+    logger.info('Retention job completed', { 
+      jobId: job.id, 
+      type: job.name,
+      result 
+    });
   });
-});
 
-retentionWorker.on('failed', (job, err) => {
-  logger.error('Retention job failed', { 
-    jobId: job?.id, 
-    type: job?.name,
-    error: err.message 
+  retentionWorker.on('failed', (job, err) => {
+    logger.error('Retention job failed', { 
+      jobId: job?.id, 
+      type: job?.name,
+      error: err.message 
+    });
   });
-});
+}
 
 /**
  * Schedule daily retention jobs
  */
 async function scheduleRetention() {
-  if (!connection) {
-    logger.warn('Redis not configured, skipping retention schedule');
+  if (!retentionQueue) {
+    logger.info('Retention jobs disabled - Redis not configured');
     return;
   }
   

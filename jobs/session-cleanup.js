@@ -1,14 +1,27 @@
-const { Queue, Worker } = require('bullmq');
 const config = require('../config');
 const logger = require('../utils/logger');
 const adminSession = require('../utils/admin-session');
 
-const connection = config.REDIS_URL ? {
-  host: new URL(config.REDIS_URL).hostname,
-  port: new URL(config.REDIS_URL).port
-} : undefined;
+let Queue, Worker;
+let sessionCleanupQueue = null;
+let sessionCleanupWorker = null;
 
-const sessionCleanupQueue = new Queue('session-cleanup', { connection });
+try {
+  if (config.REDIS_URL) {
+    const bullmq = require('bullmq');
+    Queue = bullmq.Queue;
+    Worker = bullmq.Worker;
+    
+    const connection = {
+      host: new URL(config.REDIS_URL).hostname,
+      port: new URL(config.REDIS_URL).port
+    };
+    
+    sessionCleanupQueue = new Queue('session-cleanup', { connection });
+  }
+} catch (err) {
+  logger.warn('BullMQ not available for session cleanup', { error: err.message });
+}
 
 /**
  * Cleanup expired sessions
@@ -24,31 +37,38 @@ async function cleanupExpiredSessions() {
   }
 }
 
-const sessionCleanupWorker = new Worker('session-cleanup', async (job) => {
-  logger.info('Processing session cleanup job', { jobId: job.id });
-  return await cleanupExpiredSessions();
-}, { connection });
+if (Worker && config.REDIS_URL) {
+  const connection = {
+    host: new URL(config.REDIS_URL).hostname,
+    port: new URL(config.REDIS_URL).port
+  };
+  
+  sessionCleanupWorker = new Worker('session-cleanup', async (job) => {
+    logger.info('Processing session cleanup job', { jobId: job.id });
+    return await cleanupExpiredSessions();
+  }, { connection });
 
-sessionCleanupWorker.on('completed', (job, result) => {
-  logger.info('Session cleanup completed', { 
-    jobId: job.id, 
-    cleaned: result.cleaned 
+  sessionCleanupWorker.on('completed', (job, result) => {
+    logger.info('Session cleanup completed', { 
+      jobId: job.id, 
+      cleaned: result.cleaned 
+    });
   });
-});
 
-sessionCleanupWorker.on('failed', (job, err) => {
-  logger.error('Session cleanup failed', { 
-    jobId: job?.id, 
-    error: err.message 
+  sessionCleanupWorker.on('failed', (job, err) => {
+    logger.error('Session cleanup failed', { 
+      jobId: job?.id, 
+      error: err.message 
+    });
   });
-});
+}
 
 /**
  * Schedule hourly session cleanup
  */
 async function scheduleSessionCleanup() {
-  if (!connection) {
-    logger.warn('Redis not configured, skipping session cleanup schedule');
+  if (!sessionCleanupQueue) {
+    logger.info('Session cleanup disabled - Redis not configured');
     return;
   }
   
