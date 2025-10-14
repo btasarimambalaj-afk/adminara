@@ -67,6 +67,14 @@ module.exports = (state) => {
     }
   });
 
+  router.get('/admin/session/verify', (req, res) => {
+    if (req.session && req.session.adminAuthenticated) {
+      res.status(200).json({ authenticated: true });
+    } else {
+      res.status(401).json({ authenticated: false });
+    }
+  });
+
   router.get('/metrics', async (req, res) => {
     const authHeader = req.headers.authorization;
     const validAuth = process.env.METRICS_AUTH || 'Basic YWRtaW46c2VjcmV0';
