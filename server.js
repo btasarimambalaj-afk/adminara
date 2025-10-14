@@ -41,12 +41,13 @@ function buildIceServersForClient(adminId = 'admin') {
   if (!TURN_SERVER_URL) return { iceServers: ice };
 
   if (TURN_MODE === 'rest' && TURN_SECRET) {
-    const ttlSecs = 3600;
+    const ttlSecs = config.TURN_TTL || 300; // 5 minutes (was 3600)
     const username = `${Math.floor(Date.now() / 1000) + ttlSecs}:${adminId}`;
     const hmac = crypto.createHmac('sha1', TURN_SECRET);
     hmac.update(username);
     const credential = hmac.digest('base64');
     ice.push({ urls: TURN_SERVER_URL, username, credential });
+    logger.info('TURN credentials generated', { ttl: ttlSecs, expiresAt: Math.floor(Date.now() / 1000) + ttlSecs });
   } else if (TURN_USERNAME && TURN_CREDENTIAL) {
     ice.push({ urls: TURN_SERVER_URL, username: TURN_USERNAME, credential: TURN_CREDENTIAL });
   }
