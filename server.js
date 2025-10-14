@@ -166,7 +166,11 @@ if (process.env.NODE_ENV === 'production') {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
-    skip: (req) => req.path === '/health' || req.path === '/ready'
+    skip: (req) => req.path === '/health' || req.path === '/ready',
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Trust proxy - use leftmost IP from X-Forwarded-For
+    validate: { trustProxy: false }
   });
   app.use(limiter);
 }
