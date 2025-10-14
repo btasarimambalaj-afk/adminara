@@ -1,7 +1,9 @@
 const { createClient } = require('redis');
 const logger = require('./logger');
+const { CustomerQueue } = require('./queue-fallback');
 
 let client = null;
+let inMemoryQueue = null;
 const NAMESPACE = process.env.REDIS_NAMESPACE || 'support';
 const TTL_SECS = parseInt(process.env.STATE_TTL_SECS || '3600', 10);
 
@@ -12,6 +14,7 @@ function key(name) {
 async function init() {
   if (!process.env.REDIS_URL) {
     logger.info('Redis not configured - using in-memory state');
+    inMemoryQueue = new CustomerQueue();
     return null;
   }
 
@@ -86,20 +89,35 @@ async function activeCustomerCount() {
   return client.hLen(key('customerSockets'));
 }
 
-// Queue
+// Queue (with in-memory fallback)
 async function enqueueCustomer(socketId, payload) {
-  if (!client) return;
+  if (!client) {
+    if (inMemoryQueue) {
+      return inMemoryQueue.enqueue(socketId, payload);
+    }
+    return;
+  }
   await client.rPush(key('queue'), JSON.stringify({ socketId, ...payload }));
 }
 
 async function dequeueCustomer() {
-  if (!client) return null;
+  if (!client) {
+    if (inMemoryQueue) {
+      return inMemoryQueue.dequeue();
+    }
+    return null;
+  }
   const item = await client.lPop(key('queue'));
   return item ? JSON.parse(item) : null;
 }
 
 async function queueLength() {
-  if (!client) return 0;
+  if (!client) {
+    if (inMemoryQueue) {
+      return inMemoryQueue.length();
+    }
+    return 0;
+  }
   return client.lLen(key('queue'));
 }
 

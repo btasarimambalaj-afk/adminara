@@ -82,8 +82,9 @@ module.exports = (state) => {
   router.get('/metrics', async (req, res) => {
     const authHeader = req.headers.authorization;
     const validAuth = process.env.METRICS_AUTH || 'Basic YWRtaW46c2VjcmV0';
+    const isTest = process.env.NODE_ENV === 'test';
     
-    if (process.env.NODE_ENV === 'production' && authHeader !== validAuth) {
+    if (process.env.NODE_ENV === 'production' && !isTest && authHeader !== validAuth) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     
