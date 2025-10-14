@@ -321,7 +321,17 @@ app.post('/admin/otp/verify', celebrate({
   res.sendStatus(204);
 });
 
-app.get('/admin/session/verify', async (req, res) => {
+// Rate limiter for session verify (brute force protection)
+const sessionVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // 50 requests per 15 minutes
+  message: { ok: false, error: 'Too many requests' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false }
+});
+
+app.get('/admin/session/verify', sessionVerifyLimiter, async (req, res) => {
   const t = req.cookies?.adminSession;
   const session = await adminSession.validateSession(t);
   if (!session) return res.status(401).json({ ok: false });

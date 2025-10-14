@@ -99,6 +99,44 @@ const candidateByType = new client.Counter({
   labelNames: ['type']
 });
 
+// Business metrics
+const customerSatisfaction = new client.Gauge({
+  name: 'customer_satisfaction_rating',
+  help: 'Customer satisfaction rating (1-5)',
+  labelNames: ['rating']
+});
+
+const queueWaitTime = new client.Histogram({
+  name: 'queue_wait_time_seconds',
+  help: 'Queue wait time in seconds',
+  buckets: [5, 10, 30, 60, 120, 300, 600]
+});
+
+const adminResponseTime = new client.Histogram({
+  name: 'admin_response_time_seconds',
+  help: 'Admin response time in seconds',
+  buckets: [1, 5, 10, 30, 60, 120]
+});
+
+const callSuccessRate = new client.Counter({
+  name: 'call_success_total',
+  help: 'Call success/failure count',
+  labelNames: ['status']
+});
+
+// Error tracking
+const errorsByType = new client.Counter({
+  name: 'errors_by_type_total',
+  help: 'Errors by type',
+  labelNames: ['type', 'severity']
+});
+
+const errorsByEndpoint = new client.Counter({
+  name: 'errors_by_endpoint_total',
+  help: 'Errors by endpoint',
+  labelNames: ['method', 'status']
+});
+
 // Register metrics
 register.registerMetric(httpRequestDuration);
 register.registerMetric(socketConnections);
@@ -116,6 +154,12 @@ register.registerMetric(webrtcReconnectFailures);
 register.registerMetric(webrtcReconnectDuration);
 register.registerMetric(turnSelected);
 register.registerMetric(candidateByType);
+register.registerMetric(customerSatisfaction);
+register.registerMetric(queueWaitTime);
+register.registerMetric(adminResponseTime);
+register.registerMetric(callSuccessRate);
+register.registerMetric(errorsByType);
+register.registerMetric(errorsByEndpoint);
 
 module.exports = {
   register,
@@ -134,5 +178,11 @@ module.exports = {
   webrtcReconnectFailures,
   webrtcReconnectDuration,
   turnSelected,
-  candidateByType
+  candidateByType,
+  customerSatisfaction,
+  queueWaitTime,
+  adminResponseTime,
+  callSuccessRate,
+  errorsByType,
+  errorsByEndpoint
 };

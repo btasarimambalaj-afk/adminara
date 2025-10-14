@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const logger = require('../utils/logger');
 const metrics = require('../utils/metrics');
 
@@ -80,7 +81,16 @@ module.exports = (state) => {
     }
   });
 
-  router.get('/config/ice-servers', async (req, res) => {
+  // Rate limiter for ICE servers (DDoS protection)
+  const iceServersLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 10, // 10 requests per minute
+    message: { error: 'Too many requests' },
+    standardHeaders: true,
+    legacyHeaders: false
+  });
+  
+  router.get('/config/ice-servers', iceServersLimiter, async (req, res) => {
     try {
       const { getICEServers } = require('../utils/turn-credentials');
       const iceServers = await getICEServers();
