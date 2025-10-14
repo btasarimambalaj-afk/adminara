@@ -1,6 +1,7 @@
 const winston = require('winston');
 const path = require('path');
 const fs = require('fs');
+const DailyRotateFile = require('winston-daily-rotate-file');
 const config = require('../config');
 
 const logsDir = path.join(process.cwd(), 'logs');
@@ -50,16 +51,20 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'adminara-webrtc', version: '1.3.8' },
   transports: [
-    new winston.transports.File({ 
-      filename: path.join(logsDir, 'error.log'), 
+    new DailyRotateFile({
+      filename: path.join(logsDir, 'error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
       level: 'error',
-      maxsize: 5242880,
-      maxFiles: 5
+      maxSize: '20m',
+      maxFiles: '14d',
+      zippedArchive: true
     }),
-    new winston.transports.File({ 
-      filename: path.join(logsDir, 'app.log'),
-      maxsize: 5242880,
-      maxFiles: 5
+    new DailyRotateFile({
+      filename: path.join(logsDir, 'app-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '20m',
+      maxFiles: '14d',
+      zippedArchive: true
     })
   ]
 });

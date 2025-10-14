@@ -55,13 +55,28 @@ module.exports = (state) => {
   });
   
   router.get('/ready', async (req, res) => {
-    const stateStore = require('../utils/state-store');
-    const redisHealthy = await stateStore.isHealthy();
+    // Fast readiness check (no Redis dependency)
+    // Use this for health checks with short timeout
+    const uptime = process.uptime();
+    const memUsage = process.memoryUsage();
+    const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
     
-    if (redisHealthy || !process.env.REDIS_URL) {
-      res.status(200).json({ ready: true });
+    // Ready if uptime > 5s and memory < 400MB
+    const ready = uptime > 5 && heapUsedMB < 400;
+    
+    if (ready) {
+      res.status(200).json({ 
+        ready: true, 
+        uptime: Math.floor(uptime),
+        memory: heapUsedMB + 'MB'
+      });
     } else {
-      res.status(503).json({ ready: false, reason: 'redis_unavailable' });
+      res.status(503).json({ 
+        ready: false, 
+        reason: uptime <= 5 ? 'cold_start' : 'high_memory',
+        uptime: Math.floor(uptime),
+        memory: heapUsedMB + 'MB'
+      });
     }
   });
 

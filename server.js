@@ -352,7 +352,22 @@ app.use('/js', express.static('public/js', {
     }
   }
 }));
-app.use(express.static('public'));
+
+// Static files with CDN-friendly headers
+app.use(express.static('public', {
+  maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+  setHeaders: (res, path) => {
+    // CDN headers for images, fonts, icons
+    if (path.match(/\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
+    // CSS with versioning
+    if (path.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
+  }
+}));
 
 // V1 API Routes
 const adminRoutes = require('./routes/v1/admin');
