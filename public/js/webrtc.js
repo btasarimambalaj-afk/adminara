@@ -19,6 +19,7 @@ class WebRTCManager {
     this.persistentMode = false;
     this.keepAliveInterval = null;
     this.iceCandidateQueue = [];
+    this.bitrateMonitorInterval = null;
   }
 
   async loadIceConfig() {
@@ -248,6 +249,63 @@ class WebRTCManager {
       this.adaptiveQuality = new AdaptiveQuality(this.peerConnection);
       this.adaptiveQuality.start();
       console.log('✅ Adaptive Quality aktif');
+    }
+    
+    // Dynamic bitrate monitoring
+    this.startBitrateMonitoring();
+  }
+  
+  startBitrateMonitoring() {
+    if (this.bitrateMonitorInterval) return;
+    
+    this.bitrateMonitorInterval = setInterval(async () => {
+      if (!this.peerConnection || this.peerConnection.connectionState !== 'connected') return;
+      
+      try {
+        const stats = await this.peerConnection.getStats();
+        let bandwidth = 0;
+        
+        stats.forEach(report => {
+          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+            bandwidth = report.availableOutgoingBitrate || 0;
+          }
+        });
+        
+        if (bandwidth > 0) {
+          await this.adjustBitrate(bandwidth);
+        }
+      } catch (err) {
+        console.warn('⚠️ Bitrate monitoring error:', err);
+      }
+    }, 3000); // Every 3s
+  }
+  
+  async adjustBitrate(bandwidth) {
+    const senders = this.peerConnection.getSenders();
+    const videoSender = senders.find(s => s.track?.kind === 'video');
+    if (!videoSender) return;
+    
+    let targetBitrate;
+    if (bandwidth < 500000) {
+      targetBitrate = 300000; // 300kbps
+    } else if (bandwidth < 1000000) {
+      targetBitrate = 500000; // 500kbps
+    } else {
+      targetBitrate = 1500000; // 1.5Mbps
+    }
+    
+    try {
+      const params = videoSender.getParameters();
+      if (!params.encodings) params.encodings = [{}];
+      
+      const currentBitrate = params.encodings[0].maxBitrate || 0;
+      if (Math.abs(targetBitrate - currentBitrate) > 100000) {
+        params.encodings[0].maxBitrate = targetBitrate;
+        await videoSender.setParameters(params);
+        console.log(`📊 Bitrate adjusted: ${(targetBitrate / 1000).toFixed(0)}kbps (bandwidth: ${(bandwidth / 1000).toFixed(0)}kbps)`);
+      }
+    } catch (err) {
+      console.warn('⚠️ Bitrate adjustment error:', err);
     }
   }
 
@@ -654,6 +712,11 @@ class WebRTCManager {
     
     if (!keepConnection) {
       this.stopHeartbeat();
+      
+      if (this.bitrateMonitorInterval) {
+        clearInterval(this.bitrateMonitorInterval);
+        this.bitrateMonitorInterval = null;
+      }
       
       if (this.adaptiveQuality) {
         this.adaptiveQuality.stop();

@@ -113,8 +113,8 @@ const io = socketIO(server, {
   },
   transports: ['websocket', 'polling'],
   allowUpgrades: true,
-  pingTimeout: 30000,
-  pingInterval: 25000,
+  pingTimeout: 15000,  // 15s (was 30s)
+  pingInterval: 10000, // 10s (was 25s) - faster disconnect detection
   upgradeTimeout: 10000,
   maxHttpBufferSize: 1e6
 });
@@ -413,6 +413,26 @@ io.on('connection', (socket) => {
   state.connectionCount++;
   metrics.socketConnections.set(state.connectionCount);
   logger.info('New connection', { socketId: socket.id, total: state.connectionCount });
+  
+  // Memory leak fix: Proper cleanup on disconnect
+  socket.on('disconnect', (reason) => {
+    state.connectionCount--;
+    metrics.socketConnections.set(state.connectionCount);
+    
+    // Remove from customerSockets
+    if (state.customerSockets.has(socket.id)) {
+      state.customerSockets.delete(socket.id);
+      logger.info('Customer socket cleaned up', { socketId: socket.id });
+    }
+    
+    // Clear admin socket if this was admin
+    if (state.adminSocket?.id === socket.id) {
+      state.adminSocket = null;
+      logger.info('Admin socket cleaned up', { socketId: socket.id });
+    }
+    
+    logger.info('Socket disconnected', { socketId: socket.id, reason, remaining: state.connectionCount });
+  });
   
   // WebSocket failover support
   socket.on('reconnect:transfer', async (data) => {
