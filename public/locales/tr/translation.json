@@ -1,0 +1,21 @@
+{
+  "welcome": {
+    "title": "Profesyonel Destek Merkezi",
+    "subtitle": "Uzman ekibimizle anında güvenli bağlantı kurun",
+    "callButton": "Görüşmeyi Başlat",
+    "namePlaceholder": "Adınızı girin"
+  },
+  "call": {
+    "connecting": "Bağlanıyor...",
+    "waiting": "Destek hattına bağlanılıyor...",
+    "error": "Bağlantı hatası",
+    "busy": "Şu an meşgulüz",
+    "ended": "Görüşme sonlandı",
+    "retry": "Tekrar Dene",
+    "end": "Bitir"
+  },
+  "queue": {
+    "position": "Sıranız: {{position}}",
+    "waiting": "Lütfen bekleyin..."
+  }
+}

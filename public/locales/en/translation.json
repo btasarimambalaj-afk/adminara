@@ -1,0 +1,21 @@
+{
+  "welcome": {
+    "title": "Professional Support Center",
+    "subtitle": "Connect instantly and securely with our expert team",
+    "callButton": "Start Call",
+    "namePlaceholder": "Enter your name"
+  },
+  "call": {
+    "connecting": "Connecting...",
+    "waiting": "Connecting to support line...",
+    "error": "Connection error",
+    "busy": "We are currently busy",
+    "ended": "Call ended",
+    "retry": "Retry",
+    "end": "End"
+  },
+  "queue": {
+    "position": "Your position: {{position}}",
+    "waiting": "Please wait..."
+  }
+}

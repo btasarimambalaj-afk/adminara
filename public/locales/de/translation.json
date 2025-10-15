@@ -1,0 +1,21 @@
+{
+  "welcome": {
+    "title": "Professionelles Support-Center",
+    "subtitle": "Verbinden Sie sich sofort und sicher mit unserem Expertenteam",
+    "callButton": "Anruf starten",
+    "namePlaceholder": "Geben Sie Ihren Namen ein"
+  },
+  "call": {
+    "connecting": "Verbinden...",
+    "waiting": "Verbindung zur Support-Leitung...",
+    "error": "Verbindungsfehler",
+    "busy": "Wir sind derzeit beschäftigt",
+    "ended": "Anruf beendet",
+    "retry": "Erneut versuchen",
+    "end": "Beenden"
+  },
+  "queue": {
+    "position": "Ihre Position: {{position}}",
+    "waiting": "Bitte warten..."
+  }
+}

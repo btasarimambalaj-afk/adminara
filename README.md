@@ -119,6 +119,12 @@ npm run test:coverage
 ✅ Business Metrics
 ✅ Swagger API Docs
 
+### i18n (Optional)
+✅ Multi-language Support (TR, EN, DE, AR)
+✅ Auto Language Detection
+✅ RTL Support (Arabic)
+✅ localStorage Persistence
+
 **Production Ready**: 99.9%
 
 ## Production
@@ -186,6 +192,7 @@ Detaylı mimari diyagramlar için [docs/diagrams](./docs/diagrams) klasörüne b
 - [SOCKET-API.md](./SOCKET-API.md) - Socket.IO events (15+ client, 20+ server)
 - [API Documentation](https://adminara.onrender.com/api-docs) - Swagger UI (REST API)
 - [Architecture Diagrams](./docs/README.md) - Mermaid diagrams
+- [I18N.md](./docs/I18N.md) - Internationalization guide
 
 ### Operational Guides
 - [MOBILE-COMPATIBILITY.md](./MOBILE-COMPATIBILITY.md) - iOS Safari & Android Chrome
