@@ -1,0 +1,52 @@
+#!/bin/bash
+
+echo "🔍 Checking file encodings..."
+
+ERRORS=0
+
+# Check all staged HTML files
+for file in $(git diff --cached --name-only --diff-filter=ACM | grep '\.html$'); do
+  if [ ! -f "$file" ]; then
+    continue
+  fi
+  
+  echo "Checking: $file"
+  
+  # Check if file is UTF-8
+  ENCODING=$(file -b --mime-encoding "$file" 2>/dev/null || echo "unknown")
+  if [ "$ENCODING" != "utf-8" ] && [ "$ENCODING" != "us-ascii" ]; then
+    echo "  ❌ Error: $file is not UTF-8 encoded (detected: $ENCODING)"
+    echo "  Fix: iconv -f ISO-8859-9 -t UTF-8 $file > $file.tmp && mv $file.tmp $file"
+    ERRORS=$((ERRORS + 1))
+  fi
+  
+  # Check for UTF-8 BOM (should not exist)
+  if file -b "$file" 2>/dev/null | grep -q "UTF-8 Unicode (with BOM)"; then
+    echo "  ⚠️  Warning: $file has BOM, removing..."
+    sed -i '1s/^\xEF\xBB\xBF//' "$file"
+    git add "$file"
+  fi
+  
+  # Check for charset meta tag
+  if ! grep -q '<meta charset="UTF-8"' "$file"; then
+    echo "  ⚠️  Warning: $file missing charset meta tag"
+    echo "  Add: <meta charset=\"UTF-8\"> in <head>"
+  fi
+  
+  # Check for encoding artifacts
+  if grep -qP 'Ã|Ä±|ÄŸ|Ã¼|Ã¶|Åž|Ã§' "$file"; then
+    echo "  ❌ Error: $file contains encoding artifacts (Ã, Ä, etc.)"
+    echo "  Fix: bash scripts/fix-encoding.sh"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+if [ $ERRORS -gt 0 ]; then
+  echo ""
+  echo "❌ Encoding check failed with $ERRORS error(s)"
+  echo "Run: bash scripts/fix-encoding.sh"
+  exit 1
+fi
+
+echo "✅ Encoding check passed"
+exit 0
