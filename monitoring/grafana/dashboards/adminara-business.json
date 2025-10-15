@@ -1,0 +1,142 @@
+{
+  "dashboard": {
+    "title": "AdminAra Business Metrics",
+    "tags": ["adminara", "business"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Sessions",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "business_sessions_total"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Completed Sessions",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "business_sessions_completed_total"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Abandoned Sessions",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "business_sessions_abandoned_total"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Average Session Duration",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "business_session_duration_seconds"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Sessions Over Time",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(business_sessions_total[1h])",
+            "legendFormat": "Total"
+          },
+          {
+            "expr": "rate(business_sessions_completed_total[1h])",
+            "legendFormat": "Completed"
+          },
+          {
+            "expr": "rate(business_sessions_abandoned_total[1h])",
+            "legendFormat": "Abandoned"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Completion Rate",
+        "type": "gauge",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "100 * (business_sessions_completed_total / business_sessions_total)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 50, "color": "yellow"},
+                {"value": 80, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Queue Performance",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "queue_size",
+            "legendFormat": "Queue Size"
+          },
+          {
+            "expr": "queue_wait_time_seconds",
+            "legendFormat": "Wait Time (s)"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Admin Response Time",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "business_admin_response_time_seconds",
+            "legendFormat": "Response Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      }
+    ]
+  }
+}

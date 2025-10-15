@@ -114,6 +114,7 @@ npm run test:coverage
 
 ### Monitoring
 ✅ Prometheus Metrics
+✅ Grafana Dashboards (3 dashboards)
 ✅ Sentry Error Tracking
 ✅ Business Metrics
 ✅ Swagger API Docs
@@ -128,6 +129,24 @@ npm run test:coverage
 - Metrics: https://adminara.onrender.com/metrics (auth required)
 
 ## Monitoring
+
+### Local Monitoring Stack
+
+```bash
+# Start Prometheus + Grafana
+docker-compose -f docker-compose.monitoring.yml up -d
+
+# Access dashboards
+# Prometheus: http://localhost:9090
+# Grafana: http://localhost:3001 (admin/admin)
+```
+
+**Grafana Dashboards**:
+- AdminAra Overview (HTTP, WebSocket, Queue, Resources)
+- AdminAra WebRTC (Connections, States, Quality)
+- AdminAra Business Metrics (Sessions, Completion Rate)
+
+Detaylı bilgi için [monitoring/README.md](./monitoring/README.md) dosyasına bakın.
 
 ### Prometheus Queries
 ```promql
