@@ -23,5 +23,5 @@ module.exports = {
     }
   },
   testTimeout: 15000,
-  setupFilesAfterEnv: ['<rootDir>/tests/jest.setup.js']
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js']
 };

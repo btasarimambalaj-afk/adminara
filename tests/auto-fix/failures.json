@@ -1,0 +1,42 @@
+{
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "totalFailures": 13,
+  "failures": [
+    {
+      "type": "SECURITY_XSS",
+      "file": "tests/security/xss-injection.test.js",
+      "message": "XSS injection not sanitized",
+      "count": 3
+    },
+    {
+      "type": "SECURITY_SQL",
+      "file": "tests/security/sql-injection.test.js",
+      "message": "SQL injection not blocked",
+      "count": 3
+    },
+    {
+      "type": "MISSING_MODULE",
+      "file": "tests/integration/socket-deep.test.js",
+      "message": "Cannot find module '../helpers/server-helper'",
+      "count": 1
+    },
+    {
+      "type": "MISSING_MODULE",
+      "file": "tests/integration/state-deep.test.js",
+      "message": "Cannot find module '../../utils/redis'",
+      "count": 1
+    },
+    {
+      "type": "ENV_CONFIG",
+      "file": "tests/integration/socket-handlers.test.js",
+      "message": "envalid validation error",
+      "count": 4
+    },
+    {
+      "type": "WEBRTC_ENV",
+      "file": "tests/integration/webrtc-deep.test.js",
+      "message": "RTCPeerConnection is not defined",
+      "count": 2
+    }
+  ]
+}
