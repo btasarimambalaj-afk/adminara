@@ -1,0 +1,63 @@
+/* PWA Install Button */
+.pwa-install-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.pwa-install-btn.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.pwa-install-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.pwa-install-btn:active {
+  transform: translateY(0);
+}
+
+/* RTL Support */
+[dir="rtl"] .pwa-install-btn {
+  right: auto;
+  left: 20px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .pwa-install-btn {
+    bottom: 80px;
+    right: 50%;
+    transform: translateX(50%) translateY(100px);
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+
+  .pwa-install-btn.show {
+    transform: translateX(50%) translateY(0);
+  }
+
+  [dir="rtl"] .pwa-install-btn {
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+  }
+
+  [dir="rtl"] .pwa-install-btn.show {
+    transform: translateX(-50%) translateY(0);
+  }
+}
