@@ -277,19 +277,31 @@
     }
 
     function parseLogs(raw) {
-      const lines = (raw || '').split(/\n/).map(l => l.trim()).filter(Boolean);
+      const lines = String(raw || '')
+        .split(/\n/)
+        .map(l => l.trim())
+        .filter(Boolean);
+
       const issues = [];
       const hints = new Set();
-      
-      const keywords = [
+      const kw = [
         ['reconnect', 'Socket reconnect için disconnect sonrası otomatik bağlantıyı etkinleştirin.'],
         ['token', 'Admin Session için token yenileme (refresh) akışı ekleyin.'],
-        ['csp', 'CSP için script-src "self" ve nonce/sha256 kullanın.'],
+        ['csp', "CSP için script-src 'self' + nonce/sha256 kullanın."],
         ['cors', 'CORS için wildcard yerine whitelist domain politikaları tanımlayın.'],
         ['ice', 'ICE için STUN/TURN fallback ve ICE restart akışını kontrol edin.'],
         ['bandwidth', 'Adaptif bitrate (ABR) ve codec seçimini güncelleyin.'],
         ['memory', 'Detach edilmiş DOM ve event listener temizliği yapın.'],
         ['accessibility', 'A11y için ARIA etiketleri ve kontrast oranlarını doğrulayın.']
+      ];
+
+      lines.forEach(l => {
+        if (/\b(fail|error|hata|failed|❌)\b/i.test(l)) issues.push(l);
+        kw.forEach(([k, msg]) => { if (l.toLowerCase().includes(k)) hints.add(msg); });
+      });
+
+      return { issues, hints: [...hints] };
+    }larını doğrulayın.']
       ];
       
       lines.forEach(l => {

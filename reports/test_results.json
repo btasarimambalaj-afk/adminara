@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-10-15T18:07:06.792Z",
+  "timestamp": "2025-10-15T18:18:03.183Z",
   "summary": {
-    "passed": 33,
-    "failed": 6,
+    "passed": 32,
+    "failed": 7,
     "total": 39,
-    "duration": "0.0s",
-    "coverage": "84.6%"
+    "duration": "0.1s",
+    "coverage": "82.1%"
   },
   "parts": [
     {
@@ -13,33 +13,33 @@
       "tests": [
         {
           "name": "Socket.io",
-          "status": "✅",
-          "result": "Connection available"
+          "status": "❌",
+          "error": ""
         },
         {
           "name": "WebRTC",
           "status": "✅",
-          "result": "RTCPeerConnection supported"
+          "result": "Client-side feature available"
         },
         {
           "name": "Fetch API",
           "status": "✅",
-          "result": "Fetch available"
+          "result": "Client-side feature available"
         },
         {
           "name": "Browser Features",
           "status": "✅",
-          "result": "Modern browser detected"
+          "result": "Client-side feature available"
         },
         {
           "name": "LocalStorage",
           "status": "✅",
-          "result": "Storage available"
+          "result": "Client-side feature available"
         },
         {
           "name": "Service Worker",
           "status": "✅",
-          "result": "SW registration possible"
+          "result": "Client-side feature available"
         }
       ]
     },

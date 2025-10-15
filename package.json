@@ -10,8 +10,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:coverage": "jest --coverage --coverageReporters=text-lcov | coveralls",
-    "test:auto": "node scripts/test-runner.js",
+    "test:auto": "node scripts/test-runner-simple.js",
     "scheduler": "node scripts/scheduler.js",
+    "cron": "node server-cron.js",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
