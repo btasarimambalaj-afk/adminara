@@ -54,11 +54,12 @@ self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip socket.io and external requests
+  // Skip socket.io and external requests (use URL object for safe parsing)
+  const url = new URL(event.request.url);
   if (
-    event.request.url.includes('socket.io') ||
-    event.request.url.includes('stun:') ||
-    event.request.url.includes('turn:')
+    url.pathname.includes('socket.io') ||
+    url.protocol === 'stun:' ||
+    url.protocol === 'turn:'
   ) {
     return;
   }

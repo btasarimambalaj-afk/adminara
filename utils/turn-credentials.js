@@ -9,6 +9,9 @@ const crypto = require('crypto');
 function generateTurnCredentials(secret, ttl = 300) {
   const timestamp = Math.floor(Date.now() / 1000) + ttl;
   const username = `${timestamp}:hayday`;
+  // CodeQL: sha1 is required by RFC 5389 for TURN credentials
+  // This is not used for password hashing or security-critical operations
+  // lgtm[js/weak-cryptographic-algorithm]
   const hmac = crypto.createHmac('sha1', secret);
   hmac.update(username);
   const credential = hmac.digest('base64');

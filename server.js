@@ -40,6 +40,8 @@ function buildIceServersForClient(adminId = 'admin') {
   if (TURN_MODE === 'rest' && TURN_SECRET) {
     const ttlSecs = config.TURN_TTL || 300; // 5 minutes (was 3600)
     const username = `${Math.floor(Date.now() / 1000) + ttlSecs}:${adminId}`;
+    // CodeQL: sha1 is required by RFC 5389 for TURN credentials
+    // lgtm[js/weak-cryptographic-algorithm]
     const hmac = crypto.createHmac('sha1', TURN_SECRET);
     hmac.update(username);
     const credential = hmac.digest('base64');

@@ -1,0 +1,5 @@
+name: "CodeQL Config"
+
+paths-ignore:
+  - tests/**
+  - node_modules/**
