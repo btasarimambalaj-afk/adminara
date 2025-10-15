@@ -221,10 +221,13 @@
     
     <div class="header-actions">
       <button class="btn-primary" id="runAll">▶️ Tüm Testleri Çalıştır</button>
+      <button class="btn-primary" id="runBackend" title="Backend test runner'ı tetikle">🚀 Backend Testler</button>
       <button class="btn-secondary" id="clearBtn">🗑️ Temizle</button>
       <button class="btn-secondary" id="aiAnalyze" title="AI ile test sonuçlarını analiz et">🧠 AI Analiz</button>
       <button class="btn-secondary" id="snapshotBtn" title="Mevcut durumu kaydet">📸 Snapshot</button>
       <button class="btn-secondary" id="rollbackBtn" title="Önceki duruma dön">↩️ Rollback</button>
+      <button class="btn-secondary" id="telegramBtn" title="Telegram ayarları">📨 Telegram</button>
+      <button class="btn-secondary" id="scheduleBtn" title="Zamanlı test ayarları">⏰ Zamanlama</button>
       <button class="btn-secondary" id="exportMD" title="Markdown formatında rapor">📄 Export MD</button>
       <button class="btn-secondary" id="exportCSV" title="CSV formatında rapor">📊 Export CSV</button>
       <button class="btn-secondary" id="exportJSON" title="JSON formatında rapor">📁 Export JSON</button>
@@ -463,6 +466,83 @@
     window.updateTestResults = (results) => {
       testResults = results;
     };
+
+    // Backend test runner
+    document.getElementById('runBackend').addEventListener('click', async () => {
+      const btn = document.getElementById('runBackend');
+      btn.disabled = true;
+      btn.textContent = '⏳ Çalıştırılıyor...';
+      
+      try {
+        const res = await fetch('/api/test/run', { method: 'POST' });
+        const data = await res.json();
+        
+        document.getElementById('passed').textContent = data.summary.passed;
+        document.getElementById('failed').textContent = data.summary.failed;
+        document.getElementById('total').textContent = data.summary.total;
+        document.getElementById('duration').textContent = data.summary.duration;
+        document.getElementById('coverage').textContent = data.summary.coverage;
+        
+        alert(`✅ Backend testler tamamlandı!\n\nPassed: ${data.summary.passed}\nFailed: ${data.summary.failed}\nTotal: ${data.summary.total}`);
+      } catch (e) {
+        alert('❌ Backend test hatası: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 Backend Testler';
+      }
+    });
+
+    // Telegram settings
+    document.getElementById('telegramBtn').addEventListener('click', () => {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+      modal.innerHTML = `
+        <div style="background:white;padding:30px;border-radius:15px;max-width:500px;">
+          <h3 style="margin-top:0;">📨 Telegram Ayarları</h3>
+          <p style="color:#666;font-size:14px;">Backend proxy kullanılıyor: <code>/api/telegram/send</code></p>
+          <p style="margin:15px 0;font-size:14px;">.env dosyasında ayarlayın:</p>
+          <pre style="background:#f5f5f5;padding:15px;border-radius:8px;font-size:13px;">TELEGRAM_BOT_TOKEN=your_token
+TELEGRAM_ADMIN_CHAT_ID=your_chat_id</pre>
+          <button onclick="testTelegram()" style="margin:15px 5px 0 0;padding:10px 20px;background:#3498db;color:white;border:none;border-radius:5px;cursor:pointer;">Test Mesajı Gönder</button>
+          <button onclick="this.parentElement.parentElement.remove()" style="margin:15px 0 0 5px;padding:10px 20px;background:#95a5a6;color:white;border:none;border-radius:5px;cursor:pointer;">Kapat</button>
+        </div>`;
+      document.body.appendChild(modal);
+    });
+
+    window.testTelegram = async () => {
+      try {
+        const res = await fetch('/api/telegram/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: 'Test bildirimi: AdminAra Test Suite' })
+        });
+        if (res.ok) alert('✅ Telegram mesajı gönderildi!');
+        else alert('❌ Gönderilemedi: ' + res.statusText);
+      } catch (e) {
+        alert('❌ Hata: ' + e.message);
+      }
+    };
+
+    // Schedule settings
+    document.getElementById('scheduleBtn').addEventListener('click', () => {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+      modal.innerHTML = `
+        <div style="background:white;padding:30px;border-radius:15px;max-width:500px;">
+          <h3 style="margin-top:0;">⏰ Zamanlı Test Ayarları</h3>
+          <p style="color:#666;font-size:14px;">Backend cron server kullanılıyor</p>
+          <p style="margin:15px 0;font-size:14px;"><strong>Zamanlanmış saatler (Europe/Istanbul):</strong></p>
+          <ul style="list-style:none;padding:0;">
+            <li style="padding:8px;background:#f0f4ff;margin:5px 0;border-radius:5px;">✅ 10:00</li>
+            <li style="padding:8px;background:#f0f4ff;margin:5px 0;border-radius:5px;">✅ 14:00</li>
+            <li style="padding:8px;background:#f0f4ff;margin:5px 0;border-radius:5px;">✅ 20:00</li>
+            <li style="padding:8px;background:#f0f4ff;margin:5px 0;border-radius:5px;">✅ 23:00</li>
+          </ul>
+          <p style="margin:15px 0;font-size:13px;color:#666;">Başlatmak için: <code>npm run cron</code></p>
+          <button onclick="this.parentElement.parentElement.remove()" style="margin-top:15px;padding:10px 20px;background:#3498db;color:white;border:none;border-radius:5px;cursor:pointer;">Kapat</button>
+        </div>`;
+      document.body.appendChild(modal);
+    });
   </script>
 </body>
 </html>

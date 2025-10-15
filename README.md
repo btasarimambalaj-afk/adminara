@@ -75,8 +75,7 @@ npm run scheduler
 
 - **Müşteri**: https://adminara.onrender.com
 - **Admin**: https://adminara.onrender.com/admin
-- **Test Suite**: https://adminara.onrender.com/test-suite.html
-- **Test Automation**: https://adminara.onrender.com/test-automation.html
+- **Test Suite**: https://adminara.onrender.com/test-suite.html (Advanced Test & Automation)
 - **Health**: https://adminara.onrender.com/health
 - **Readiness**: https://adminara.onrender.com/ready
 - **Metrics**: https://adminara.onrender.com/metrics
