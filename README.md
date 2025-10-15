@@ -1,276 +1,199 @@
-# AdminAra - WebRTC Video Destek
+# AdminAra - WebRTC Video Support
 
 WebRTC tabanlı canlı video destek uygulaması
 
 **Live URL**: https://adminara.onrender.com  
 **Version**: 1.3.8  
-**Status**: Production Ready  
-**Coverage**: 54%+ (Target: 85%)
+**Status**: ✅ Production Ready
 
-## Kurulum
+---
+
+## 🚀 Quick Start
 
 ```bash
-# 1. Dependencies
+# Install
 npm install
 
-# 2. Environment variables
+# Configure
 cp .env.example .env
-# .env dosyasını düzenle:
-# - SESSION_SECRET (required)
-# - COOKIE_SECRET (required)
-# - TELEGRAM_BOT_TOKEN (optional)
-# - TELEGRAM_ADMIN_CHAT_ID (optional)
-# - REDIS_URL (optional)
-# - ALLOWED_METRICS_ORIGINS (optional, production recommended)
+# Edit .env with your secrets
 
-# 3. Start
+# Start
 npm start
 ```
 
-## Docker
+**URLs:**
+- Customer: https://adminara.onrender.com
+- Admin: https://adminara.onrender.com/admin
+- Test Suite: https://adminara.onrender.com/test-suite.html
+- Health: https://adminara.onrender.com/health
+- API Docs: https://adminara.onrender.com/api-docs
 
-```bash
-# Build
-docker build -t adminara .
+---
 
-# Run
-docker run -p 3000:3000 --env-file .env adminara
+## ✨ Features
 
-# Docker Compose (App)
-docker-compose up -d
-
-# Docker Compose (Backup Service)
-docker-compose -f docker-compose.backup.yml up -d
-
-# Docker Compose (Monitoring)
-docker-compose -f docker-compose.monitoring.yml up -d
-
-# Stop
-docker-compose down
-```
-
-## Test
-
-```bash
-# Unit + Integration Tests
-npm test
-
-# E2E Tests
-npm run test:e2e
-
-# E2E UI Mode
-npm run test:e2e:ui
-
-# Coverage
-npm run test:coverage
-
-# Automated Test Suite (39 tests, 8 categories)
-npm run test:auto
-
-# Scheduled Tests (10:00, 14:00, 20:00, 23:00)
-npm run scheduler
-```
-
-## Kullanım
-
-- **Müşteri**: https://adminara.onrender.com
-- **Admin**: https://adminara.onrender.com/admin
-- **Test Suite**: https://adminara.onrender.com/test-suite.html (Advanced Test & Automation)
-- **Health**: https://adminara.onrender.com/health
-- **Readiness**: https://adminara.onrender.com/ready
-- **Metrics**: https://adminara.onrender.com/metrics
-
-## Features
-
-### WebRTC
-
-✅ Perfect Negotiation Pattern (glare-free)
-✅ Auto-Reconnect (ICE Restart, <8s)
-✅ TURN Server Support (NAT Traversal)
-✅ Adaptive Bitrate (300kbps-1.5Mbps)
-✅ Connection Quality Monitoring
+### Core
+- ✅ WebRTC Perfect Negotiation (glare-free)
+- ✅ Auto-Reconnect (<8s, ICE Restart)
+- ✅ TURN Server Support (NAT Traversal)
+- ✅ Adaptive Bitrate (300kbps-1.5Mbps)
+- ✅ Connection Quality Monitoring
 
 ### Security
-
-✅ httpOnly Cookie (XSS Protection)
-✅ CSRF Protection (production)
-✅ Rate Limiting (DDoS protection)
-✅ Input Validation (Joi schemas)
-✅ PII Masking (logs)
-
-### Performance
-
-✅ WebRTC Connection Pool (-44% latency)
-✅ Redis Connection Pool (+50% throughput)
-✅ CDN-Ready Headers
-✅ Log Rotation (14 days)
-✅ Memory Leak Fixed
+- ✅ Helmet + Strict CSP (nonce-based)
+- ✅ CORS Whitelist
+- ✅ Rate Limiting (DDoS protection)
+- ✅ CSRF Protection
+- ✅ httpOnly Cookies (XSS protection)
+- ✅ Input Validation (Joi)
+- ✅ PII Masking (logs)
 
 ### Mobile
-
-✅ iOS Safari Compatible
-✅ Android Chrome Compatible
-✅ PWA Install Prompt
-✅ Battery Monitoring (<20%)
-✅ Offline Support (Service Worker)
+- ✅ iOS Safari Compatible
+- ✅ Android Chrome Compatible
+- ✅ PWA Install Prompt
+- ✅ Battery Monitoring
+- ✅ Offline Support (Service Worker)
 
 ### DevOps
+- ✅ CI/CD Pipeline (6 workflows)
+- ✅ Automated Testing (lint, unit, integration, e2e)
+- ✅ Security Scanning (npm audit, CodeQL)
+- ✅ Docker Support
+- ✅ Auto-Deploy (Render.com)
+- ✅ Health Checks (/health, /ready)
+- ✅ Prometheus Metrics
 
-✅ CI/CD Pipeline (6 workflows)
-✅ Automated Testing (lint, unit, integration, e2e)
-✅ Security Scanning (npm audit, Snyk, CodeQL)
-✅ Docker Build & Push
-✅ Auto-Deploy (Render.com)
-✅ PR Templates & Issue Templates
-✅ Backup Strategy (RTO: 15min)
-✅ Health Checks (/health, /ready)
-
-### Testing & Diagnostics
-
-✅ Unit Tests (54% coverage)
-✅ Integration Tests
-✅ E2E Tests (Playwright)
-✅ Load Tests (k6)
-✅ Security Tests (npm audit)
-✅ Advanced Test Suite (test-suite.html)
-✅ Automated Test Suite (39 tests, 8 PART)
-✅ Auto-Fix System (pattern-based repairs)
-✅ Scheduled Tests (4 times daily)
-✅ Telegram Notifications
-✅ System Diagnostics (7 modules)
-✅ Auto-Repair System (15+ actions)
-✅ Modal Instructions
-✅ JSON Report Export
-
-### Monitoring
-
-✅ Prometheus Metrics
-✅ Grafana Dashboard
-✅ Sentry Error Tracking
-✅ Business Metrics
-✅ Swagger API Docs
-
-### i18n (Optional)
-
-✅ Multi-language Support (TR, EN, DE, AR)
-✅ Auto Language Detection
-✅ RTL Support (Arabic)
-✅ localStorage Persistence
-
-**Production Ready**: 99.9%
-
-## Production
-
-- Live: https://adminara.onrender.com
-- Admin: https://adminara.onrender.com/admin
-- Health: https://adminara.onrender.com/health
-- Metrics: https://adminara.onrender.com/metrics (auth required)
-
-## Monitoring
-
-### Local Monitoring Stack
-
-```bash
-# Start Prometheus + Grafana
-docker-compose -f docker-compose.monitoring.yml up -d
-
-# Access dashboards
-# Prometheus: http://localhost:9090
-# Grafana: http://localhost:3001 (admin/admin)
-```
-
-**Grafana Dashboard**:
-
-- AdminAra System Overview (WebSocket, HTTP, WebRTC ICE, Queue)
-
-Detaylı bilgi için [monitoring/README.md](./monitoring/README.md) dosyasına bakın.
-
-### Prometheus Queries
-
-```promql
-# Uptime percentage (last 24h)
-100 * (1 - (sum(rate(http_requests_total{status=~"5.."}[24h])) / sum(rate(http_requests_total[24h]))))
-
-# Active WebSocket connections
-websocket_connections_total
-
-# Average response time
-rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])
-```
-
-### Sentry Integration
-
-```bash
-# Set Sentry DSN in .env
-SENTRY_DSN=https://your-dsn@sentry.io/project
-```
-
-## 📐 Architecture
-
-Detaylı mimari diyagramlar için [docs/diagrams](./docs/diagrams) klasörüne bakın.
-
-### Quick Links
-
-- [System Architecture](./docs/diagrams/system-architecture.mmd) - Complete system layers and components
-- [WebRTC Call Flow](./docs/diagrams/webrtc-flow.mmd) - Perfect Negotiation Pattern sequence
-- [Authentication Sequence](./docs/diagrams/authentication-sequence.mmd) - OTP/JWT flow
-- [Deployment Diagram](./docs/diagrams/deployment-diagram.mmd) - Render.com production setup
-- [Data Flow](./docs/diagrams/data-flow.mmd) - Customer and admin user flows
-
-**View on GitHub**: Mermaid diagrams render automatically
+### Testing
+- ✅ Unit Tests (Jest)
+- ✅ Integration Tests
+- ✅ E2E Tests (Playwright)
+- ✅ Load Tests (k6)
+- ✅ Automated Test Suite (39 tests, 8 categories)
+- ✅ Scheduled Tests (4x daily + Telegram)
 
 ---
 
-## 📚 Dokümantasyon
+## 📦 Installation
 
-### Core Documentation
+### Local Development
+```bash
+npm install
+npm start
+```
 
-- [FULL-DOCUMENTATION.md](./FULL-DOCUMENTATION.md) - Complete project documentation
-- [SOCKET-API.md](./SOCKET-API.md) - Socket.IO events (15+ client, 20+ server)
-- [API Documentation](https://adminara.onrender.com/api-docs) - Swagger UI (REST API)
-- [Architecture Diagrams](./docs/README.md) - Mermaid diagrams
-- [I18N.md](./docs/I18N.md) - Internationalization guide
-- [CI-CD.md](./docs/CI-CD.md) - CI/CD pipeline documentation
+### Docker
+```bash
+docker-compose up -d
+```
 
-### Operational Guides
-
-- [MOBILE-COMPATIBILITY.md](./MOBILE-COMPATIBILITY.md) - iOS Safari & Android Chrome
-- [BACKUP-STRATEGY.md](./BACKUP-STRATEGY.md) - Backup & disaster recovery
-- [DEPLOYMENT-GUIDE.md](./DEPLOYMENT-GUIDE.md) - Deployment instructions
-- [RENDER-DEPLOY.md](./RENDER-DEPLOY.md) - Render.com specific guide
-
-### Development
-
-- [EKSIKLER.md](./EKSIKLER.md) - Feature roadmap (99.9% complete)
-- [UYGULAMA-DURUMU.md](./UYGULAMA-DURUMU.md) - Implementation status
-- [IMPROVEMENTS-CHECKLIST.md](./IMPROVEMENTS-CHECKLIST.md) - Low priority improvements checklist
-- [AUTOMATION-TEST-SUITE.md](./AUTOMATION-TEST-SUITE.md) - Automated test & repair suite (39 tests, 8 PART)
-
-**⚠️ ÖNEMLİ**: `FULL-DOCUMENTATION.md` dosyası **SİLİNMEMELİ** ve her değişiklikte **GÜNCELLENMELİDİR**.
+### Production (Render.com)
+```bash
+git push origin main  # Auto-deploys
+```
 
 ---
 
-## 🚀 Quick Start - Apply All Improvements
+## 🔧 Configuration
 
+### Required Environment Variables
 ```bash
-# Make script executable
-chmod +x scripts/apply-improvements.sh
-
-# Run deployment script
-./scripts/apply-improvements.sh
+SESSION_SECRET=<random-64-char>
+COOKIE_SECRET=<random-64-char>
+NODE_ENV=production
+PORT=3000
 ```
 
-**What it does:**
-- ✅ TypeScript setup
-- ✅ API Documentation (Swagger)
-- ✅ i18n configuration
-- ✅ Monitoring stack
-- ✅ Backup scripts
-- ✅ CI/CD workflows
-- ✅ Development tools
+### Optional (Recommended)
+```bash
+# Telegram
+TELEGRAM_BOT_TOKEN=<bot-token>
+TELEGRAM_ADMIN_CHAT_ID=<chat-id>
 
-**Manual steps:**
-1. Add favicon images to `public/`
-2. Customize Grafana dashboards
-3. Extend translation files
-4. Add Swagger annotations to endpoints
+# Redis
+REDIS_URL=<redis-url>
+
+# TURN Server
+TURN_SERVER_URL=turn:server.com:3478
+TURN_MODE=rest
+TURN_SECRET=<secret>
+
+# Monitoring
+SENTRY_DSN=<sentry-dsn>
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Unit + Integration
+npm test
+
+# E2E
+npm run test:e2e
+
+# Automated Suite
+npm run test:auto
+
+# Scheduled Tests
+npm run cron
+```
+
+---
+
+## 📊 Monitoring
+
+### Prometheus Metrics
+```
+http://localhost:9090
+```
+
+### Grafana Dashboard
+```
+http://localhost:3001
+Username: admin
+Password: admin
+```
+
+### Key Metrics
+- `websocket_connections_total` - Active connections
+- `http_request_duration_seconds` - Response time
+- `webrtc_ice_success_ratio` - ICE success rate
+
+---
+
+## 📚 Documentation
+
+- [FULL-DOCUMENTATION.md](./FULL-DOCUMENTATION.md) - Complete docs
+- [SOCKET-API.md](./SOCKET-API.md) - Socket.IO events
+- [SECURITY.md](./SECURITY.md) - Security policy
+- [PRODUCTION-LAUNCH-PACK.md](./PRODUCTION-LAUNCH-PACK.md) - Go/No-Go checklist
+- [AUTOMATION-TEST-SUITE.md](./AUTOMATION-TEST-SUITE.md) - Test automation
+- [API Docs](https://adminara.onrender.com/api-docs) - Swagger UI
+
+---
+
+## 🔐 Security
+
+Report vulnerabilities: **security@adminara.com**
+
+See [SECURITY.md](./SECURITY.md) for details.
+
+---
+
+## 📄 License
+
+MIT
+
+---
+
+## 🤝 Support
+
+- GitHub Issues: https://github.com/btasarimambalaj-afk/adminara/issues
+- Documentation: [docs/](./docs/)
+
+---
+
+**Production Ready** ✅ | **Version 1.3.8** | **Last Updated: 2025-10-15**
