@@ -1,0 +1,41 @@
+graph LR
+    subgraph "Customer Flow"
+        C1[Customer Visits] --> C2[Join Queue]
+        C2 --> C3{Admin Available?}
+        C3 -->|Yes| C4[Start Call]
+        C3 -->|No| C5[Wait in Queue]
+        C5 --> C4
+        C4 --> C6[WebRTC Connection]
+        C6 --> C7[Active Call]
+        C7 --> C8[End Call]
+    end
+    
+    subgraph "Admin Flow"
+        A1[Admin Login] --> A2[OTP Verify]
+        A2 --> A3[Join Channel]
+        A3 --> A4{Customer Waiting?}
+        A4 -->|Yes| A5[Accept Call]
+        A4 -->|No| A6[Wait for Customer]
+        A6 --> A5
+        A5 --> A7[WebRTC Connection]
+        A7 --> A8[Active Call]
+        A8 --> A9[End Call]
+        A9 --> A4
+    end
+    
+    subgraph "Data Storage"
+        D1[(Session Store)]
+        D2[(Queue Store)]
+        D3[(Metrics Store)]
+    end
+    
+    A2 --> D1
+    C2 --> D2
+    C7 --> D3
+    A8 --> D3
+    
+    style C1 fill:#e1f5ff
+    style A1 fill:#ffe1e1
+    style D1 fill:#ffe1f5
+    style D2 fill:#ffe1f5
+    style D3 fill:#ffe1f5

@@ -1,0 +1,45 @@
+graph TB
+    subgraph "Client Layer"
+        C[Customer Browser]
+        A[Admin Browser]
+    end
+    
+    subgraph "Application Layer"
+        WS[WebSocket Server<br/>Socket.IO]
+        API[REST API<br/>Express]
+        AUTH[Auth Service<br/>OTP/JWT]
+    end
+    
+    subgraph "Business Layer"
+        QUEUE[Queue Manager<br/>BullMQ/In-Memory]
+        WR[WebRTC Manager<br/>ICE/TURN]
+        MON[Monitoring<br/>Prometheus]
+    end
+    
+    subgraph "Data Layer"
+        REDIS[(Redis<br/>Cache/Queue)]
+        STATE[(State Store<br/>Sessions)]
+    end
+    
+    subgraph "External Services"
+        TURN[TURN Server<br/>NAT Traversal]
+        TELE[Telegram Bot<br/>Notifications]
+        SENTRY[Sentry<br/>Error Tracking]
+    end
+    
+    C -->|HTTPS/WSS| WS
+    A -->|HTTPS/WSS| WS
+    WS --> API
+    API --> AUTH
+    API --> QUEUE
+    WS --> WR
+    WR --> TURN
+    AUTH --> TELE
+    QUEUE --> REDIS
+    WR --> STATE
+    MON --> SENTRY
+    
+    style C fill:#e1f5ff
+    style A fill:#ffe1e1
+    style TURN fill:#fff4e1
+    style REDIS fill:#ffe1f5

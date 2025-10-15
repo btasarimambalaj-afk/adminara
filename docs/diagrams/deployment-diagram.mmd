@@ -1,0 +1,44 @@
+graph TB
+    subgraph "Render.com (Production)"
+        subgraph "Web Service"
+            APP[Node.js App<br/>Express + Socket.IO<br/>512MB RAM]
+        end
+        
+        subgraph "Optional Services"
+            REDIS_PAID[Redis<br/>Paid Tier Only]
+            WORKER[Background Worker<br/>BullMQ Jobs]
+        end
+    end
+    
+    subgraph "External Services"
+        TURN_EXT[TURN Server<br/>Metered/Twilio]
+        TELE_EXT[Telegram Bot API]
+        SENTRY_EXT[Sentry.io<br/>Error Tracking]
+    end
+    
+    subgraph "Clients"
+        BROWSER[Web Browsers<br/>Chrome/Safari/Firefox]
+        MOBILE[Mobile Browsers<br/>iOS Safari/Android Chrome]
+    end
+    
+    subgraph "Monitoring"
+        PROM[Prometheus<br/>Metrics Scraping]
+        GRAFANA[Grafana<br/>Dashboards]
+    end
+    
+    BROWSER -->|HTTPS/WSS| APP
+    MOBILE -->|HTTPS/WSS| APP
+    APP -->|WebRTC| TURN_EXT
+    APP -->|Notifications| TELE_EXT
+    APP -->|Errors| SENTRY_EXT
+    APP -.->|Optional| REDIS_PAID
+    REDIS_PAID -.->|Optional| WORKER
+    PROM -->|Scrape /metrics| APP
+    PROM --> GRAFANA
+    
+    style APP fill:#667eea,color:#fff
+    style REDIS_PAID fill:#ffe1e1
+    style WORKER fill:#ffe1e1
+    style TURN_EXT fill:#fff4e1
+    style BROWSER fill:#e1f5ff
+    style MOBILE fill:#e1f5ff

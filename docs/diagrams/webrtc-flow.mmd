@@ -1,0 +1,44 @@
+sequenceDiagram
+    participant C as Customer
+    participant S as Server
+    participant A as Admin
+    participant T as TURN Server
+    
+    C->>S: Connect WebSocket
+    S->>C: Connected
+    C->>S: room:join (customer)
+    S->>A: room:user:joined (customer)
+    A->>S: room:join (admin)
+    S->>C: room:user:joined (admin)
+    
+    Note over C,A: WebRTC Negotiation (Perfect Negotiation)
+    
+    C->>S: rtc:description (offer)
+    S->>A: rtc:description (offer)
+    A->>S: rtc:description (answer)
+    S->>C: rtc:description (answer)
+    
+    par ICE Candidate Exchange
+        C->>S: rtc:ice:candidate
+        S->>A: rtc:ice:candidate
+    and
+        A->>S: rtc:ice:candidate
+        S->>C: rtc:ice:candidate
+    end
+    
+    alt Direct Connection (P2P)
+        C->>A: Media Stream (Direct)
+        A->>C: Media Stream (Direct)
+    else NAT Traversal Required
+        C->>T: Media via TURN
+        T->>A: Relayed Media
+        A->>T: Relayed Media
+        T->>C: Relayed Media
+    end
+    
+    Note over C,A: Call Active - Real-time Media
+    
+    A->>S: call:end
+    S->>C: call:ended
+    C->>S: Disconnect
+    A->>S: Ready for Next

@@ -1,0 +1,42 @@
+sequenceDiagram
+    participant A as Admin Browser
+    participant S as Server
+    participant T as Telegram Bot
+    participant R as Redis
+    
+    A->>S: POST /admin/otp/request
+    S->>S: Generate 6-digit OTP
+    S->>R: Store OTP (5min TTL)
+    S->>T: Send OTP via Telegram
+    T->>A: OTP: 123456
+    S->>A: 204 No Content
+    
+    Note over A: Admin enters OTP
+    
+    A->>S: POST /admin/otp/verify {code: "123456"}
+    S->>R: Verify OTP
+    
+    alt OTP Valid
+        R->>S: OTP Match
+        S->>S: Generate JWT Session
+        S->>R: Store Session (12h TTL)
+        S->>A: 204 + Set-Cookie (httpOnly)
+        Note over A: Session Active
+    else OTP Invalid
+        R->>S: OTP Mismatch
+        S->>A: 401 Unauthorized
+        Note over A: Retry (max 5 attempts)
+    end
+    
+    Note over A: Admin uses app
+    
+    A->>S: GET /admin/session/verify
+    S->>R: Validate Session
+    R->>S: Session Valid
+    S->>A: 200 OK
+    
+    Note over A: Admin logs out
+    
+    A->>S: POST /admin/logout
+    S->>R: Revoke Session
+    S->>A: 204 + Clear Cookie
