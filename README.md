@@ -114,7 +114,7 @@ npm run test:coverage
 
 ### Monitoring
 ✅ Prometheus Metrics
-✅ Grafana Dashboards (3 dashboards)
+✅ Grafana Dashboard
 ✅ Sentry Error Tracking
 ✅ Business Metrics
 ✅ Swagger API Docs
@@ -141,10 +141,8 @@ docker-compose -f docker-compose.monitoring.yml up -d
 # Grafana: http://localhost:3001 (admin/admin)
 ```
 
-**Grafana Dashboards**:
-- AdminAra Overview (HTTP, WebSocket, Queue, Resources)
-- AdminAra WebRTC (Connections, States, Quality)
-- AdminAra Business Metrics (Sessions, Completion Rate)
+**Grafana Dashboard**:
+- AdminAra System Overview (WebSocket, HTTP, WebRTC ICE, Queue)
 
 Detaylı bilgi için [monitoring/README.md](./monitoring/README.md) dosyasına bakın.
 

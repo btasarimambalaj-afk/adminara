@@ -22,27 +22,13 @@ docker-compose -f docker-compose.monitoring.yml logs -f
   - Username: `admin`
   - Password: `admin`
 
-## Dashboards
+## Dashboard
 
-### 1. AdminAra Overview
-- HTTP request rate and response times
-- Active WebSocket/WebRTC connections
-- Queue size and wait times
-- Memory, CPU, and event loop metrics
-
-### 2. AdminAra WebRTC
-- Active WebRTC connections
-- Connection and ICE states
-- Connection quality distribution
-- ICE restart frequency
-- Connection duration
-
-### 3. AdminAra Business Metrics
-- Total/completed/abandoned sessions
-- Session completion rate
-- Average session duration
-- Queue performance
-- Admin response time
+### AdminAra - System Overview
+- **Active WebSocket Connections**: Real-time connection count
+- **HTTP Request Rate**: Requests per second by method/path
+- **WebRTC ICE Success Rate**: Connection success percentage
+- **Queue Length**: Waiting customers count
 
 ## Prometheus Queries
 
