@@ -21,6 +21,8 @@
     "test:a11y": "playwright test tests/e2e/a11y-deep.test.js",
     "fix:auto": "node tests/auto-fix/runner.js",
     "test:fix:cycle": "npm run test:deep && npm run fix:auto",
+    "test:runner": "node testRunner.js",
+    "test:report": "node testRunner.js && cat reports/test_report.md",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --write \"**/*.{js,json,md}\"",
