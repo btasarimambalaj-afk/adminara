@@ -318,12 +318,28 @@ Backend proxy for Telegram notifications.
 - ✅ JSON/MD çıktıları indirilebilir durumda
 - ✅ Telegram entegrasyonu hazır
 
+## Web Dashboard
+
+Tarayıcı tabanlı test dashboardı:
+
+```
+https://adminara.onrender.com/test-automation.html
+```
+
+**Özellikler:**
+- ▶️ Tek tıkla test çalıştırma
+- 📊 Real-time metrics (passed/failed/coverage)
+- 🧠 Akıllı raporlama (AI-powered log parsing)
+- 📨 Telegram bildirim ayarları
+- 📄 Export (JSON, Markdown)
+- 🗑️ Log filtreleme
+
 ## Roadmap
 
+- [x] Web dashboard (real-time test results)
 - [ ] E2E test entegrasyonu (Playwright)
 - [ ] Load test entegrasyonu (k6)
 - [ ] Slack/Discord bildirim desteği
-- [ ] Web dashboard (real-time test results)
 - [ ] Auto-fix PR creation (GitHub API)
 - [ ] Historical trend analysis
 - [ ] Performance regression detection

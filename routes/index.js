@@ -290,6 +290,9 @@ module.exports = state => {
 
   // Telegram proxy endpoint
   router.use('/api/telegram', require('./telegram'));
+  
+  // Test automation API
+  router.use('/api/test', require('./test-api'));
 
   return router;
 };
