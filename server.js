@@ -289,6 +289,27 @@ function setSessionCookie(res, token, ttl = adminSession.SESSION_TTL_MS) {
 
 const { createOtpForAdmin, verifyAdminOtp } = require('./socket/admin-auth');
 
+/**
+ * @swagger
+ * /admin/otp/request:
+ *   post:
+ *     summary: Request OTP for admin login
+ *     tags: [Admin]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               adminId:
+ *                 type: string
+ *                 default: admin
+ *     responses:
+ *       204:
+ *         description: OTP sent successfully
+ *       500:
+ *         description: OTP send failed
+ */
 app.post('/admin/otp/request', celebrate({
   body: Joi.object({
     adminId: Joi.string().trim().max(64).default('admin')
@@ -306,6 +327,32 @@ app.post('/admin/otp/request', celebrate({
   }
 });
 
+/**
+ * @swagger
+ * /admin/otp/verify:
+ *   post:
+ *     summary: Verify OTP and create session
+ *     tags: [Admin]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - code
+ *             properties:
+ *               adminId:
+ *                 type: string
+ *                 default: admin
+ *               code:
+ *                 type: string
+ *                 pattern: ^\d{6}$
+ *     responses:
+ *       204:
+ *         description: OTP verified, session created
+ *       401:
+ *         description: Invalid OTP
+ */
 app.post('/admin/otp/verify', celebrate({
   body: Joi.object({
     adminId: Joi.string().trim().max(64).default('admin'),
@@ -331,6 +378,20 @@ const sessionVerifyLimiter = rateLimit({
   validate: { trustProxy: false }
 });
 
+/**
+ * @swagger
+ * /admin/session/verify:
+ *   get:
+ *     summary: Verify admin session
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Session is valid
+ *       401:
+ *         description: Session is invalid
+ */
 app.get('/admin/session/verify', sessionVerifyLimiter, async (req, res) => {
   const t = req.cookies?.adminSession;
   const session = await adminSession.validateSession(t);
@@ -338,6 +399,18 @@ app.get('/admin/session/verify', sessionVerifyLimiter, async (req, res) => {
   res.json({ ok: true });
 });
 
+/**
+ * @swagger
+ * /admin/logout:
+ *   post:
+ *     summary: Logout admin and revoke session
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       204:
+ *         description: Logged out successfully
+ */
 app.post('/admin/logout', async (req, res) => {
   const t = req.cookies?.adminSession;
   if (t) await adminSession.revokeSession(t);

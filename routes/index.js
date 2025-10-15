@@ -2,10 +2,28 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const logger = require('../utils/logger');
 const metrics = require('../utils/metrics');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('../swagger');
 
 module.exports = (state) => {
   const router = express.Router();
+  
+  // Swagger API documentation
+  router.use('/api-docs', swaggerUi.serve);
+  router.get('/api-docs', swaggerUi.setup(swaggerSpec));
 
+  /**
+   * @swagger
+   * /health:
+   *   get:
+   *     summary: Health check endpoint
+   *     tags: [Health]
+   *     responses:
+   *       200:
+   *         description: Service is healthy
+   *       503:
+   *         description: Service is degraded
+   */
   router.get('/health', async (req, res) => {
     const memUsage = process.memoryUsage();
     const stateStore = require('../utils/state-store');
@@ -55,6 +73,18 @@ module.exports = (state) => {
     });
   });
   
+  /**
+   * @swagger
+   * /ready:
+   *   get:
+   *     summary: Readiness check endpoint
+   *     tags: [Health]
+   *     responses:
+   *       200:
+   *         description: Service is ready
+   *       503:
+   *         description: Service is not ready
+   */
   router.get('/ready', async (req, res) => {
     // Fast readiness check (no Redis dependency)
     // Use this for health checks with short timeout
@@ -90,6 +120,18 @@ module.exports = (state) => {
     legacyHeaders: false
   });
   
+  /**
+   * @swagger
+   * /config/ice-servers:
+   *   get:
+   *     summary: Get ICE servers configuration
+   *     tags: [WebRTC]
+   *     responses:
+   *       200:
+   *         description: ICE servers configuration
+   *       500:
+   *         description: ICE servers unavailable
+   */
   router.get('/config/ice-servers', iceServersLimiter, async (req, res) => {
     try {
       const { getICEServers } = require('../utils/turn-credentials');
@@ -104,6 +146,20 @@ module.exports = (state) => {
     }
   });
 
+  /**
+   * @swagger
+   * /metrics:
+   *   get:
+   *     summary: Prometheus metrics endpoint
+   *     tags: [Monitoring]
+   *     security:
+   *       - metricsAuth: []
+   *     responses:
+   *       200:
+   *         description: Prometheus metrics
+   *       401:
+   *         description: Unauthorized
+   */
   router.get('/metrics', async (req, res) => {
     const authHeader = req.headers.authorization;
     const validAuth = process.env.METRICS_AUTH || 'Basic YWRtaW46c2VjcmV0';
