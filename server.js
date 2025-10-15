@@ -505,6 +505,10 @@ app.use(correlationMiddleware);
 // Routes (BEFORE static files)
 app.use('/', require('./routes')(state));
 
+// Enhanced health check endpoint
+const healthDetailed = require('./routes/health-detailed');
+app.use('/health/detailed', healthDetailed);
+
 // Static files (AFTER routes)
 app.use(
   '/js',
@@ -584,6 +588,7 @@ io.use(async (socket, next) => {
 // Socket handlers
 const socketHandlers = require('./socket/handlers');
 const adminAuthHandlers = require('./socket/admin-auth');
+const { validateSocketEvent } = require('./socket/validation-schemas');
 
 io.on('connection', socket => {
   const maxConnections = parseInt(process.env.MAX_CONNECTIONS) || 50;
