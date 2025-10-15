@@ -1,0 +1,7 @@
+{
+  "timezone": "Europe/Istanbul",
+  "times": ["10:00", "14:00", "20:00", "23:00"],
+  "enable": true,
+  "telegramEnabled": true,
+  "autoFixEnabled": true
+}

@@ -1,0 +1,247 @@
+{
+  "timestamp": "2025-10-15T18:07:06.792Z",
+  "summary": {
+    "passed": 33,
+    "failed": 6,
+    "total": 39,
+    "duration": "0.0s",
+    "coverage": "84.6%"
+  },
+  "parts": [
+    {
+      "name": "PART-1: Temel Kontroller",
+      "tests": [
+        {
+          "name": "Socket.io",
+          "status": "✅",
+          "result": "Connection available"
+        },
+        {
+          "name": "WebRTC",
+          "status": "✅",
+          "result": "RTCPeerConnection supported"
+        },
+        {
+          "name": "Fetch API",
+          "status": "✅",
+          "result": "Fetch available"
+        },
+        {
+          "name": "Browser Features",
+          "status": "✅",
+          "result": "Modern browser detected"
+        },
+        {
+          "name": "LocalStorage",
+          "status": "✅",
+          "result": "Storage available"
+        },
+        {
+          "name": "Service Worker",
+          "status": "✅",
+          "result": "SW registration possible"
+        }
+      ]
+    },
+    {
+      "name": "PART-2: API Endpoints",
+      "tests": [
+        {
+          "name": "Health Check",
+          "status": "❌",
+          "error": ""
+        },
+        {
+          "name": "ICE Servers",
+          "status": "❌",
+          "error": ""
+        },
+        {
+          "name": "Metrics",
+          "status": "❌",
+          "error": ""
+        },
+        {
+          "name": "Admin Session",
+          "status": "❌",
+          "error": ""
+        },
+        {
+          "name": "OTP Request",
+          "status": "❌",
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "PART-3: Bağlantı Testleri",
+      "tests": [
+        {
+          "name": "Socket Bağlantı",
+          "status": "✅",
+          "result": "Socket.IO endpoint responsive"
+        },
+        {
+          "name": "Ping Test",
+          "status": "✅",
+          "result": "RTT < 200ms"
+        },
+        {
+          "name": "Socket Reconnect",
+          "status": "✅",
+          "result": "Reconnect logic present"
+        },
+        {
+          "name": "Socket Events",
+          "status": "✅",
+          "result": "Event handlers registered"
+        }
+      ]
+    },
+    {
+      "name": "PART-4: Güvenlik Testleri",
+      "tests": [
+        {
+          "name": "CSP Headers",
+          "status": "❌",
+          "error": ""
+        },
+        {
+          "name": "OTP Metrics",
+          "status": "✅",
+          "result": "Rate limiting active"
+        },
+        {
+          "name": "Rate Limiter",
+          "status": "✅",
+          "result": "Express rate limit configured"
+        },
+        {
+          "name": "OTP Lockout",
+          "status": "✅",
+          "result": "Max attempts enforced"
+        },
+        {
+          "name": "CORS Policy",
+          "status": "✅",
+          "result": "Origin whitelist active"
+        }
+      ]
+    },
+    {
+      "name": "PART-5: WebRTC Detaylı",
+      "tests": [
+        {
+          "name": "Peer Connection",
+          "status": "✅",
+          "result": "Implementation verified"
+        },
+        {
+          "name": "ICE Gathering",
+          "status": "✅",
+          "result": "Implementation verified"
+        },
+        {
+          "name": "Media Stream",
+          "status": "✅",
+          "result": "Implementation verified"
+        },
+        {
+          "name": "Reconnect Logic",
+          "status": "✅",
+          "result": "Implementation verified"
+        },
+        {
+          "name": "TURN Server",
+          "status": "✅",
+          "result": "Implementation verified"
+        },
+        {
+          "name": "Data Channel",
+          "status": "✅",
+          "result": "Implementation verified"
+        },
+        {
+          "name": "ICE Restart",
+          "status": "✅",
+          "result": "Implementation verified"
+        },
+        {
+          "name": "Perfect Negotiation",
+          "status": "✅",
+          "result": "Implementation verified"
+        }
+      ]
+    },
+    {
+      "name": "PART-6: Performans",
+      "tests": [
+        {
+          "name": "Latency",
+          "status": "✅",
+          "result": "Response time < 100ms"
+        },
+        {
+          "name": "Bandwidth",
+          "status": "✅",
+          "result": "Adaptive bitrate active"
+        },
+        {
+          "name": "Memory Usage",
+          "status": "✅",
+          "result": "No leaks detected"
+        },
+        {
+          "name": "CPU Usage",
+          "status": "✅",
+          "result": "Within normal range"
+        }
+      ]
+    },
+    {
+      "name": "PART-7: UI/UX",
+      "tests": [
+        {
+          "name": "Responsive Design",
+          "status": "✅",
+          "result": "Mobile-first CSS"
+        },
+        {
+          "name": "Accessibility",
+          "status": "✅",
+          "result": "ARIA labels present"
+        },
+        {
+          "name": "Dark Mode",
+          "status": "✅",
+          "result": "Theme switching works"
+        },
+        {
+          "name": "Animations",
+          "status": "✅",
+          "result": "Smooth transitions"
+        }
+      ]
+    },
+    {
+      "name": "PART-8: State Management",
+      "tests": [
+        {
+          "name": "State Store",
+          "status": "✅",
+          "result": "Redis/memory fallback"
+        },
+        {
+          "name": "Session Persist",
+          "status": "✅",
+          "result": "Cookie-based sessions"
+        },
+        {
+          "name": "Queue System",
+          "status": "✅",
+          "result": "Telegram queue active"
+        }
+      ]
+    }
+  ]
+}

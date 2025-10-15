@@ -288,5 +288,8 @@ module.exports = state => {
     res.end(await metrics.register.metrics());
   });
 
+  // Telegram proxy endpoint
+  router.use('/api/telegram', require('./telegram'));
+
   return router;
 };

@@ -63,6 +63,12 @@ npm run test:e2e:ui
 
 # Coverage
 npm run test:coverage
+
+# Automated Test Suite (39 tests, 8 categories)
+npm run test:auto
+
+# Scheduled Tests (10:00, 14:00, 20:00, 23:00)
+npm run scheduler
 ```
 
 ## Kullanım
@@ -127,6 +133,10 @@ npm run test:coverage
 ✅ Load Tests (k6)
 ✅ Security Tests (npm audit)
 ✅ Advanced Test Suite (test-suite.html)
+✅ Automated Test Suite (39 tests, 8 PART)
+✅ Auto-Fix System (pattern-based repairs)
+✅ Scheduled Tests (4 times daily)
+✅ Telegram Notifications
 ✅ System Diagnostics (7 modules)
 ✅ Auto-Repair System (15+ actions)
 ✅ Modal Instructions
@@ -234,6 +244,7 @@ Detaylı mimari diyagramlar için [docs/diagrams](./docs/diagrams) klasörüne b
 - [EKSIKLER.md](./EKSIKLER.md) - Feature roadmap (99.9% complete)
 - [UYGULAMA-DURUMU.md](./UYGULAMA-DURUMU.md) - Implementation status
 - [IMPROVEMENTS-CHECKLIST.md](./IMPROVEMENTS-CHECKLIST.md) - Low priority improvements checklist
+- [AUTOMATION-TEST-SUITE.md](./AUTOMATION-TEST-SUITE.md) - Automated test & repair suite (39 tests, 8 PART)
 
 **⚠️ ÖNEMLİ**: `FULL-DOCUMENTATION.md` dosyası **SİLİNMEMELİ** ve her değişiklikte **GÜNCELLENMELİDİR**.
 
