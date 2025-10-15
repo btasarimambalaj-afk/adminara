@@ -1,186 +1,286 @@
-// test-repair.js - Automated Repair Functions
+// test-repair.js - System Repair Actions
 
-const repairActions = {
-  clearCache() {
+class RepairActions {
+  async clearCache() {
+    console.log('🗑️ Clearing cache...');
+    showToast('info', 'Clearing cache...');
+
     try {
       localStorage.clear();
       sessionStorage.clear();
-      if ('caches' in window) {
-        caches.keys().then(names => names.forEach(name => caches.delete(name)));
-      }
-      alert('✅ Cache cleared successfully. Please reload the page.');
-      return true;
-    } catch (error) {
-      alert('❌ Failed to clear cache: ' + error.message);
-      return false;
-    }
-  },
 
-  resetServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach(registration => registration.unregister());
-        alert('✅ Service Worker reset. Please reload the page.');
-      });
-    } else {
-      alert('⚠️ Service Worker not supported');
-    }
-  },
-
-  clearCookies() {
-    document.cookie.split(';').forEach(cookie => {
-      const name = cookie.split('=')[0].trim();
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-    });
-    alert('✅ Cookies cleared. Please reload the page.');
-  },
-
-  reconnectWebSocket() {
-    if (window.socket) {
-      window.socket.disconnect();
-      setTimeout(() => {
-        window.socket.connect();
-        alert('✅ WebSocket reconnected');
-      }, 1000);
-    } else {
-      alert('⚠️ No active WebSocket connection');
-    }
-  },
-
-  resetWebRTC() {
-    if (window.webrtcManager) {
-      window.webrtcManager.cleanup();
-      alert('✅ WebRTC reset. Please start a new call.');
-    } else {
-      alert('⚠️ No active WebRTC connection');
-    }
-  },
-
-  checkPermissions() {
-    const permissions = ['camera', 'microphone'];
-    permissions.forEach(async (perm) => {
-      try {
-        const result = await navigator.permissions.query({ name: perm });
-        console.log(`${perm}: ${result.state}`);
-      } catch (error) {
-        console.log(`${perm}: not supported`);
-      }
-    });
-    alert('✅ Check console for permission status');
-  },
-
-  testMediaDevices() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then(stream => {
-          stream.getTracks().forEach(track => track.stop());
-          alert('✅ Camera and microphone access granted');
-        })
-        .catch(error => {
-          alert('❌ Media access denied: ' + error.message);
-        });
-    } else {
-      alert('⚠️ getUserMedia not supported');
-    }
-  },
-
-  reloadPage() {
-    if (confirm('Reload the page?')) {
-      window.location.reload();
-    }
-  },
-
-  exportDiagnostics() {
-    if (diagnostics.results.length === 0) {
-      alert('⚠️ No diagnostics data. Run diagnostics first.');
-      return;
-    }
-
-    const report = {
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      results: diagnostics.results
-    };
-
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `diagnostics-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  },
-
-  quickFix() {
-    if (confirm('Run quick fix? This will:\n- Clear cache\n- Reset Service Worker\n- Reconnect WebSocket\n\nContinue?')) {
-      this.clearCache();
-      this.resetServiceWorker();
-      this.reconnectWebSocket();
-      setTimeout(() => {
-        if (confirm('Quick fix completed. Reload page now?')) {
-          window.location.reload();
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          await registration.unregister();
         }
-      }, 2000);
-    }
-  },
+      }
 
-  autoFix() {
-    const issues = diagnostics.results
-      .filter(r => r.status === 'fulfilled' && r.value.fixes && r.value.fixes.length > 0)
-      .map(r => r.value);
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+      }
 
-    if (issues.length === 0) {
-      alert('✅ No issues found that can be auto-fixed!');
-      return;
-    }
-
-    const fixList = issues.map(i => `- ${i.name}`).join('\n');
-    if (confirm(`Auto-fix will attempt to resolve:\n${fixList}\n\nContinue?`)) {
-      issues.forEach(issue => {
-        issue.fixes.forEach(fix => {
-          if (this[fix.action]) {
-            console.log(`Applying fix: ${fix.label}`);
-            this[fix.action]();
-          }
-        });
-      });
-      setTimeout(() => {
-        alert('✅ Auto-fix completed! Please reload the page.');
-      }, 1000);
+      showToast('success', 'Cache cleared successfully');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      showToast('error', `Clear cache failed: ${error.message}`);
     }
   },
 
   retryWebSocket() {
-    this.reconnectWebSocket();
+    console.log('🔄 Retrying WebSocket connection...');
+    showToast('info', 'Reconnecting...');
+    setTimeout(() => window.location.reload(), 1000);
   },
 
-  checkNetwork() {
-    alert('🔍 Network check:\n- Online: ' + navigator.onLine + '\n- Check your internet connection');
+  async checkNetwork() {
+    console.log('🌐 Checking network...');
+
+    try {
+      const response = await fetch('/health', { method: 'HEAD' });
+      if (response.ok) {
+        showToast('success', 'Network is working');
+      } else {
+        showToast('error', 'Server unreachable');
+      }
+    } catch (error) {
+      showToast('error', 'Network error: Check your connection');
+    }
   },
 
   updateBrowser() {
-    alert('🌐 Please update your browser to the latest version for best compatibility.');
+    const userAgent = navigator.userAgent;
+    let browserName = 'your browser';
+
+    if (userAgent.includes('Chrome')) browserName = 'Chrome';
+    else if (userAgent.includes('Firefox')) browserName = 'Firefox';
+    else if (userAgent.includes('Safari')) browserName = 'Safari';
+    else if (userAgent.includes('Edge')) browserName = 'Edge';
+
+    showToast('warning', `Please update ${browserName} to the latest version`);
+
+    const updateUrls = {
+      Chrome: 'chrome://settings/help',
+      Firefox: 'about:support',
+      Safari: 'https://support.apple.com/downloads/safari',
+      Edge: 'edge://settings/help'
+    };
+
+    setTimeout(() => {
+      if (updateUrls[browserName]) {
+        window.open(updateUrls[browserName], '_blank');
+      }
+    }, 2000);
   },
 
   enforceHTTPS() {
     if (location.protocol === 'http:' && location.hostname !== 'localhost') {
       if (confirm('Switch to HTTPS?')) {
-        window.location.href = location.href.replace('http:', 'https:');
+        showToast('info', 'Redirecting to HTTPS...');
+        setTimeout(() => {
+          location.href = location.href.replace('http:', 'https:');
+        }, 1000);
       }
     } else {
-      alert('✅ Already using HTTPS or localhost');
+      showToast('success', 'Already using HTTPS or localhost');
     }
   },
 
-  requestMediaPermissions() {
-    this.testMediaDevices();
+  async requestMediaPermissions() {
+    console.log('🎥 Requesting media permissions...');
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      showToast('success', 'Permissions granted');
+      stream.getTracks().forEach(track => track.stop());
+      setTimeout(() => runFullDiagnostics(), 1000);
+    } catch (error) {
+      showToast('error', `Permission denied: ${error.name}`);
+      this.showPermissionInstructions();
+    }
   },
 
-  optimizeAssets() {
-    alert('🛠️ Asset optimization tips:\n- Enable browser caching\n- Compress images\n- Minify CSS/JS\n- Use CDN');
-  }
-};
+  showPermissionInstructions() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>🎥 Camera/Microphone Permissions</h3>
+        <p>To enable permissions:</p>
+        <ol>
+          <li>Click the 🔒 icon in your browser's address bar</li>
+          <li>Find "Camera" and "Microphone" settings</li>
+          <li>Change to "Allow"</li>
+          <li>Reload the page</li>
+        </ol>
+        <button onclick="this.parentElement.parentElement.remove()">Got it</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  },
 
-// Global repair function
-window.repairActions = repairActions;
+  reloadPage() {
+    showToast('info', 'Reloading page...');
+    setTimeout(() => window.location.reload(true), 500);
+  },
+
+  async optimizeAssets() {
+    console.log('⚡ Optimizing assets...');
+    showToast('info', 'Optimizing...');
+
+    const criticalResources = ['/css/main.css', '/js/webrtc.js', '/js/client.js'];
+
+    for (const resource of criticalResources) {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = resource;
+      document.head.appendChild(link);
+    }
+
+    if ('connection' in navigator && 'saveData' in navigator.connection) {
+      document.documentElement.classList.add('save-data-mode');
+    }
+
+    showToast('success', 'Optimization applied');
+    setTimeout(() => window.location.reload(), 2000);
+  },
+
+  async autoFix() {
+    console.log('🔧 Running auto-fix...');
+
+    const issues = diagnostics.results
+      .filter(r => r.status === 'fulfilled' && r.value.fixes && r.value.fixes.length > 0)
+      .map(r => r.value);
+
+    if (issues.length === 0) {
+      showToast('success', 'No issues found that can be auto-fixed!');
+      return;
+    }
+
+    const fixList = issues.map(i => `- ${i.name}`).join('\n');
+    if (confirm(`Auto-fix will attempt to resolve:\n${fixList}\n\nContinue?`)) {
+      showToast('info', 'Running auto-fix...');
+
+      for (const issue of issues) {
+        for (const fix of issue.fixes) {
+          if (this[fix.action]) {
+            console.log(`Applying fix: ${fix.label}`);
+            try {
+              await this[fix.action]();
+            } catch (error) {
+              console.error(`Fix failed: ${fix.label}`, error);
+            }
+          }
+        }
+      }
+
+      showToast('success', 'Auto-fix completed');
+      setTimeout(() => runFullDiagnostics(), 3000);
+    }
+  },
+
+  async repairWebRTC() {
+    console.log('🔧 Repairing WebRTC...');
+
+    try {
+      const pc = new RTCPeerConnection();
+      pc.createDataChannel('test');
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      await new Promise((resolve) => {
+        pc.onicecandidate = (event) => {
+          if (event.candidate === null) resolve();
+        };
+        setTimeout(resolve, 5000);
+      });
+
+      pc.close();
+      showToast('success', 'WebRTC is working');
+    } catch (error) {
+      showToast('error', `WebRTC repair failed: ${error.message}`);
+      this.showWebRTCTroubleshooting();
+    }
+  },
+
+  showWebRTCTroubleshooting() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>🔧 WebRTC Troubleshooting</h3>
+        <h4>Common Issues:</h4>
+        <ul>
+          <li><strong>Firewall blocking:</strong> Check firewall settings</li>
+          <li><strong>VPN interference:</strong> Try disabling VPN</li>
+          <li><strong>Browser extensions:</strong> Disable ad blockers</li>
+          <li><strong>Network type:</strong> Corporate networks may block WebRTC</li>
+        </ul>
+        <h4>Quick Fixes:</h4>
+        <ol>
+          <li>Restart your browser</li>
+          <li>Clear browser cache and cookies</li>
+          <li>Try incognito/private mode</li>
+          <li>Switch to a different network</li>
+        </ol>
+        <button onclick="this.parentElement.parentElement.remove()">Close</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  },
+
+  async cleanupDatabase() {
+    console.log('🗄️ Cleaning up database...');
+
+    try {
+      if ('indexedDB' in window) {
+        const databases = await indexedDB.databases();
+        for (const db of databases) {
+          indexedDB.deleteDatabase(db.name);
+          console.log(`Deleted database: ${db.name}`);
+        }
+        showToast('success', 'Database cleaned');
+      }
+    } catch (error) {
+      showToast('error', `Database cleanup failed: ${error.message}`);
+    }
+  },
+
+  async resetAll() {
+    if (!confirm('⚠️ This will reset all settings and clear all data. Continue?')) {
+      return;
+    }
+
+    console.log('🔄 Resetting everything...');
+
+    try {
+      await this.clearCache();
+      await this.cleanupDatabase();
+
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          await registration.unregister();
+        }
+      }
+
+      showToast('success', 'Reset complete. Reloading...');
+      setTimeout(() => window.location.href = '/', 2000);
+    } catch (error) {
+      showToast('error', `Reset failed: ${error.message}`);
+    }
+  }
+}
+
+// Initialize repair actions
+const repairActions = new RepairActions();
+
+// Helper function for toast notifications
+function showToast(type, message) {
+  if (typeof window.showToast === 'function') {
+    window.showToast(type, message);
+  } else {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+  }
+}
