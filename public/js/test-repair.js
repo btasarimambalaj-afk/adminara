@@ -123,6 +123,62 @@ const repairActions = {
         }
       }, 2000);
     }
+  },
+
+  autoFix() {
+    const issues = diagnostics.results
+      .filter(r => r.status === 'fulfilled' && r.value.fixes && r.value.fixes.length > 0)
+      .map(r => r.value);
+
+    if (issues.length === 0) {
+      alert('✅ No issues found that can be auto-fixed!');
+      return;
+    }
+
+    const fixList = issues.map(i => `- ${i.name}`).join('\n');
+    if (confirm(`Auto-fix will attempt to resolve:\n${fixList}\n\nContinue?`)) {
+      issues.forEach(issue => {
+        issue.fixes.forEach(fix => {
+          if (this[fix.action]) {
+            console.log(`Applying fix: ${fix.label}`);
+            this[fix.action]();
+          }
+        });
+      });
+      setTimeout(() => {
+        alert('✅ Auto-fix completed! Please reload the page.');
+      }, 1000);
+    }
+  },
+
+  retryWebSocket() {
+    this.reconnectWebSocket();
+  },
+
+  checkNetwork() {
+    alert('🔍 Network check:\n- Online: ' + navigator.onLine + '\n- Check your internet connection');
+  },
+
+  updateBrowser() {
+    alert('🌐 Please update your browser to the latest version for best compatibility.');
+  },
+
+  enforceHTTPS() {
+    if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+      if (confirm('Switch to HTTPS?')) {
+        window.location.href = location.href.replace('http:', 'https:');
+      }
+    } else {
+      alert('✅ Already using HTTPS or localhost');
+    }
+  },
+
+  requestMediaPermissions() {
+    this.testMediaDevices();
+  },
+
+  optimizeAssets() {
+    alert('🛠️ Asset optimization tips:\n- Enable browser caching\n- Compress images\n- Minify CSS/JS\n- Use CDN');
   }
 };
 

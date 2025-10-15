@@ -1,289 +1,402 @@
-// test-diagnostics.js - System Diagnostics & Health Checks
+// test-diagnostics.js - Advanced Diagnostic System
 
-const diagnostics = {
-  results: [],
+class SystemDiagnostics {
+  constructor() {
+    this.results = [];
+  }
 
-  async checkWebSocketLatency() {
+  async checkWebSocket() {
     const start = Date.now();
     return new Promise((resolve) => {
       const socket = io({ transports: ['websocket'] });
       socket.on('connect', () => {
         const latency = Date.now() - start;
         socket.disconnect();
-        resolve({
-          name: 'WebSocket Latency',
+        const result = {
+          name: 'WebSocket Connection',
           status: latency < 100 ? 'healthy' : latency < 300 ? 'warning' : 'error',
-          value: `${latency}ms`,
-          message: latency < 100 ? 'Excellent' : latency < 300 ? 'Good' : 'Slow connection',
-          fixes: latency >= 300 ? ['Check network', 'Restart router'] : []
-        });
+          details: [`Connection time: ${latency}ms`, latency < 100 ? '✅ Excellent' : latency < 300 ? '⚠️ Good' : '❌ Slow connection'],
+          fixes: latency >= 300 ? [{ label: 'Check Network', action: 'checkNetwork' }, { label: 'Restart Router', action: 'reloadPage' }] : []
+        };
+        socket.disconnect();
+        resolve(result);
       });
-      socket.on('connect_error', () => {
+      socket.on('connect_error', (error) => {
         socket.disconnect();
         resolve({
-          name: 'WebSocket Latency',
+          name: 'WebSocket Connection',
           status: 'error',
-          value: 'Failed',
-          message: 'Cannot connect to WebSocket',
-          fixes: ['Check server status', 'Verify firewall settings']
+          details: ['❌ Connection failed', error.message || 'Cannot connect'],
+          fixes: [{ label: 'Check Server', action: 'checkNetwork' }, { label: 'Retry', action: 'retryWebSocket' }]
         });
       });
+      setTimeout(() => resolve({
+        name: 'WebSocket Connection',
+        status: 'error',
+        details: ['❌ Connection timeout'],
+        fixes: [{ label: 'Retry', action: 'retryWebSocket' }]
+      }), 5000);
     });
   },
 
-  async checkHTTPSProtocol() {
-    const isHTTPS = window.location.protocol === 'https:';
-    return {
-      name: 'HTTPS Protocol',
-      status: isHTTPS ? 'healthy' : 'warning',
-      value: window.location.protocol,
-      message: isHTTPS ? 'Secure connection' : 'Insecure connection',
-      fixes: !isHTTPS ? ['Enable HTTPS', 'Use SSL certificate'] : []
+  async checkWebRTC() {
+    const result = {
+      name: 'WebRTC Capabilities',
+      status: 'unknown',
+      details: [],
+      fixes: []
     };
-  },
 
-  async checkCORS() {
     try {
-      const response = await fetch('/health', { method: 'OPTIONS' });
-      const corsHeader = response.headers.get('Access-Control-Allow-Origin');
-      return {
-        name: 'CORS Configuration',
-        status: corsHeader ? 'healthy' : 'warning',
-        value: corsHeader || 'Not configured',
-        message: corsHeader ? 'CORS enabled' : 'CORS not configured',
-        fixes: !corsHeader ? ['Configure CORS headers'] : []
-      };
-    } catch (error) {
-      return {
-        name: 'CORS Configuration',
-        status: 'error',
-        value: 'Failed',
-        message: error.message,
-        fixes: ['Check server configuration']
-      };
-    }
-  },
+      if (!window.RTCPeerConnection) {
+        result.status = 'error';
+        result.details.push('❌ RTCPeerConnection not supported');
+        result.fixes.push({ label: 'Update Browser', action: 'updateBrowser' });
+        return result;
+      }
 
-  async checkDNSSpeed() {
-    const start = Date.now();
-    try {
-      await fetch('/health', { cache: 'no-store' });
-      const dnsTime = Date.now() - start;
-      return {
-        name: 'DNS Resolution',
-        status: dnsTime < 50 ? 'healthy' : dnsTime < 150 ? 'warning' : 'error',
-        value: `${dnsTime}ms`,
-        message: dnsTime < 50 ? 'Fast' : dnsTime < 150 ? 'Moderate' : 'Slow',
-        fixes: dnsTime >= 150 ? ['Change DNS server', 'Clear DNS cache'] : []
-      };
-    } catch (error) {
-      return {
-        name: 'DNS Resolution',
-        status: 'error',
-        value: 'Failed',
-        message: error.message,
-        fixes: ['Check internet connection']
-      };
-    }
-  },
+      result.details.push('✅ RTCPeerConnection supported');
 
-  async checkICEGathering() {
-    try {
       const pc = new RTCPeerConnection();
       const start = Date.now();
-      
-      return new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-          pc.close();
-          resolve({
-            name: 'ICE Gathering',
-            status: 'error',
-            value: 'Timeout',
-            message: 'ICE gathering timeout',
-            fixes: ['Check firewall', 'Enable STUN/TURN']
-          });
-        }, 5000);
 
+      await new Promise((resolve) => {
         pc.onicecandidate = (event) => {
           if (event.candidate === null) {
-            clearTimeout(timeout);
             const duration = Date.now() - start;
+            result.details.push(`ICE gathering: ${duration}ms`);
+            result.status = duration < 5000 ? 'healthy' : 'warning';
             pc.close();
-            resolve({
-              name: 'ICE Gathering',
-              status: duration < 2000 ? 'healthy' : 'warning',
-              value: `${duration}ms`,
-              message: 'ICE candidates gathered',
-              fixes: []
-            });
+            resolve();
           }
         };
 
+        pc.createDataChannel('test');
         pc.createOffer().then(offer => pc.setLocalDescription(offer));
+
+        setTimeout(() => {
+          result.status = 'error';
+          result.details.push('❌ ICE gathering timeout');
+          pc.close();
+          resolve();
+        }, 10000);
       });
     } catch (error) {
-      return {
-        name: 'ICE Gathering',
-        status: 'error',
-        value: 'Failed',
-        message: error.message,
-        fixes: ['Check WebRTC support']
-      };
+      result.status = 'error';
+      result.details.push(`❌ Error: ${error.message}`);
     }
+
+    return result;
   },
 
-  async checkTURNAuth() {
-    try {
-      const response = await fetch('/api/ice-servers');
-      const data = await response.json();
-      const hasTURN = data.iceServers?.some(s => s.urls?.some(u => u.includes('turn:')));
-      return {
-        name: 'TURN Server',
-        status: hasTURN ? 'healthy' : 'warning',
-        value: hasTURN ? 'Configured' : 'Not configured',
-        message: hasTURN ? 'TURN server available' : 'No TURN server',
-        fixes: !hasTURN ? ['Configure TURN server'] : []
-      };
-    } catch (error) {
-      return {
-        name: 'TURN Server',
-        status: 'error',
-        value: 'Failed',
-        message: error.message,
-        fixes: ['Check ICE server endpoint']
-      };
-    }
-  },
-
-  async checkXSSVulnerability() {
-    const testString = '<script>alert("xss")</script>';
-    const div = document.createElement('div');
-    div.textContent = testString;
-    const isSafe = div.innerHTML.includes('&lt;script&gt;');
-    return {
-      name: 'XSS Protection',
-      status: isSafe ? 'healthy' : 'error',
-      value: isSafe ? 'Protected' : 'Vulnerable',
-      message: isSafe ? 'XSS protection active' : 'XSS vulnerability detected',
-      fixes: !isSafe ? ['Sanitize user input', 'Use textContent'] : []
-    };
-  },
-
-  async checkCookieSecurity() {
-    const cookies = document.cookie;
-    const hasSecure = cookies.includes('Secure');
-    const hasHttpOnly = !cookies.includes('sessionId'); // httpOnly cookies not accessible
-    return {
-      name: 'Cookie Security',
-      status: hasHttpOnly ? 'healthy' : 'warning',
-      value: hasHttpOnly ? 'Secure' : 'Needs improvement',
-      message: hasHttpOnly ? 'HttpOnly cookies enabled' : 'HttpOnly not detected',
-      fixes: !hasHttpOnly ? ['Enable httpOnly flag', 'Use Secure flag'] : []
-    };
-  },
-
-  async checkCSP() {
-    const csp = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    return {
-      name: 'Content Security Policy',
-      status: csp ? 'healthy' : 'warning',
-      value: csp ? 'Enabled' : 'Not configured',
-      message: csp ? 'CSP headers present' : 'No CSP detected',
-      fixes: !csp ? ['Add CSP headers'] : []
-    };
-  },
-
-  async checkPageLoad() {
-    const perfData = performance.getEntriesByType('navigation')[0];
-    const loadTime = perfData ? perfData.loadEventEnd - perfData.fetchStart : 0;
-    return {
-      name: 'Page Load Time',
-      status: loadTime < 2000 ? 'healthy' : loadTime < 4000 ? 'warning' : 'error',
-      value: `${Math.round(loadTime)}ms`,
-      message: loadTime < 2000 ? 'Fast' : loadTime < 4000 ? 'Moderate' : 'Slow',
-      fixes: loadTime >= 4000 ? ['Optimize assets', 'Enable caching'] : []
-    };
-  },
-
-  async checkMemoryLeak() {
-    if (performance.memory) {
-      const used = performance.memory.usedJSHeapSize / 1048576;
-      const limit = performance.memory.jsHeapSizeLimit / 1048576;
-      const percentage = (used / limit) * 100;
-      return {
-        name: 'Memory Usage',
-        status: percentage < 50 ? 'healthy' : percentage < 80 ? 'warning' : 'error',
-        value: `${Math.round(used)}MB / ${Math.round(limit)}MB`,
-        message: `${Math.round(percentage)}% used`,
-        fixes: percentage >= 80 ? ['Reload page', 'Close unused tabs'] : []
-      };
-    }
-    return {
-      name: 'Memory Usage',
+  async checkMediaDevices() {
+    const result = {
+      name: 'Media Devices',
       status: 'unknown',
-      value: 'N/A',
-      message: 'Memory API not available',
+      details: [],
       fixes: []
     };
+
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        result.status = 'error';
+        result.details.push('❌ getUserMedia not supported');
+        result.fixes.push({ label: 'Enable HTTPS', action: 'enforceHTTPS' });
+        return result;
+      }
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(d => d.kind === 'videoinput');
+      const mics = devices.filter(d => d.kind === 'audioinput');
+
+      result.details.push(`📷 Cameras: ${cameras.length}`);
+      result.details.push(`🎤 Microphones: ${mics.length}`);
+
+      if (cameras.length === 0 || mics.length === 0) {
+        result.status = 'warning';
+        result.fixes.push({ label: 'Check Permissions', action: 'requestMediaPermissions' });
+      } else {
+        result.status = 'healthy';
+      }
+    } catch (error) {
+      result.status = 'error';
+      result.details.push(`❌ Error: ${error.message}`);
+    }
+
+    return result;
   },
 
-  async checkBrowserCompatibility() {
-    const features = {
-      webrtc: !!window.RTCPeerConnection,
-      websocket: !!window.WebSocket,
-      serviceWorker: 'serviceWorker' in navigator,
-      localStorage: !!window.localStorage,
-      mediaDevices: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+  async checkStorage() {
+    const result = {
+      name: 'Browser Storage',
+      status: 'unknown',
+      details: [],
+      fixes: []
     };
-    const supported = Object.values(features).filter(Boolean).length;
-    const total = Object.keys(features).length;
-    return {
-      name: 'Browser Compatibility',
-      status: supported === total ? 'healthy' : supported >= 3 ? 'warning' : 'error',
-      value: `${supported}/${total} features`,
-      message: supported === total ? 'Fully compatible' : 'Some features missing',
-      fixes: supported < total ? ['Update browser', 'Use modern browser'] : []
-    };
-  }
-};
 
-async function runFullDiagnostics() {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        result.details.push('✅ LocalStorage available');
+
+        if (navigator.storage && navigator.storage.estimate) {
+          const estimate = await navigator.storage.estimate();
+          const usage = ((estimate.usage / estimate.quota) * 100).toFixed(2);
+          result.details.push(`Storage: ${usage}% used`);
+
+          if (usage > 80) {
+            result.status = 'warning';
+            result.fixes.push({ label: 'Clear Cache', action: 'clearCache' });
+          }
+        }
+      } else {
+        result.status = 'error';
+        result.details.push('❌ LocalStorage not available');
+      }
+
+      if (typeof indexedDB !== 'undefined') {
+        result.details.push('✅ IndexedDB available');
+      }
+
+      if (result.status !== 'error' && result.status !== 'warning') {
+        result.status = 'healthy';
+      }
+    } catch (error) {
+      result.status = 'error';
+      result.details.push(`❌ Error: ${error.message}`);
+    }
+
+    return result;
+  },
+
+  async checkNetwork() {
+    const result = {
+      name: 'Network Status',
+      status: 'unknown',
+      details: [],
+      fixes: []
+    };
+
+    try {
+      result.details.push(navigator.onLine ? '✅ Online' : '❌ Offline');
+
+      if (navigator.connection) {
+        const conn = navigator.connection;
+        result.details.push(`Type: ${conn.effectiveType || 'unknown'}`);
+        result.details.push(`Downlink: ${conn.downlink || 'unknown'} Mbps`);
+        result.details.push(`RTT: ${conn.rtt || 'unknown'} ms`);
+
+        if (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g') {
+          result.status = 'warning';
+          result.details.push('⚠️ Slow connection detected');
+        } else {
+          result.status = 'healthy';
+        }
+      } else {
+        result.status = 'healthy';
+      }
+    } catch (error) {
+      result.status = 'error';
+      result.details.push(`❌ Error: ${error.message}`);
+    }
+
+    return result;
+  },
+
+  async checkSecurity() {
+    const result = {
+      name: 'Security Status',
+      status: 'unknown',
+      details: [],
+      fixes: []
+    };
+
+    try {
+      if (location.protocol === 'https:') {
+        result.details.push('✅ HTTPS enabled');
+      } else {
+        result.status = 'warning';
+        result.details.push('⚠️ HTTP (insecure)');
+        result.fixes.push({ label: 'Switch to HTTPS', action: 'enforceHTTPS' });
+      }
+
+      const cookies = document.cookie.split(';');
+      result.details.push(`Cookies: ${cookies.length}`);
+
+      const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+      if (cspMeta) {
+        result.details.push('✅ CSP enabled');
+      }
+
+      if (result.status !== 'warning') {
+        result.status = 'healthy';
+      }
+    } catch (error) {
+      result.status = 'error';
+      result.details.push(`❌ Error: ${error.message}`);
+    }
+
+    return result;
+  },
+
+  async checkPerformance() {
+    const result = {
+      name: 'Performance Metrics',
+      status: 'unknown',
+      details: [],
+      fixes: []
+    };
+
+    try {
+      if (window.performance && window.performance.timing) {
+        const timing = window.performance.timing;
+        const loadTime = timing.loadEventEnd - timing.navigationStart;
+        const domReady = timing.domContentLoadedEventEnd - timing.navigationStart;
+
+        result.details.push(`Load time: ${loadTime}ms`);
+        result.details.push(`DOM ready: ${domReady}ms`);
+
+        if (loadTime > 3000) {
+          result.status = 'warning';
+          result.fixes.push({ label: 'Optimize Assets', action: 'optimizeAssets' });
+        } else {
+          result.status = 'healthy';
+        }
+      }
+
+      if (window.performance && window.performance.memory) {
+        const memory = window.performance.memory;
+        const usage = ((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100).toFixed(2);
+        result.details.push(`Memory: ${usage}%`);
+
+        if (usage > 80) {
+          result.status = 'warning';
+          result.fixes.push({ label: 'Reload Page', action: 'reloadPage' });
+        }
+      }
+
+      if (result.status !== 'warning') {
+        result.status = 'healthy';
+      }
+    } catch (error) {
+      result.status = 'error';
+      result.details.push(`❌ Error: ${error.message}`);
+    }
+
+    return result;
+  }
+
+  async runFullDiagnostics() {
+    console.log('🔍 Starting full system diagnostics...');
+
+    const checks = [
+      this.checkWebSocket(),
+      this.checkWebRTC(),
+      this.checkMediaDevices(),
+      this.checkStorage(),
+      this.checkNetwork(),
+      this.checkSecurity(),
+      this.checkPerformance()
+    ];
+
+    const results = await Promise.allSettled(checks);
+    this.results = results;
+    this.displayResults(results);
+    return results;
+  }
+
+  displayResults(results) {
+    const container = document.getElementById('diagnosticsResult');
+    container.style.display = 'grid';
+    container.innerHTML = '';
+
+    results.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        const card = this.createDiagnosticCard(result.value);
+        container.appendChild(card);
+      }
+    });
+
+    this.generateSummary(results);
+  }
+
+  createDiagnosticCard(data) {
+    const card = document.createElement('div');
+    card.className = 'diagnostic-card';
+
+    const statusClass = `status-${data.status}`;
+    const statusIcon = { healthy: '✅', warning: '⚠️', error: '❌', unknown: '❓' }[data.status];
+
+    let html = `
+      <h3>
+        <span class="status-indicator ${statusClass}"></span>
+        ${data.name}
+      </h3>
+      <div class="status-badge ${statusClass}">
+        ${statusIcon} ${data.status.toUpperCase()}
+      </div>
+      <div class="details">
+        ${data.details.map(d => `<p>• ${d}</p>`).join('')}
+      </div>
+    `;
+
+    if (data.fixes && data.fixes.length > 0) {
+      html += `
+        <div class="fix-actions">
+          ${data.fixes.map(fix => `
+            <button class="fix-btn ${fix.action.includes('clear') || fix.action.includes('reload') ? 'danger' : ''}" 
+                    onclick="repairActions.${fix.action}()">
+              🔧 ${fix.label}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    card.innerHTML = html;
+    return card;
+  }
+
+  generateSummary(results) {
+    const fulfilled = results.filter(r => r.status === 'fulfilled');
+    const healthy = fulfilled.filter(r => r.value.status === 'healthy').length;
+    const warnings = fulfilled.filter(r => r.value.status === 'warning').length;
+    const errors = fulfilled.filter(r => r.value.status === 'error').length;
+
+    const summary = document.createElement('div');
+    summary.className = 'summary-card';
+    summary.innerHTML = `
+      <h3>📊 Diagnostic Summary</h3>
+      <div class="summary-stats">
+        <div class="stat-item healthy">
+          <span class="stat-value">${healthy}</span>
+          <span class="stat-label">Healthy</span>
+        </div>
+        <div class="stat-item warning">
+          <span class="stat-value">${warnings}</span>
+          <span class="stat-label">Warnings</span>
+        </div>
+        <div class="stat-item error">
+          <span class="stat-value">${errors}</span>
+          <span class="stat-label">Errors</span>
+        </div>
+      </div>
+      <div class="summary-actions">
+        <button class="repair-button" onclick="repairActions.autoFix()">
+          🛠️ Auto-Fix All Issues
+        </button>
+      </div>
+    `;
+
+    document.getElementById('diagnosticsResult').prepend(summary);
+  }
+}
+
+// Initialize
+const diagnostics = new SystemDiagnostics();
+
+function runFullDiagnostics() {
   const panel = document.getElementById('diagnosticsResult');
   panel.innerHTML = '<p style="text-align:center;color:#666;">Running diagnostics...</p>';
   panel.style.display = 'grid';
-
-  const checks = [
-    diagnostics.checkWebSocketLatency(),
-    diagnostics.checkHTTPSProtocol(),
-    diagnostics.checkCORS(),
-    diagnostics.checkDNSSpeed(),
-    diagnostics.checkICEGathering(),
-    diagnostics.checkTURNAuth(),
-    diagnostics.checkXSSVulnerability(),
-    diagnostics.checkCookieSecurity(),
-    diagnostics.checkCSP(),
-    diagnostics.checkPageLoad(),
-    diagnostics.checkMemoryLeak(),
-    diagnostics.checkBrowserCompatibility()
-  ];
-
-  const results = await Promise.all(checks);
-  diagnostics.results = results;
-
-  panel.innerHTML = results.map(result => `
-    <div class="diagnostic-card">
-      <h3>
-        <span class="status-indicator status-${result.status}"></span>
-        ${result.name}
-      </h3>
-      <p><strong>Value:</strong> ${result.value}</p>
-      <p><strong>Status:</strong> ${result.message}</p>
-      ${result.fixes.length > 0 ? `
-        <div class="fix-actions">
-          <strong>Fixes:</strong>
-          ${result.fixes.map(fix => `<button class="fix-btn" onclick="alert('${fix}')">${fix}</button>`).join('')}
-        </div>
-      ` : ''}
-    </div>
-  `).join('');
+  diagnostics.runFullDiagnostics();
 }

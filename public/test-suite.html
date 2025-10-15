@@ -69,6 +69,52 @@
     .fix-btn:hover { background: #2980b9; }
     .fix-btn.danger { background: #e74c3c; }
     .fix-btn.danger:hover { background: #c0392b; }
+    .summary-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 15px;
+      grid-column: 1 / -1;
+    }
+    .summary-stats {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 15px 25px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+    }
+    .stat-value {
+      display: block;
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .stat-label {
+      display: block;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .summary-actions {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .status-badge.status-healthy { background: #d4edda; color: #155724; }
+    .status-badge.status-warning { background: #fff3cd; color: #856404; }
+    .status-badge.status-error { background: #f8d7da; color: #721c24; }
+    .status-badge.status-unknown { background: #e2e3e5; color: #383d41; }
+    .details p { margin: 5px 0; font-size: 14px; color: #555; }
   </style>
 </head>
 <body>
