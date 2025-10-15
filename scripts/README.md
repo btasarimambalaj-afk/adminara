@@ -2,6 +2,37 @@
 
 Automated backup and restore scripts for Redis, logs, and configuration files.
 
+## Deployment Options
+
+### Option 1: Docker Compose (Recommended)
+
+Use `docker-compose.backup.yml` for containerized backup service.
+
+**Features**:
+- Automated daily backups (2 AM)
+- Redis container included
+- Isolated backup environment
+- Easy scaling and monitoring
+
+**Usage**:
+```bash
+# Start backup service
+docker-compose -f docker-compose.backup.yml up -d
+
+# View logs
+docker logs -f adminara-backup
+
+# Manual backup
+docker exec adminara-backup /scripts/backup.sh
+
+# Stop service
+docker-compose -f docker-compose.backup.yml down
+```
+
+### Option 2: Native Scripts
+
+Use bash scripts directly on Linux/macOS.
+
 ## Scripts
 
 ### backup.sh

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backup:
+    image: alpine:latest
+    container_name: adminara-backup
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts:ro
+      - ./logs:/logs:ro
+      - ./.env:/app/.env:ro
+      - ./config:/config:ro
+    command: sh -c "apk add --no-cache redis bash openssl && crond -f -l 2"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BACKUP_DIR=/backups
+      - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY}
+      - RETENTION_DAYS=${RETENTION_DAYS:-7}
+    networks:
+      - adminara-network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: adminara-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --appendfsync everysec
+    networks:
+      - adminara-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis-data:
+
+networks:
+  adminara-network:
+    driver: bridge

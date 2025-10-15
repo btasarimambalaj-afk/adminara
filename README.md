@@ -36,8 +36,14 @@ docker build -t adminara .
 # Run
 docker run -p 3000:3000 --env-file .env adminara
 
-# Docker Compose
+# Docker Compose (App)
 docker-compose up -d
+
+# Docker Compose (Backup Service)
+docker-compose -f docker-compose.backup.yml up -d
+
+# Docker Compose (Monitoring)
+docker-compose -f docker-compose.monitoring.yml up -d
 
 # Stop
 docker-compose down

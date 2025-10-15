@@ -167,7 +167,24 @@ aws s3 sync s3://adminara-logs/2024-01-15/ logs/
 
 ## 🔧 Automated Backup Scripts
 
-### Setup Automated Backups
+### Docker Compose Backup (Recommended)
+
+```bash
+# 1. Set environment variables
+export BACKUP_ENCRYPTION_KEY="your-secure-key"
+export RETENTION_DAYS="7"
+
+# 2. Start backup service
+docker-compose -f docker-compose.backup.yml up -d
+
+# 3. View backup logs
+docker logs -f adminara-backup
+
+# 4. Manual backup
+docker exec adminara-backup /scripts/backup.sh
+```
+
+### Native Setup (Linux/macOS)
 
 ```bash
 # 1. Make scripts executable
