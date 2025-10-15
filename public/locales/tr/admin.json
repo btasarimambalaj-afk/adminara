@@ -1,0 +1,14 @@
+{
+  "admin": {
+    "title": "Admin Paneli",
+    "otpPrompt": "Telegram üzerinden aldığınız 6 haneli kodu girin.",
+    "sendCode": "Kod Gönder",
+    "enterPanel": "Panele Gir",
+    "codePlaceholder": "6 haneli kod",
+    "codeSent": "Kod gönderildi!",
+    "refresh": "Yenile",
+    "waiting": "Müşteri bekleniyor...",
+    "queue": "Kuyruk",
+    "end": "Bitir"
+  }
+}

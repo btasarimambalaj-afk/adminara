@@ -1,0 +1,14 @@
+{
+  "admin": {
+    "title": "Admin Panel",
+    "otpPrompt": "Enter the 6-digit code received via Telegram.",
+    "sendCode": "Send Code",
+    "enterPanel": "Enter Panel",
+    "codePlaceholder": "6-digit code",
+    "codeSent": "Code sent!",
+    "refresh": "Refresh",
+    "waiting": "Waiting for customer...",
+    "queue": "Queue",
+    "end": "End"
+  }
+}

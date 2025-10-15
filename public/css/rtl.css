@@ -1,0 +1,67 @@
+/* RTL (Right-to-Left) Support for Arabic */
+
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Flip containers */
+[dir="rtl"] .hero-wrapper,
+[dir="rtl"] .card,
+[dir="rtl"] .phone-interface {
+  direction: rtl;
+}
+
+/* Reverse flex layouts */
+[dir="rtl"] .control-buttons,
+[dir="rtl"] .controls {
+  flex-direction: row-reverse;
+}
+
+/* Adjust padding/margin */
+[dir="rtl"] .brand-badge {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+[dir="rtl"] .status-bar {
+  flex-direction: row-reverse;
+}
+
+/* Video positioning */
+[dir="rtl"] #localVideo {
+  left: auto;
+  right: 20px;
+}
+
+[dir="rtl"] .exit-fullscreen-btn {
+  left: 10px;
+  right: auto;
+}
+
+/* Language selector */
+[dir="rtl"] .lang-selector {
+  left: 10px;
+  right: auto;
+}
+
+/* Text inputs */
+[dir="rtl"] input[type="text"] {
+  text-align: right;
+}
+
+/* Buttons */
+[dir="rtl"] button {
+  direction: rtl;
+}
+
+/* Toast notifications */
+[dir="rtl"] .toast {
+  left: 20px;
+  right: auto;
+}
+
+/* Queue status */
+[dir="rtl"] .queue-status {
+  direction: rtl;
+}
