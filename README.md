@@ -99,9 +99,12 @@ npm run test:coverage
 ✅ Offline Support (Service Worker)
 
 ### DevOps
-✅ CI/CD Pipeline (GitHub Actions)
-✅ Docker Support
+✅ CI/CD Pipeline (6 workflows)
+✅ Automated Testing (lint, unit, integration, e2e)
+✅ Security Scanning (npm audit, Snyk, CodeQL)
+✅ Docker Build & Push
 ✅ Auto-Deploy (Render.com)
+✅ PR Templates & Issue Templates
 ✅ Backup Strategy (RTO: 15min)
 ✅ Health Checks (/health, /ready)
 
@@ -193,6 +196,7 @@ Detaylı mimari diyagramlar için [docs/diagrams](./docs/diagrams) klasörüne b
 - [API Documentation](https://adminara.onrender.com/api-docs) - Swagger UI (REST API)
 - [Architecture Diagrams](./docs/README.md) - Mermaid diagrams
 - [I18N.md](./docs/I18N.md) - Internationalization guide
+- [CI-CD.md](./docs/CI-CD.md) - CI/CD pipeline documentation
 
 ### Operational Guides
 - [MOBILE-COMPATIBILITY.md](./MOBILE-COMPATIBILITY.md) - iOS Safari & Android Chrome

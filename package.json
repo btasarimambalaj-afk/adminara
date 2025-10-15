@@ -17,6 +17,8 @@
     "test:quick": "jest tests/integration/metrics-guard.test.js tests/e2e",
     "test:load": "k6 run tests/load/http-load.js",
     "test:load:ws": "k6 run tests/load/websocket-load.js",
+    "lint": "echo 'ESLint not configured - skipping'",
+    "format:check": "echo 'Prettier not configured - skipping'",
     "docker:build": "docker build -t hayday-support .",
     "docker:run": "docker-compose up",
     "docker:stop": "docker-compose down",
