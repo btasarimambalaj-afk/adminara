@@ -11,14 +11,14 @@ describe('httpOnly cookie session', () => {
     app.use(cookieParser('test-secret'));
 
     const { issueToken, validateToken, revokeToken, SESS_TTL_MS } = require('../../utils/session');
-    
+
     function setSessionCookie(res, token, ttl = SESS_TTL_MS) {
       res.cookie('adminSession', token, {
         httpOnly: true,
         secure: false,
         sameSite: 'Strict',
         maxAge: ttl,
-        path: '/'
+        path: '/',
       });
     }
 
@@ -47,7 +47,7 @@ describe('httpOnly cookie session', () => {
       .post('/admin/otp/verify')
       .send({ adminId: 'admin', code: '123456' })
       .expect(204);
-    
+
     const setCookie = res.headers['set-cookie'][0];
     expect(setCookie).toMatch(/adminSession=/);
     expect(setCookie).toMatch(/HttpOnly/i);
@@ -61,22 +61,16 @@ describe('httpOnly cookie session', () => {
   it('session verify accepts valid cookie', async () => {
     const loginRes = await request(app).post('/admin/otp/verify').send({});
     const cookie = loginRes.headers['set-cookie'][0];
-    
-    await request(app)
-      .get('/admin/session/verify')
-      .set('Cookie', cookie)
-      .expect(200);
+
+    await request(app).get('/admin/session/verify').set('Cookie', cookie).expect(200);
   });
 
   it('logout clears cookie', async () => {
     const loginRes = await request(app).post('/admin/otp/verify').send({});
     const cookie = loginRes.headers['set-cookie'][0];
-    
-    const logoutRes = await request(app)
-      .post('/admin/logout')
-      .set('Cookie', cookie)
-      .expect(204);
-    
+
+    const logoutRes = await request(app).post('/admin/logout').set('Cookie', cookie).expect(204);
+
     const cleared = logoutRes.headers['set-cookie'][0];
     expect(cleared).toMatch(/adminSession=;/);
   });

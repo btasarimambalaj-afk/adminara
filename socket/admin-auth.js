@@ -17,7 +17,7 @@ async function generateAndSendOTP(socket, bot) {
   const password = crypto.randomInt(100000, 999999).toString();
   adminPasswordStore.set(socket.id, {
     password,
-    expires: Date.now() + 300000
+    expires: Date.now() + 300000,
   });
 
   if (bot && process.env.TELEGRAM_ADMIN_CHAT_ID) {
@@ -31,7 +31,10 @@ async function generateAndSendOTP(socket, bot) {
       logger.error('Telegram OTP send failed', { err: err.message });
     }
   } else {
-    logger.warn('Telegram not configured', { bot: !!bot, chatId: !!process.env.TELEGRAM_ADMIN_CHAT_ID });
+    logger.warn('Telegram not configured', {
+      bot: !!bot,
+      chatId: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
+    });
   }
 
   socket.emit('admin:password:sent');
@@ -41,7 +44,7 @@ async function generateAndSendOTP(socket, bot) {
 async function createOtpForAdmin(adminId, bot) {
   const password = crypto.randomInt(100000, 999999).toString();
   const data = { password, expires: Date.now() + 300000 };
-  
+
   const stateStore = require('../utils/state-store');
   await stateStore.setOtp(adminId, data);
   adminPasswordStore.set(adminId, data);
@@ -58,7 +61,10 @@ async function createOtpForAdmin(adminId, bot) {
       throw err;
     }
   } else {
-    logger.warn('Telegram not configured', { bot: !!bot, chatId: !!process.env.TELEGRAM_ADMIN_CHAT_ID });
+    logger.warn('Telegram not configured', {
+      bot: !!bot,
+      chatId: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
+    });
   }
   return data;
 }
@@ -71,17 +77,17 @@ function verifyAdminOtp(adminId, code) {
     failedAttempts.delete(adminId);
     return true;
   }
-  
+
   const attempts = (failedAttempts.get(adminId) || 0) + 1;
   failedAttempts.set(adminId, attempts);
   metrics.otpInvalidAttempts.inc();
-  
+
   return false;
 }
 
 module.exports = (io, socket, state) => {
   const { bot } = state;
-  
+
   // IP Whitelist (optional)
   const ADMIN_IPS = process.env.ADMIN_IPS?.split(',').map(ip => ip.trim()) || [];
   if (ADMIN_IPS.length > 0 && !ADMIN_IPS.includes(socket.handshake.address)) {
@@ -90,20 +96,20 @@ module.exports = (io, socket, state) => {
     socket.disconnect();
     return;
   }
-  
-  socket.on('admin:session:verify', async (data) => {
+
+  socket.on('admin:session:verify', async data => {
     try {
       const { token } = data;
       if (!token) {
         socket.emit('admin:session:invalid');
         return;
       }
-      
+
       const session = await adminSession.validateSession(token);
       if (session) {
         socket.emit('admin:session:valid');
         logger.info('Session validated - auto-joining room', { socketId: socket.id });
-        
+
         if (socket.handleRoomJoin) {
           socket.handleRoomJoin(socket, { isAdmin: true });
         }
@@ -121,12 +127,12 @@ module.exports = (io, socket, state) => {
     const stateStore = require('../utils/state-store');
     await stateStore.setOtp(socket.id, {
       password: crypto.randomInt(100000, 999999).toString(),
-      expires: Date.now() + 300000
+      expires: Date.now() + 300000,
     });
     await generateAndSendOTP(socket, bot);
   });
 
-  socket.on('admin:password:verify', async (data) => {
+  socket.on('admin:password:verify', async data => {
     try {
       const { password } = data;
       const stored = adminPasswordStore.get(socket.id);
@@ -142,7 +148,7 @@ module.exports = (io, socket, state) => {
         const token = await adminSession.createSession('admin');
         socket.emit('admin:password:verified', { token });
         logger.info('Admin password verified - auto-joining room', { socketId: socket.id });
-        
+
         if (socket.handleRoomJoin) {
           socket.handleRoomJoin(socket, { isAdmin: true });
         }
@@ -157,10 +163,10 @@ module.exports = (io, socket, state) => {
             await rateLimiter.lockout(lockKey, OTP_LOCKOUT_DURATION, 'failed_attempts');
             metrics.otpLockouts.inc({ reason: 'failures' });
             failedAttempts.delete(socket.id);
-            
-            socket.emit('admin:password:locked', { 
+
+            socket.emit('admin:password:locked', {
               message: `Çok fazla hatalı deneme. ${Math.ceil(OTP_LOCKOUT_DURATION / 1000 / 60)} dakika sonra tekrar deneyin.`,
-              retryAfter: Math.ceil(OTP_LOCKOUT_DURATION / 1000)
+              retryAfter: Math.ceil(OTP_LOCKOUT_DURATION / 1000),
             });
             logger.warn('OTP locked due to failed attempts', { socketId: socket.id });
             return;

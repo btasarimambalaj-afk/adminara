@@ -7,13 +7,13 @@ class ChatManager {
     this.unreadCount = 0;
     this.init();
   }
-  
+
   init() {
     this.createChatUI();
     this.setupSocketListeners();
     this.setupEventListeners();
   }
-  
+
   createChatUI() {
     const chatHTML = `
       <div id="chatContainer" class="chat-container hidden">
@@ -31,12 +31,12 @@ class ChatManager {
         💬 <span id="chatBadge" class="chat-badge hidden">0</span>
       </button>
     `;
-    
+
     document.body.insertAdjacentHTML('beforeend', chatHTML);
   }
-  
+
   setupSocketListeners() {
-    this.socket.on('chat:message', (data) => {
+    this.socket.on('chat:message', data => {
       this.addMessage(data.message, data.sender, data.timestamp);
       if (!this.isOpen) {
         this.unreadCount++;
@@ -44,71 +44,71 @@ class ChatManager {
       }
     });
   }
-  
+
   setupEventListeners() {
     const toggle = document.getElementById('chatToggle');
     const close = document.getElementById('chatClose');
     const send = document.getElementById('chatSend');
     const input = document.getElementById('chatInput');
-    
+
     toggle.onclick = () => this.toggleChat();
     close.onclick = () => this.closeChat();
     send.onclick = () => this.sendMessage();
-    
-    input.onkeypress = (e) => {
+
+    input.onkeypress = e => {
       if (e.key === 'Enter') this.sendMessage();
     };
   }
-  
+
   toggleChat() {
     const container = document.getElementById('chatContainer');
     this.isOpen = !this.isOpen;
     container.classList.toggle('hidden');
-    
+
     if (this.isOpen) {
       this.unreadCount = 0;
       this.updateBadge();
       document.getElementById('chatInput').focus();
     }
   }
-  
+
   closeChat() {
     this.isOpen = false;
     document.getElementById('chatContainer').classList.add('hidden');
   }
-  
+
   sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
-    
+
     if (!message) return;
-    
+
     this.socket.emit('chat:send', { message, timestamp: Date.now() });
     this.addMessage(message, 'me', Date.now());
     input.value = '';
   }
-  
+
   addMessage(message, sender, timestamp) {
     const messagesDiv = document.getElementById('chatMessages');
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${sender === 'me' ? 'chat-message-me' : 'chat-message-other'}`;
-    
-    const time = new Date(timestamp).toLocaleTimeString('tr-TR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+
+    const time = new Date(timestamp).toLocaleTimeString('tr-TR', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
-    
+
     messageEl.innerHTML = `
       <div class="chat-message-content">${this.escapeHtml(message)}</div>
       <div class="chat-message-time">${time}</div>
     `;
-    
+
     messagesDiv.appendChild(messageEl);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    
+
     this.messages.push({ message, sender, timestamp });
   }
-  
+
   updateBadge() {
     const badge = document.getElementById('chatBadge');
     if (this.unreadCount > 0) {
@@ -118,13 +118,13 @@ class ChatManager {
       badge.classList.add('hidden');
     }
   }
-  
+
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
-  
+
   clearMessages() {
     this.messages = [];
     document.getElementById('chatMessages').innerHTML = '';

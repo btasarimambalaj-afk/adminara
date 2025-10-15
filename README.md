@@ -71,6 +71,7 @@ npm run test:coverage
 ## Features
 
 ### WebRTC
+
 ✅ Perfect Negotiation Pattern (glare-free)
 ✅ Auto-Reconnect (ICE Restart, <8s)
 ✅ TURN Server Support (NAT Traversal)
@@ -78,6 +79,7 @@ npm run test:coverage
 ✅ Connection Quality Monitoring
 
 ### Security
+
 ✅ httpOnly Cookie (XSS Protection)
 ✅ CSRF Protection (production)
 ✅ Rate Limiting (DDoS protection)
@@ -85,6 +87,7 @@ npm run test:coverage
 ✅ PII Masking (logs)
 
 ### Performance
+
 ✅ WebRTC Connection Pool (-44% latency)
 ✅ Redis Connection Pool (+50% throughput)
 ✅ CDN-Ready Headers
@@ -92,6 +95,7 @@ npm run test:coverage
 ✅ Memory Leak Fixed
 
 ### Mobile
+
 ✅ iOS Safari Compatible
 ✅ Android Chrome Compatible
 ✅ PWA Install Prompt
@@ -99,6 +103,7 @@ npm run test:coverage
 ✅ Offline Support (Service Worker)
 
 ### DevOps
+
 ✅ CI/CD Pipeline (6 workflows)
 ✅ Automated Testing (lint, unit, integration, e2e)
 ✅ Security Scanning (npm audit, Snyk, CodeQL)
@@ -109,6 +114,7 @@ npm run test:coverage
 ✅ Health Checks (/health, /ready)
 
 ### Testing
+
 ✅ Unit Tests (54% coverage)
 ✅ Integration Tests
 ✅ E2E Tests (Playwright)
@@ -116,6 +122,7 @@ npm run test:coverage
 ✅ Security Tests (npm audit)
 
 ### Monitoring
+
 ✅ Prometheus Metrics
 ✅ Grafana Dashboard
 ✅ Sentry Error Tracking
@@ -123,6 +130,7 @@ npm run test:coverage
 ✅ Swagger API Docs
 
 ### i18n (Optional)
+
 ✅ Multi-language Support (TR, EN, DE, AR)
 ✅ Auto Language Detection
 ✅ RTL Support (Arabic)
@@ -151,11 +159,13 @@ docker-compose -f docker-compose.monitoring.yml up -d
 ```
 
 **Grafana Dashboard**:
+
 - AdminAra System Overview (WebSocket, HTTP, WebRTC ICE, Queue)
 
 Detaylı bilgi için [monitoring/README.md](./monitoring/README.md) dosyasına bakın.
 
 ### Prometheus Queries
+
 ```promql
 # Uptime percentage (last 24h)
 100 * (1 - (sum(rate(http_requests_total{status=~"5.."}[24h])) / sum(rate(http_requests_total[24h]))))
@@ -168,6 +178,7 @@ rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds
 ```
 
 ### Sentry Integration
+
 ```bash
 # Set Sentry DSN in .env
 SENTRY_DSN=https://your-dsn@sentry.io/project
@@ -178,6 +189,7 @@ SENTRY_DSN=https://your-dsn@sentry.io/project
 Detaylı mimari diyagramlar için [docs/diagrams](./docs/diagrams) klasörüne bakın.
 
 ### Quick Links
+
 - [System Architecture](./docs/diagrams/system-architecture.mmd) - Complete system layers and components
 - [WebRTC Call Flow](./docs/diagrams/webrtc-flow.mmd) - Perfect Negotiation Pattern sequence
 - [Authentication Sequence](./docs/diagrams/authentication-sequence.mmd) - OTP/JWT flow
@@ -191,6 +203,7 @@ Detaylı mimari diyagramlar için [docs/diagrams](./docs/diagrams) klasörüne b
 ## 📚 Dokümantasyon
 
 ### Core Documentation
+
 - [FULL-DOCUMENTATION.md](./FULL-DOCUMENTATION.md) - Complete project documentation
 - [SOCKET-API.md](./SOCKET-API.md) - Socket.IO events (15+ client, 20+ server)
 - [API Documentation](https://adminara.onrender.com/api-docs) - Swagger UI (REST API)
@@ -199,12 +212,14 @@ Detaylı mimari diyagramlar için [docs/diagrams](./docs/diagrams) klasörüne b
 - [CI-CD.md](./docs/CI-CD.md) - CI/CD pipeline documentation
 
 ### Operational Guides
+
 - [MOBILE-COMPATIBILITY.md](./MOBILE-COMPATIBILITY.md) - iOS Safari & Android Chrome
 - [BACKUP-STRATEGY.md](./BACKUP-STRATEGY.md) - Backup & disaster recovery
 - [DEPLOYMENT-GUIDE.md](./DEPLOYMENT-GUIDE.md) - Deployment instructions
 - [RENDER-DEPLOY.md](./RENDER-DEPLOY.md) - Render.com specific guide
 
 ### Development
+
 - [EKSIKLER.md](./EKSIKLER.md) - Feature roadmap (99.9% complete)
 - [UYGULAMA-DURUMU.md](./UYGULAMA-DURUMU.md) - Implementation status
 

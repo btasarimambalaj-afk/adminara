@@ -28,24 +28,24 @@ async function getSharedJWT(userId) {
 async function failoverWebSocket(oldSocketId, newSocketId, state) {
   try {
     logger.info('WebSocket failover initiated', { oldSocketId, newSocketId });
-    
+
     // Transfer customer socket state
     const customerData = state.customerSockets.get(oldSocketId);
     if (customerData) {
       state.customerSockets.delete(oldSocketId);
       state.customerSockets.set(newSocketId, customerData);
-      
+
       // Update Redis state
       await stateStore.removeCustomerSocket(oldSocketId);
       await stateStore.addCustomerSocket(newSocketId, {
         customerName: customerData.customerName,
-        joinedAt: Date.now()
+        joinedAt: Date.now(),
       });
-      
+
       logger.info('Customer state transferred', { oldSocketId, newSocketId });
       return true;
     }
-    
+
     // Transfer admin socket state
     if (state.adminSocket?.id === oldSocketId) {
       state.adminSocket.id = newSocketId;
@@ -53,7 +53,7 @@ async function failoverWebSocket(oldSocketId, newSocketId, state) {
       logger.info('Admin state transferred', { oldSocketId, newSocketId });
       return true;
     }
-    
+
     return false;
   } catch (err) {
     logger.error('WebSocket failover failed', { error: err.message });
@@ -105,7 +105,7 @@ class CacheInvalidationBus {
     this.client = redisClient;
     this.subscribers = new Map();
   }
-  
+
   async publish(event, data) {
     try {
       const message = JSON.stringify({ event, data, timestamp: Date.now() });
@@ -115,14 +115,14 @@ class CacheInvalidationBus {
       logger.error('Pub/sub publish failed', { error: err.message });
     }
   }
-  
+
   subscribe(event, callback) {
     if (!this.subscribers.has(event)) {
       this.subscribers.set(event, []);
     }
     this.subscribers.get(event).push(callback);
   }
-  
+
   async handleMessage(message) {
     try {
       const { event, data } = JSON.parse(message);
@@ -141,5 +141,5 @@ module.exports = {
   cacheSet,
   cacheGet,
   cacheInvalidate,
-  CacheInvalidationBus
+  CacheInvalidationBus,
 };

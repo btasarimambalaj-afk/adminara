@@ -4,7 +4,7 @@
 **Live**: https://adminara.onrender.com  
 **Status**: Production Ready  
 **Coverage**: 54%+ (Target: 85%)  
-**Architecture**: Node.js Native (No Python/FastAPI hybrid)  
+**Architecture**: Node.js Native (No Python/FastAPI hybrid)
 
 Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı açıklar.
 
@@ -132,8 +132,6 @@ Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı a
 
 **utils/admin-session.js** - Admin session management (createSession, validateSession, revokeSession, 12h TTL, sliding expiration)
 
-
-
 **utils/error-handler.js** - Global error handler (Express middleware, Winston log, Sentry, hide stack trace)
 
 **utils/logger.js** - Winston logger (error/warn/info/debug, JSON format, file rotation)
@@ -147,8 +145,6 @@ Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı a
 **utils/rate-limiter.js** - Redis-based rate limiter (100 req/15min per IP, skip /health /metrics)
 
 **utils/sentry.js** - Sentry error tracking (init, captureException, breadcrumbs, release tracking)
-
-
 
 **utils/telegram-bot.js** - Telegram bot wrapper (sendMessage, error handling)
 
@@ -174,9 +170,9 @@ Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı a
 
 ---
 
-### 📦 __mocks__/
+### 📦 **mocks**/
 
-**__mocks__/@sentry/node.js** - Sentry mock (test için)
+****mocks**/@sentry/node.js** - Sentry mock (test için)
 
 ---
 
@@ -193,15 +189,19 @@ Bu dokümantasyon, projedeki **her dosyanın** ne işe yaradığını detaylı a
 ## 🔄 SİSTEM AKIŞLARI
 
 ### Müşteri Bağlantı Akışı
+
 1. index.html yükle → 2. İsim gir → 3. Socket.IO bağlan → 4. room:join emit → 5. getUserMedia → 6. RTCPeerConnection → 7. Admin katılınca negotiation → 8. SDP offer/answer → 9. ICE candidates → 10. P2P connection → 11. Video stream
 
 ### Admin Bağlantı Akışı
+
 1. admin.html yükle → 2. Session check → 3. OTP request → 4. Telegram mesaj → 5. OTP verify → 6. Session create → 7. Panel aç → 8. Socket.IO bağlan → 9. room:join → 10. getUserMedia → 11. RTCPeerConnection → 12. Müşteri katılınca negotiation → 13. P2P connection → 14. Persistent (bağlı kalır)
 
 ### WebRTC Signaling
+
 Müşteri: offer → Admin: answer → ICE candidates ↔ → P2P connection
 
 ### Auto-Reconnect
+
 Connection failed → Monitor detect → ICE restart → New offer/answer → New ICE candidates → Re-established (<8s)
 
 ---
@@ -361,42 +361,47 @@ ALO/
 
 **Bu dokümantasyon, AdminAra projesinin tüm dosyalarını ve işlevlerini detaylı açıklar. Herhangi bir geliştirici veya AI, bu dosyayı okuyarak projenin tam yapısını anlayabilir.**
 
-
-
 ---
 
 ## 🆕 YENİ EKLENEN DOSYALAR (Part 10-15)
 
 ### config/
+
 - **roles.yaml** - RBAC configuration (4 roles: admin, operator, viewer, support)
 - **secrets.enc.yaml.example** - SOPS encrypted secrets template
 
 ### jobs/
+
 - **scheduler.js** - Job scheduler with OpenTelemetry tracing
 - **turn-rotation.js** - Weekly TURN secret rotation (Sunday 00:00)
 - **session-cleanup.js** - Hourly expired session cleanup
 - **retention.js** - Daily log deletion + weekly GDPR anonymization
 
 ### public/js/
+
 - **admin-app.js** - Admin panel logic (OTP, queue, diagnostics)
 - **customer-app.js** - Customer logic (name validation, queue position)
 - **adaptive-quality.js** - Adaptive bitrate (300kbps-1.5Mbps, battery aware)
 - **offline-handler.js** - Offline detection (banner, service worker messages)
 
 ### routes/middleware/
+
 - **auth.js** - JWT authentication middleware
 - **rbac.js** - Role-based access control
 - **correlation.js** - Request correlation ID (X-Request-ID)
 - **idempotency.js** - Idempotency middleware (Redis cache 24h)
 
 ### routes/v1/
+
 - **admin.js** - Admin V1 API (queue management, metrics)
 - **customer.js** - Customer V1 API (join queue, status)
 
 ### socket/
+
 - **schema-validator.js** - JSON Schema validation for WebRTC messages
 
 ### utils/
+
 - **auth.js** - JWT + MFA utilities (TOTP, backup codes, Redis sync)
 - **rbac.js** - Role management (permissions, hierarchy)
 - **encryption.js** - AES-256-GCM + PII masking
@@ -405,6 +410,7 @@ ALO/
 - **error-codes.js** - Multi-language error codes (EN/TR, severity levels)
 
 ### tests/
+
 - **tests/unit/turn-credentials.test.js** - TURN credentials tests
 - **tests/unit/rbac.test.js** - RBAC permission tests
 - **tests/integration/v1-routes.test.js** - V1 API tests
@@ -416,6 +422,7 @@ ALO/
 ## 📚 PART DOKÜMANTASYONLARI (1-15)
 
 ### Part 1-2: Analiz ve Yapı
+
 - **PART1-ANALYSIS.md** - STRIDE security analysis (18 issues: 6 critical, 7 high, 5 medium)
   - TURN TTL 3600s→300s (92% risk reduction)
   - JWT revocation list
@@ -430,6 +437,7 @@ ALO/
   - Decision: Keep Node.js (no Python/FastAPI migration)
 
 ### Part 3: Config ve Environment
+
 - **.env.example** - Updated with JWT, MFA, GDPR, adaptive bitrate variables
 - **config/index.js** - Envalid validation (JWT_SECRET, MFA_ISSUER, TURN_TTL=300, RETENTION_DAYS, ENCRYPTION_KEY)
 - **config/roles.yaml** - RBAC roles (admin, operator, viewer, support)
@@ -437,6 +445,7 @@ ALO/
 - **package.json** - Added dependencies (jsonwebtoken, otplib, qrcode, uuid, js-yaml)
 
 ### Part 4: Socket ve Route Refactor
+
 - **PART4-SOCKET-ROUTE-REFACTOR.md** - V1 API routes with JWT, RBAC, correlation ID, idempotency
 - **routes/middleware/auth.js** - JWT verification with revocation check
 - **routes/middleware/rbac.js** - Role-based access control (requireRole factory)
@@ -448,6 +457,7 @@ ALO/
 - **utils/state-store.js** - Added JWT revocation (isJtiRevoked, revokeJti)
 
 ### Part 5: Utils Module Updates
+
 - **utils/auth.js** - JWT + MFA utilities
   - issueTokens() - Access + refresh JWT with Redis sync
   - verifyToken() - JWT verification
@@ -471,6 +481,7 @@ ALO/
 - **utils/logger.js** - Added PII masking (ENABLE_PII_MASKING=true)
 
 ### Part 6: WebRTC Optimizations
+
 - **public/js/adaptive-quality.js** - Adaptive bitrate (300kbps-1.5Mbps)
   - Bandwidth monitoring via getStats()
   - Battery monitoring (<20% → 300kbps)
@@ -482,11 +493,13 @@ ALO/
   - ICE restart with exponential backoff
 
 ### Part 7: React Partials (SKIPPED)
+
 - **Decision**: NOT migrating to React
 - **Reason**: Vanilla JS system working in production, low risk/benefit ratio
 - **Alternative**: Web Components + State Management pattern documented
 
 ### Part 8: Background Jobs (BullMQ)
+
 - **jobs/scheduler.js** - Main scheduler (TURN rotation, session cleanup, retention)
 - **jobs/turn-rotation.js** - Weekly TURN secret rotation (Sunday 00:00, 32-byte secret)
 - **jobs/session-cleanup.js** - Hourly expired session cleanup
@@ -494,6 +507,7 @@ ALO/
 - **server.js** - Integrated scheduler into initializeApp() and gracefulShutdown()
 
 ### Part 9: Test Suite Expansion
+
 - **tests/unit/turn-credentials.test.js** - 5 tests (dynamic credentials, TTL, caching)
 - **tests/unit/rbac.test.js** - 6 tests (permission checking across roles)
 - **tests/integration/v1-routes.test.js** - 9 tests (customer/admin routes, auth, RBAC, correlation ID)
@@ -502,6 +516,7 @@ ALO/
 - **Total**: 26→54+ tests (Target: 85% coverage)
 
 ### Part 10: Offline ve Mobil İyileştirmeler
+
 - **PART10-OFFLINE-MOBILE.md** - PWA + battery monitoring + responsive CSS
 - **public/service-worker.js** - Updated to v1.3.8
   - 21 files static cache
@@ -529,6 +544,7 @@ ALO/
   - @media (orientation: landscape) - Landscape mode
 
 ### Part 11: Bekleme Kuyruğu ve Admin Entegrasyonu
+
 - **PART11-QUEUE-INTEGRATION.md** - Queue system (FIFO, Redis, 50+ capacity)
 - **socket/handlers.js** - Queue socket events
   - queue:get - Admin query queue length
@@ -550,6 +566,7 @@ ALO/
 - **public/index.html** - Added queue status display
 
 ### Part 12: Tam Entegrasyon ve Hata Testleri
+
 - **PART12-INTEGRATION-TESTS.md** - Error scenarios + retry logic
 - **socket/handlers.js** - Error handling
   - audio:level - Silence detection (<-60dB → disconnect after 5s)
@@ -570,6 +587,7 @@ ALO/
 - **Uptime**: 99.2% achieved
 
 ### Part 13: Deployment ve Monitoring
+
 - **PART13-DEPLOYMENT-MONITORING.md** - Docker + health probes + Prometheus
 - **Dockerfile** - Multi-stage build
   - Builder stage + Production stage
@@ -598,6 +616,7 @@ ALO/
   - Prometheus queries
 
 ### Part 14: Hibrit Köprüler (Node.js Native)
+
 - **PART14-HYBRID-BRIDGES.md** - JWT sync + WebSocket failover + caching (Node.js native, no Python)
 - **utils/bridge.js** - Cross-instance bridges
   - syncJWT() - JWT Redis sync (cross-instance)
@@ -617,6 +636,7 @@ ALO/
 - **Performance**: JWT sync 5ms, Failover 45ms, Cache hit rate 85%
 
 ### Part 15: Monitoring & Performance
+
 - **PART15-MONITORING-PERFORMANCE.md** - OpenTelemetry + profiling + 40% improvement
 - **utils/observability.js** - OpenTelemetry tracing
   - initObservability() - Tracer + Meter setup
@@ -662,6 +682,7 @@ ALO/
 ## 🔄 YENİ SİSTEM AKIŞLARI
 
 ### Queue System (ENABLE_QUEUE=true)
+
 1. Customer join (busy) → enqueueCustomer() → Redis FIFO
 2. emit('queue:joined', { position: 3 })
 3. Admin sees "Kuyruk: 3"
@@ -669,22 +690,26 @@ ALO/
 5. emit('queue:ready') → Customer 2 auto-connects
 
 ### Adaptive Quality
+
 1. Monitor bandwidth via getStats()
 2. Adjust bitrate: 300kbps (poor) / 500kbps (fair) / 1.5Mbps (good)
 3. Battery <20% → Pause video + 300kbps → 70% savings
 
 ### Error Handling
+
 1. Silence detection (<-60dB for 5s) → disconnect
 2. ICE failure → Auto-retry (1s, 2s, 4s, 8s backoff)
 3. Multi-language errors (EN/TR) → Centralized logging
 
 ### JWT + MFA Flow
+
 1. Login → issueTokens() → Access + Refresh JWT
 2. Sync to Redis → bridge.syncJWT(token, userId, 3600)
 3. Other instances → bridge.getSharedJWT(userId)
 4. MFA: generateMfaSecret() → QR code → verifyTotp()
 
 ### WebSocket Failover
+
 1. Client reconnects → emit('reconnect:transfer', { oldSocketId })
 2. Server → bridge.failoverWebSocket(oldId, newId, state)
 3. Transfer in-memory + Redis state
@@ -707,23 +732,24 @@ ALO/
 
 ## 📊 PART ÖZET TABLOSU
 
-| Part | Konu | Durum | Önemli Özellikler |
-|------|------|-------|-------------------|
-| 1 | Security Analysis | ✅ | STRIDE model, 18 issues identified |
-| 2 | Structure | ✅ | Node.js native, no Python/FastAPI |
-| 3 | Config | ✅ | JWT, MFA, RBAC, GDPR env vars |
-| 4 | Routes Refactor | ✅ | V1 API, JWT auth, RBAC, idempotency |
-| 5 | Utils Update | ✅ | JWT, MFA, RBAC, encryption, PII masking |
-| 6 | WebRTC Optimization | ✅ | Adaptive bitrate, battery monitoring |
-| 7 | React | ⏭️ SKIPPED | Vanilla JS kept, Web Components alternative |
-| 8 | Background Jobs | ✅ | BullMQ, TURN rotation, cleanup, retention |
-| 9 | Test Expansion | ✅ | 26→54+ tests, 54% coverage |
-| 10 | Offline/Mobile | ✅ | PWA, battery monitoring, responsive CSS |
-| 11 | Queue Integration | ✅ | FIFO, Redis, 50+ capacity, admin UI |
-| 12 | Integration Tests | ✅ | Error scenarios, retry logic, 99.2% uptime |
-| 13 | Deployment | ✅ | Docker, health probes, Prometheus |
-| 14 | Bridges | ✅ | JWT sync, WebSocket failover, caching |
-| 15 | Monitoring | ✅ | OpenTelemetry, profiling, +40% performance |elemetry spans, Prometheus (port 9464)
+| Part | Konu                | Durum      | Önemli Özellikler                           |
+| ---- | ------------------- | ---------- | ------------------------------------------- | -------------------------------------- |
+| 1    | Security Analysis   | ✅         | STRIDE model, 18 issues identified          |
+| 2    | Structure           | ✅         | Node.js native, no Python/FastAPI           |
+| 3    | Config              | ✅         | JWT, MFA, RBAC, GDPR env vars               |
+| 4    | Routes Refactor     | ✅         | V1 API, JWT auth, RBAC, idempotency         |
+| 5    | Utils Update        | ✅         | JWT, MFA, RBAC, encryption, PII masking     |
+| 6    | WebRTC Optimization | ✅         | Adaptive bitrate, battery monitoring        |
+| 7    | React               | ⏭️ SKIPPED | Vanilla JS kept, Web Components alternative |
+| 8    | Background Jobs     | ✅         | BullMQ, TURN rotation, cleanup, retention   |
+| 9    | Test Expansion      | ✅         | 26→54+ tests, 54% coverage                  |
+| 10   | Offline/Mobile      | ✅         | PWA, battery monitoring, responsive CSS     |
+| 11   | Queue Integration   | ✅         | FIFO, Redis, 50+ capacity, admin UI         |
+| 12   | Integration Tests   | ✅         | Error scenarios, retry logic, 99.2% uptime  |
+| 13   | Deployment          | ✅         | Docker, health probes, Prometheus           |
+| 14   | Bridges             | ✅         | JWT sync, WebSocket failover, caching       |
+| 15   | Monitoring          | ✅         | OpenTelemetry, profiling, +40% performance  | elemetry spans, Prometheus (port 9464) |
+
 - **Bridges**: JWT sync, WebSocket failover, caching layer
 
 ---

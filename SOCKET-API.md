@@ -4,7 +4,7 @@
 
 ```javascript
 const socket = io('https://adminara.onrender.com', {
-  transports: ['websocket', 'polling']
+  transports: ['websocket', 'polling'],
 });
 ```
 
@@ -15,9 +15,11 @@ const socket = io('https://adminara.onrender.com', {
 ### Client → Server
 
 #### `room:join` / `channel:join`
+
 Join support room as customer or admin.
 
 **Payload**:
+
 ```javascript
 {
   isAdmin: boolean,        // true for admin, false for customer
@@ -30,9 +32,11 @@ Join support room as customer or admin.
 ---
 
 #### `chat:send`
+
 Send chat message.
 
 **Payload**:
+
 ```javascript
 {
   message: string,         // Max 500 chars
@@ -47,9 +51,11 @@ Send chat message.
 ---
 
 #### `rtc:description`
+
 Send WebRTC offer/answer.
 
 **Payload**:
+
 ```javascript
 {
   description: {
@@ -65,9 +71,11 @@ Send WebRTC offer/answer.
 ---
 
 #### `rtc:ice:candidate`
+
 Send ICE candidate.
 
 **Payload**:
+
 ```javascript
 {
   candidate: {
@@ -83,12 +91,14 @@ Send ICE candidate.
 ---
 
 #### `customer:update:name`
+
 Update customer name.
 
 **Payload**:
+
 ```javascript
 {
-  customerName: string     // Max 100 chars
+  customerName: string; // Max 100 chars
 }
 ```
 
@@ -97,6 +107,7 @@ Update customer name.
 ---
 
 #### `queue:get`
+
 Get queue length.
 
 **Response**: `queue:update`
@@ -104,6 +115,7 @@ Get queue length.
 ---
 
 #### `queue:pop`
+
 Pop next customer from queue (admin only).
 
 **Response**: `queue:ready` (to customer), `queue:update` (to admin)
@@ -111,6 +123,7 @@ Pop next customer from queue (admin only).
 ---
 
 #### `call:end`
+
 End call and clear room.
 
 **Response**: `call:ended`, `chat:clear` (broadcast)
@@ -120,21 +133,25 @@ End call and clear room.
 ### Server → Client
 
 #### `room:joined` / `channel:joined`
+
 Confirmation of room join.
 
 **Payload**:
+
 ```javascript
 {
-  role: 'admin' | 'customer'
+  role: 'admin' | 'customer';
 }
 ```
 
 ---
 
 #### `room:user:joined`
+
 Another user joined the room.
 
 **Payload**:
+
 ```javascript
 {
   role: 'admin' | 'customer',
@@ -146,50 +163,59 @@ Another user joined the room.
 ---
 
 #### `room:full` / `channel:busy`
+
 Room is full (max 1 customer).
 
 **Payload**:
+
 ```javascript
 {
-  message: string
+  message: string;
 }
 ```
 
 ---
 
 #### `queue:joined`
+
 Customer added to queue.
 
 **Payload**:
+
 ```javascript
 {
-  position: number         // Queue position
+  position: number; // Queue position
 }
 ```
 
 ---
 
 #### `queue:ready`
+
 Customer's turn from queue.
 
 ---
 
 #### `queue:update`
+
 Queue length updated.
 
 **Payload**:
+
 ```javascript
 {
-  queueLength: number
+  queueLength: number;
 }
 ```
 
 ---
 
 #### `chat:message`
+
 Chat message received.
 
 **Payload**:
+
 ```javascript
 {
   message: string,
@@ -201,14 +227,17 @@ Chat message received.
 ---
 
 #### `chat:clear`
+
 Clear chat messages.
 
 ---
 
 #### `rtc:description`
+
 WebRTC offer/answer received.
 
 **Payload**:
+
 ```javascript
 {
   description: {
@@ -222,86 +251,101 @@ WebRTC offer/answer received.
 ---
 
 #### `rtc:ice:candidate`
+
 ICE candidate received.
 
 **Payload**:
+
 ```javascript
 {
-  candidate: RTCIceCandidate
+  candidate: RTCIceCandidate;
 }
 ```
 
 ---
 
 #### `ice:restart`
+
 ICE restart requested.
 
 **Payload**:
+
 ```javascript
 {
-  message: string
+  message: string;
 }
 ```
 
 ---
 
 #### `ice:failed`
+
 ICE connection failed.
 
 **Payload**:
+
 ```javascript
 {
-  state: string
+  state: string;
 }
 ```
 
 ---
 
 #### `call:ended`
+
 Call ended by peer.
 
 ---
 
 #### `user:disconnected`
+
 User disconnected from room.
 
 **Payload**:
+
 ```javascript
 {
-  userId: string
+  userId: string;
 }
 ```
 
 ---
 
 #### `room:timeout`
+
 Room timeout (1 minute inactivity).
 
 **Payload**:
+
 ```javascript
 {
-  message: string
+  message: string;
 }
 ```
 
 ---
 
 #### `admin:session:active`
+
 Admin login rejected (active session exists).
 
 **Payload**:
+
 ```javascript
 {
-  message: string
+  message: string;
 }
 ```
 
 ---
 
 #### `customer:name:updated`
+
 Customer name updated.
 
 **Payload**:
+
 ```javascript
 {
   userId: string,
@@ -312,24 +356,28 @@ Customer name updated.
 ---
 
 #### `server:shutdown`
+
 Server shutting down.
 
 **Payload**:
+
 ```javascript
 {
-  message: string
+  message: string;
 }
 ```
 
 ---
 
 #### `error`
+
 Socket error.
 
 **Payload**:
+
 ```javascript
 {
-  message: string
+  message: string;
 }
 ```
 
@@ -355,17 +403,18 @@ Socket error.
 ## Example Usage
 
 ### Customer Flow
+
 ```javascript
 const socket = io('https://adminara.onrender.com');
 
 // Join as customer
 socket.emit('room:join', {
   isAdmin: false,
-  customerName: 'John Doe'
+  customerName: 'John Doe',
 });
 
 // Listen for admin join
-socket.on('room:user:joined', (data) => {
+socket.on('room:user:joined', data => {
   if (data.role === 'admin') {
     console.log('Admin joined!');
   }
@@ -373,28 +422,29 @@ socket.on('room:user:joined', (data) => {
 
 // Send chat message
 socket.emit('chat:send', {
-  message: 'Hello, I need help!'
+  message: 'Hello, I need help!',
 });
 
 // Listen for chat messages
-socket.on('chat:message', (data) => {
+socket.on('chat:message', data => {
   console.log(`${data.sender}: ${data.message}`);
 });
 ```
 
 ### Admin Flow
+
 ```javascript
 const socket = io('https://adminara.onrender.com', {
-  auth: { isAdmin: true }
+  auth: { isAdmin: true },
 });
 
 // Join as admin
 socket.emit('room:join', {
-  isAdmin: true
+  isAdmin: true,
 });
 
 // Listen for customer join
-socket.on('room:user:joined', (data) => {
+socket.on('room:user:joined', data => {
   if (data.role === 'customer') {
     console.log(`Customer joined: ${data.customerName}`);
   }
@@ -404,7 +454,7 @@ socket.on('room:user:joined', (data) => {
 socket.emit('queue:pop');
 
 // Listen for queue updates
-socket.on('queue:update', (data) => {
+socket.on('queue:update', data => {
   console.log(`Queue length: ${data.queueLength}`);
 });
 ```

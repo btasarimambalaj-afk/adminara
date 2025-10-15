@@ -5,9 +5,9 @@ global.navigator = {
     getUserMedia: jest.fn(async () => ({
       getTracks: () => [],
       getAudioTracks: () => [],
-      getVideoTracks: () => []
-    }))
-  }
+      getVideoTracks: () => [],
+    })),
+  },
 };
 
 global.RTCPeerConnection = class extends EventTarget {

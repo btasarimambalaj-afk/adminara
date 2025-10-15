@@ -10,20 +10,20 @@ if (!fs.existsSync(logsDir)) {
 }
 
 // PII masking format
-const maskPiiFormat = winston.format((info) => {
+const maskPiiFormat = winston.format(info => {
   if (!config.ENABLE_PII_MASKING) return info;
-  
+
   const encryption = require('./encryption');
   const piiFields = ['email', 'phone', 'name', 'ip', 'adminId', 'socketId'];
   const masked = { ...info };
-  
+
   // Mask PII fields
   piiFields.forEach(field => {
     if (masked[field]) {
       masked[field] = encryption.maskPii(masked[field]);
     }
   });
-  
+
   // Mask message content (email, phone patterns)
   if (masked.message && typeof masked.message === 'string') {
     // Email pattern
@@ -32,12 +32,11 @@ const maskPiiFormat = winston.format((info) => {
       (match, local, domain) => encryption.maskPii(match, 'email')
     );
     // Phone pattern (+905551234567)
-    masked.message = masked.message.replace(
-      /\+?\d{10,15}/g,
-      (match) => encryption.maskPii(match, 'phone')
+    masked.message = masked.message.replace(/\+?\d{10,15}/g, match =>
+      encryption.maskPii(match, 'phone')
     );
   }
-  
+
   return masked;
 });
 
@@ -57,26 +56,28 @@ const logger = winston.createLogger({
       level: 'error',
       maxSize: '20m',
       maxFiles: '14d',
-      zippedArchive: true
+      zippedArchive: true,
     }),
     new DailyRotateFile({
       filename: path.join(logsDir, 'app-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '20m',
       maxFiles: '14d',
-      zippedArchive: true
-    })
-  ]
+      zippedArchive: true,
+    }),
+  ],
 });
 
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
 }
 
 // Child logger with context
-logger.child = (context) => {
+logger.child = context => {
   return logger.child(context);
 };
 

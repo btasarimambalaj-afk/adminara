@@ -1,0 +1,8 @@
+node_modules/
+coverage/
+playwright-report/
+logs/
+*.log
+.env
+.env.*
+package-lock.json

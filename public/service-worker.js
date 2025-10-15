@@ -20,13 +20,13 @@ const STATIC_CACHE = [
   '/js/admin-app.js',
   '/manifest.json',
   '/404.html',
-  '/500.html'
+  '/500.html',
 ];
 
 // Install event
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(STATIC_CACHE);
     })
   );
@@ -34,11 +34,11 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate event
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
+        cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
@@ -50,30 +50,32 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch event - Network first, fallback to cache
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
-  
+
   // Skip socket.io and external requests
-  if (event.request.url.includes('socket.io') || 
-      event.request.url.includes('stun:') ||
-      event.request.url.includes('turn:')) {
+  if (
+    event.request.url.includes('socket.io') ||
+    event.request.url.includes('stun:') ||
+    event.request.url.includes('turn:')
+  ) {
     return;
   }
 
   event.respondWith(
     fetch(event.request)
-      .then((response) => {
+      .then(response => {
         // Clone response and cache it
         const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
+        caches.open(CACHE_NAME).then(cache => {
           cache.put(event.request, responseClone);
         });
         return response;
       })
       .catch(() => {
         // Network failed, try cache
-        return caches.match(event.request).then((response) => {
+        return caches.match(event.request).then(response => {
           if (response) {
             return response;
           }
@@ -87,7 +89,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // Background sync for offline actions
-self.addEventListener('sync', (event) => {
+self.addEventListener('sync', event => {
   if (event.tag === 'sync-calls') {
     event.waitUntil(syncCalls());
   }
@@ -98,7 +100,7 @@ async function syncCalls() {
 }
 
 // Message handler for offline detection
-self.addEventListener('message', (event) => {
+self.addEventListener('message', event => {
   if (event.data === 'CHECK_OFFLINE') {
     const isOffline = !self.navigator.onLine;
     event.ports[0].postMessage({ offline: isOffline });

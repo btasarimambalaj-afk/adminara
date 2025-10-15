@@ -25,7 +25,7 @@ class QueueUI {
       display: none;
       min-width: 300px;
     `;
-    
+
     this.queueContainer.innerHTML = `
       <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
       <h2 style="margin: 0 0 10px 0; color: #333;">Sırada Bekliyorsunuz</h2>
@@ -33,19 +33,19 @@ class QueueUI {
       <div id="queue-position" style="font-size: 48px; font-weight: bold; color: #4CAF50; margin-bottom: 20px;">-</div>
       <p style="color: #999; font-size: 14px;">Destek temsilcisi müsait olduğunda bağlantı kurulacak</p>
     `;
-    
+
     document.body.appendChild(this.queueContainer);
   }
 
   show(position) {
     this.position = position;
     if (!this.queueContainer) this.createQueueUI();
-    
+
     const positionEl = document.getElementById('queue-position');
     if (positionEl) {
       positionEl.textContent = position;
     }
-    
+
     this.queueContainer.style.display = 'block';
   }
 

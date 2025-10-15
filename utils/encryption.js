@@ -28,25 +28,22 @@ function encrypt(plaintext, password = config.ENCRYPTION_KEY) {
     logger.warn('No encryption key configured');
     return plaintext;
   }
-  
+
   try {
     const salt = crypto.randomBytes(SALT_LENGTH);
     const key = deriveKey(password, salt);
     const iv = crypto.randomBytes(IV_LENGTH);
-    
+
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
     let encrypted = cipher.update(plaintext, 'utf8', 'base64');
     encrypted += cipher.final('base64');
-    
+
     const tag = cipher.getAuthTag();
-    
+
     // Format: salt:iv:tag:encrypted
-    return [
-      salt.toString('base64'),
-      iv.toString('base64'),
-      tag.toString('base64'),
-      encrypted
-    ].join(':');
+    return [salt.toString('base64'), iv.toString('base64'), tag.toString('base64'), encrypted].join(
+      ':'
+    );
   } catch (err) {
     logger.error('Encryption failed', { error: err.message });
     throw err;
@@ -64,26 +61,26 @@ function decrypt(ciphertext, password = config.ENCRYPTION_KEY) {
     logger.warn('No encryption key configured');
     return ciphertext;
   }
-  
+
   try {
     const parts = ciphertext.split(':');
     if (parts.length !== 4) {
       throw new Error('Invalid ciphertext format');
     }
-    
+
     const salt = Buffer.from(parts[0], 'base64');
     const iv = Buffer.from(parts[1], 'base64');
     const tag = Buffer.from(parts[2], 'base64');
     const encrypted = parts[3];
-    
+
     const key = deriveKey(password, salt);
-    
+
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(tag);
-    
+
     let decrypted = decipher.update(encrypted, 'base64', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   } catch (err) {
     logger.error('Decryption failed', { error: err.message });
@@ -99,27 +96,28 @@ function decrypt(ciphertext, password = config.ENCRYPTION_KEY) {
  */
 function maskPii(data, type = 'auto') {
   if (!data) return data;
-  
+
   if (type === 'email' || (type === 'auto' && data.includes('@'))) {
     // email@example.com → e***l@example.com
     const [local, domain] = data.split('@');
     if (local.length <= 2) return `${local[0]}***@${domain}`;
     return `${local[0]}${'*'.repeat(local.length - 2)}${local[local.length - 1]}@${domain}`;
   }
-  
+
   if (type === 'phone' || (type === 'auto' && /^\+?\d+$/.test(data))) {
     // +905551234567 → +90555***4567
     if (data.length <= 6) return '***';
     return `${data.substring(0, data.length - 4)}${'*'.repeat(Math.min(data.length - 6, 3))}${data.substring(data.length - 4)}`;
   }
-  
+
   if (type === 'name') {
     // John Doe → J*** D***
-    return data.split(' ').map(word => 
-      word.length <= 1 ? word : `${word[0]}${'*'.repeat(word.length - 1)}`
-    ).join(' ');
+    return data
+      .split(' ')
+      .map(word => (word.length <= 1 ? word : `${word[0]}${'*'.repeat(word.length - 1)}`))
+      .join(' ');
   }
-  
+
   // Default: mask middle
   if (data.length <= 4) return '***';
   return `${data.substring(0, 2)}${'*'.repeat(data.length - 4)}${data.substring(data.length - 2)}`;
@@ -138,5 +136,5 @@ module.exports = {
   encrypt,
   decrypt,
   maskPii,
-  hash
+  hash,
 };

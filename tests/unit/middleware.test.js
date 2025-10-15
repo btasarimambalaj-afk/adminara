@@ -5,7 +5,7 @@ describe('Middleware', () => {
     test('should call clear function before handler', () => {
       const clearFn = jest.fn();
       const handler = jest.fn();
-      
+
       const wrapped = withTimeoutClear(clearFn)(handler);
       wrapped('arg1', 'arg2');
 
@@ -16,7 +16,7 @@ describe('Middleware', () => {
     test('should call clear before each invocation', () => {
       const clearFn = jest.fn();
       const handler = jest.fn();
-      
+
       const wrapped = withTimeoutClear(clearFn)(handler);
       wrapped();
       wrapped();
@@ -45,7 +45,7 @@ describe('Middleware', () => {
       const token = generateCSRFToken();
       const socket = {
         handshake: { auth: { csrfToken: token } },
-        request: { session: { csrfToken: token } }
+        request: { session: { csrfToken: token } },
       };
       const next = jest.fn();
 
@@ -56,7 +56,7 @@ describe('Middleware', () => {
     test('should call next with error for invalid token', () => {
       const socket = {
         handshake: { auth: { csrfToken: 'invalid' } },
-        request: { session: { csrfToken: 'valid' } }
+        request: { session: { csrfToken: 'valid' } },
       };
       const next = jest.fn();
 

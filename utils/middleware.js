@@ -1,7 +1,7 @@
 // Timeout clear middleware
 function withTimeoutClear(clearFn) {
-  return function(handler) {
-    return function(...args) {
+  return function (handler) {
+    return function (...args) {
       clearFn();
       return handler.apply(this, args);
     };
@@ -17,7 +17,7 @@ function generateCSRFToken() {
 function validateCSRF(socket, next) {
   const token = socket.handshake.auth.csrfToken;
   const validToken = socket.handshake.session?.csrfToken;
-  
+
   if (!token || token !== validToken) {
     return next(new Error('Invalid CSRF token'));
   }
@@ -27,5 +27,5 @@ function validateCSRF(socket, next) {
 module.exports = {
   withTimeoutClear,
   generateCSRFToken,
-  validateCSRF
+  validateCSRF,
 };

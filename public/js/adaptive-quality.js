@@ -6,9 +6,9 @@ class AdaptiveQuality {
   constructor(peerConnection) {
     this.pc = peerConnection;
     this.currentBitrate = 1500000; // 1.5Mbps default
-    this.minBitrate = 300000;      // 300kbps
-    this.maxBitrate = 1500000;     // 1.5Mbps
-    this.batteryThreshold = 0.2;   // 20%
+    this.minBitrate = 300000; // 300kbps
+    this.maxBitrate = 1500000; // 1.5Mbps
+    this.batteryThreshold = 0.2; // 20%
     this.statsInterval = null;
     this.batteryLevel = 1;
     this.isLowPower = false;
@@ -40,11 +40,11 @@ class AdaptiveQuality {
 
     try {
       const battery = await navigator.getBattery();
-      
+
       const updateBattery = () => {
         this.batteryLevel = battery.level;
         this.isLowPower = battery.level < this.batteryThreshold;
-        
+
         if (this.isLowPower) {
           console.log('🔋 Low battery detected, reducing quality');
           this.setBitrate(this.minBitrate);
@@ -69,7 +69,7 @@ class AdaptiveQuality {
       try {
         const stats = await this.pc.getStats();
         const bandwidth = this.calculateBandwidth(stats);
-        
+
         if (bandwidth > 0) {
           this.adaptBitrate(bandwidth);
         }
@@ -84,13 +84,13 @@ class AdaptiveQuality {
    */
   calculateBandwidth(stats) {
     let bandwidth = 0;
-    
+
     stats.forEach(report => {
       if (report.type === 'candidate-pair' && report.state === 'succeeded') {
         bandwidth = report.availableOutgoingBitrate || 0;
       }
     });
-    
+
     return bandwidth;
   }
 
@@ -132,7 +132,7 @@ class AdaptiveQuality {
     try {
       const senders = this.pc.getSenders();
       const videoSender = senders.find(s => s.track?.kind === 'video');
-      
+
       if (!videoSender) return;
 
       const params = videoSender.getParameters();
@@ -163,7 +163,7 @@ class AdaptiveQuality {
       bitrate: this.currentBitrate,
       batteryLevel: this.batteryLevel,
       isLowPower: this.isLowPower,
-      quality: this.getQualityLabel()
+      quality: this.getQualityLabel(),
     };
   }
 

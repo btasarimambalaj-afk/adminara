@@ -10,16 +10,16 @@ function mockSocket(overrides = {}) {
       address: '127.0.0.1',
       auth: {},
       headers: {},
-      query: {}
+      query: {},
     },
     request: { headers: {} },
-    ...overrides
+    ...overrides,
   };
 }
 
 function mockBot() {
   return {
-    sendMessage: jest.fn(async () => ({ ok: true, message_id: 123 }))
+    sendMessage: jest.fn(async () => ({ ok: true, message_id: 123 })),
   };
 }
 
@@ -31,7 +31,7 @@ function mockState(overrides = {}) {
     otpStore: new Map(),
     connectionCount: 0,
     bot: mockBot(),
-    ...overrides
+    ...overrides,
   };
 }
 

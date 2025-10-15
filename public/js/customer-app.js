@@ -1,7 +1,7 @@
 const nameInput = document.getElementById('welcomeNameInput');
 const startBtn = document.getElementById('startCallBtn');
 
-function updateBtn(){
+function updateBtn() {
   const ok = nameInput.value.trim().length >= 2;
   startBtn.disabled = !ok;
   startBtn.classList.toggle('ready', ok);
@@ -14,7 +14,7 @@ window.addEventListener('load', () => {
 
 nameInput.addEventListener('input', updateBtn);
 
-nameInput.addEventListener('keydown', (e) => {
+nameInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !startBtn.disabled) {
     e.preventDefault();
     startBtn.click();
@@ -24,7 +24,7 @@ nameInput.addEventListener('keydown', (e) => {
 const socket = io();
 let myPosition = null;
 
-socket.on('queue:joined', (data) => {
+socket.on('queue:joined', data => {
   myPosition = data.position;
   const statusEl = document.getElementById('queueStatus');
   if (statusEl) {
@@ -42,7 +42,7 @@ socket.on('queue:ready', () => {
   document.getElementById('callButton').click();
 });
 
-startBtn.onclick = function() {
+startBtn.onclick = function () {
   const name = nameInput.value.trim();
   if (name.length >= 2) {
     document.getElementById('customerName').value = name;
@@ -53,7 +53,8 @@ startBtn.onclick = function() {
 };
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js')
+  navigator.serviceWorker
+    .register('/service-worker.js')
     .then(() => console.log('✅ Service Worker registered'))
-    .catch((err) => console.error('❌ Service Worker registration failed:', err));
+    .catch(err => console.error('❌ Service Worker registration failed:', err));
 }

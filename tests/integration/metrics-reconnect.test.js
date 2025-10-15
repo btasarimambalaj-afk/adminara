@@ -35,38 +35,28 @@ describe('Reconnect Metrics Endpoints', () => {
   });
 
   it('should increment reconnect attempt counter', async () => {
-    await request(app)
-      .post('/metrics/reconnect-attempt')
-      .expect(204);
+    await request(app).post('/metrics/reconnect-attempt').expect(204);
 
     const response = await request(app).get('/metrics');
     expect(response.text).toContain('webrtc_reconnect_attempts_total');
   });
 
   it('should increment reconnect success counter', async () => {
-    await request(app)
-      .post('/metrics/reconnect-success')
-      .send({ duration: 5000 })
-      .expect(204);
+    await request(app).post('/metrics/reconnect-success').send({ duration: 5000 }).expect(204);
 
     const response = await request(app).get('/metrics');
     expect(response.text).toContain('webrtc_reconnect_success_total');
   });
 
   it('should increment reconnect failure counter', async () => {
-    await request(app)
-      .post('/metrics/reconnect-failure')
-      .expect(204);
+    await request(app).post('/metrics/reconnect-failure').expect(204);
 
     const response = await request(app).get('/metrics');
     expect(response.text).toContain('webrtc_reconnect_failures_total');
   });
 
   it('should observe reconnect duration', async () => {
-    await request(app)
-      .post('/metrics/reconnect-success')
-      .send({ duration: 3000 })
-      .expect(204);
+    await request(app).post('/metrics/reconnect-success').send({ duration: 3000 }).expect(204);
 
     const response = await request(app).get('/metrics');
     expect(response.text).toContain('webrtc_reconnect_duration_ms');
@@ -74,10 +64,7 @@ describe('Reconnect Metrics Endpoints', () => {
   });
 
   it('should handle missing duration gracefully', async () => {
-    await request(app)
-      .post('/metrics/reconnect-success')
-      .send({})
-      .expect(204);
+    await request(app).post('/metrics/reconnect-success').send({}).expect(204);
 
     const response = await request(app).get('/metrics');
     expect(response.status).toBe(200);

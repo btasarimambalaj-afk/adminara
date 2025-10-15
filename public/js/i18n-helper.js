@@ -49,7 +49,7 @@ class I18nHelper {
     document.documentElement.lang = lang;
     const isRTL = this.rtlLanguages.includes(lang);
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-    
+
     // Load RTL CSS if needed
     if (isRTL && !document.getElementById('rtl-css')) {
       const link = document.createElement('link');
@@ -61,7 +61,7 @@ class I18nHelper {
       const rtlCss = document.getElementById('rtl-css');
       if (rtlCss) rtlCss.remove();
     }
-    
+
     this.updateUI();
   }
 

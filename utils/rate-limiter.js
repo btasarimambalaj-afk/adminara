@@ -10,7 +10,7 @@ class RateLimiter {
 
   async isLimited(key, limit, windowMs) {
     const now = Date.now();
-    
+
     if (process.env.REDIS_URL) {
       const lockKey = `lock:${key}`;
       const lockReason = await store.get(lockKey);
@@ -18,7 +18,7 @@ class RateLimiter {
         const ttl = await store.ttl(lockKey);
         return { limited: true, retryAfter: Math.ceil(ttl / 1000), reason: lockReason };
       }
-      
+
       const counterKey = `rate:${key}`;
       const current = await store.incrWithExpiry(counterKey, windowMs);
       if (current > limit) {
@@ -27,26 +27,34 @@ class RateLimiter {
       }
       return { limited: false };
     }
-    
+
     const lock = this.locks.get(key);
     if (lock && lock.lockedUntil > now) {
-      return { limited: true, retryAfter: Math.ceil((lock.lockedUntil - now) / 1000), reason: lock.reason };
+      return {
+        limited: true,
+        retryAfter: Math.ceil((lock.lockedUntil - now) / 1000),
+        reason: lock.reason,
+      };
     }
-    
+
     if (lock && lock.lockedUntil <= now) {
       this.locks.delete(key);
     }
-    
+
     const record = this.requests.get(key);
     if (!record || record.resetAt <= now) {
       this.requests.set(key, { count: 1, resetAt: now + windowMs });
       return { limited: false };
     }
-    
+
     if (record.count >= limit) {
-      return { limited: true, retryAfter: Math.ceil((record.resetAt - now) / 1000), reason: 'rate_limit' };
+      return {
+        limited: true,
+        retryAfter: Math.ceil((record.resetAt - now) / 1000),
+        reason: 'rate_limit',
+      };
     }
-    
+
     record.count++;
     return { limited: false };
   }
@@ -55,7 +63,7 @@ class RateLimiter {
   increment(key, windowMs) {
     const now = Date.now();
     const record = this.requests.get(key);
-    
+
     if (!record || record.resetAt <= now) {
       this.requests.set(key, { count: 1, resetAt: now + windowMs });
     } else {
@@ -77,13 +85,13 @@ class RateLimiter {
   isLocked(key) {
     const lock = this.locks.get(key);
     if (!lock) return false;
-    
+
     const now = Date.now();
     if (lock.lockedUntil <= now) {
       this.locks.delete(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -91,16 +99,16 @@ class RateLimiter {
   getLockInfo(key) {
     const lock = this.locks.get(key);
     if (!lock) return null;
-    
+
     const now = Date.now();
     if (lock.lockedUntil <= now) {
       this.locks.delete(key);
       return null;
     }
-    
+
     return {
       retryAfter: Math.ceil((lock.lockedUntil - now) / 1000),
-      reason: lock.reason
+      reason: lock.reason,
     };
   }
 
@@ -108,7 +116,7 @@ class RateLimiter {
   getActiveLocks() {
     const now = Date.now();
     let count = 0;
-    
+
     for (const [key, lock] of this.locks.entries()) {
       if (lock.lockedUntil > now) {
         count++;
@@ -116,21 +124,21 @@ class RateLimiter {
         this.locks.delete(key);
       }
     }
-    
+
     return count;
   }
 
   // Cleanup expired entries
   cleanup() {
     const now = Date.now();
-    
+
     // Cleanup requests
     for (const [key, record] of this.requests.entries()) {
       if (record.resetAt <= now) {
         this.requests.delete(key);
       }
     }
-    
+
     // Cleanup locks
     for (const [key, lock] of this.locks.entries()) {
       if (lock.lockedUntil <= now) {

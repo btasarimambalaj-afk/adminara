@@ -24,5 +24,5 @@ try {
 // In case fetch is used in tests
 if (typeof global.fetch === 'undefined') {
   // Lightweight fetch polyfill using node: http/https is overkill; tests rarely hit network.
-  global.fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+  global.fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 }

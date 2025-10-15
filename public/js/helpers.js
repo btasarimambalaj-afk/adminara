@@ -13,7 +13,7 @@ class Helpers {
     const statusMap = {
       connected: 'Bağlandı',
       disconnected: 'Bağlantı Yok',
-      connecting: 'Bağlanıyor...'
+      connecting: 'Bağlanıyor...',
     };
     const indicator = `<span class="connection-indicator ${status}"></span>`;
     el.innerHTML = indicator + (statusMap[status] || status);
@@ -44,7 +44,7 @@ class Helpers {
     const speakerBtn = document.getElementById('speakerButton');
     const fullscreenBtn = document.getElementById('fullscreenButton');
     const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
-    
+
     if (muteBtn) {
       muteBtn.onclick = () => {
         const isMuted = webRTCManager.toggleMute();
@@ -54,7 +54,7 @@ class Helpers {
         muteBtn.title = isMuted ? 'Mikrofon Kapalı' : 'Mikrofon Açık';
       };
     }
-    
+
     if (cameraBtn) {
       cameraBtn.onclick = async () => {
         const isCameraOff = await webRTCManager.toggleCamera();
@@ -64,7 +64,7 @@ class Helpers {
         cameraBtn.title = isCameraOff ? 'Kamera Kapalı' : 'Kamera Açık';
       };
     }
-    
+
     if (speakerBtn) {
       speakerBtn.onclick = async () => {
         const isSpeakerOn = await webRTCManager.toggleSpeaker();
@@ -74,11 +74,11 @@ class Helpers {
         speakerBtn.title = isSpeakerOn ? 'Hoparlör Açık' : 'Hoparlör Kapalı';
       };
     }
-    
+
     if (fullscreenBtn) {
       fullscreenBtn.onclick = async () => {
         const vc = document.querySelector('.video-container');
-        
+
         try {
           if (!document.fullscreenElement && !document.webkitFullscreenElement) {
             // Tam ekran yap
@@ -109,13 +109,18 @@ class Helpers {
           console.error('❌ Tam ekran hatası:', err);
         }
       };
-      
+
       // Fullscreen değişikliklerini dinle
       const handleFullscreenChange = () => {
-        const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+        const isFullscreen = !!(
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement
+        );
         const vc = document.querySelector('.video-container');
         const icon = fullscreenBtn.querySelector('.icon') || fullscreenBtn;
-        
+
         if (isFullscreen) {
           vc.classList.add('fullscreen');
           icon.textContent = '⤓';
@@ -128,13 +133,13 @@ class Helpers {
           console.log('🔍 Fullscreen OFF');
         }
       };
-      
+
       document.addEventListener('fullscreenchange', handleFullscreenChange);
       document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.addEventListener('mozfullscreenchange', handleFullscreenChange);
       document.addEventListener('msfullscreenchange', handleFullscreenChange);
     }
-    
+
     if (exitFullscreenBtn) {
       exitFullscreenBtn.onclick = () => {
         if (document.fullscreenElement) {
@@ -147,17 +152,21 @@ class Helpers {
   static createTimer() {
     let callStartTime = null;
     let timerInterval = null;
-    
+
     return {
       start() {
         callStartTime = Date.now();
         const callInfo = document.getElementById('callInfo');
         const callTime = document.getElementById('callTime');
         const callDuration = document.getElementById('callDuration');
-        
+
         if (callInfo) callInfo.classList.remove('hidden');
-        if (callTime) callTime.textContent = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-        
+        if (callTime)
+          callTime.textContent = new Date().toLocaleTimeString('tr-TR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
         timerInterval = setInterval(() => {
           const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
           const minutes = Math.floor(elapsed / 60);
@@ -167,7 +176,7 @@ class Helpers {
           }
         }, 1000);
       },
-      
+
       stop() {
         if (timerInterval) {
           clearInterval(timerInterval);
@@ -175,7 +184,7 @@ class Helpers {
         }
         const callInfo = document.getElementById('callInfo');
         if (callInfo) callInfo.classList.add('hidden');
-      }
+      },
     };
   }
 }

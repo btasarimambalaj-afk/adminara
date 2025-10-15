@@ -5,20 +5,20 @@ class AdminApp {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: Infinity,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
     });
     this.webRTCManager = new WebRTCManager();
     this.authenticated = false;
     this.timer = Helpers.createTimer();
     this.init();
   }
-  
+
   async init() {
     this.setupWelcomeEvents();
     this.setupEvents();
     await this.checkHttpSession();
   }
-  
+
   async checkHttpSession() {
     try {
       const r = await fetch('/admin/session/verify');
@@ -42,7 +42,7 @@ class AdminApp {
     const refreshBtn = document.getElementById('refreshButton');
     if (refreshBtn) refreshBtn.onclick = () => window.location.reload();
   }
-  
+
   setupWelcomeEvents() {
     const requestBtn = document.getElementById('requestOtpBtn');
     const verifyBtn = document.getElementById('verifyOtpBtn');
@@ -50,13 +50,13 @@ class AdminApp {
     const otpError = document.getElementById('otpError');
     const otpSuccess = document.getElementById('otpSuccess');
     const otpSection = document.getElementById('otpInputSection');
-    
+
     otpInput.oninput = () => {
       const ok = otpInput.value.trim().length === 6;
       verifyBtn.disabled = !ok;
       verifyBtn.classList.toggle('ready', ok);
     };
-    
+
     requestBtn.onclick = async () => {
       requestBtn.disabled = true;
       requestBtn.textContent = 'Gönderiliyor...';
@@ -64,7 +64,7 @@ class AdminApp {
         const response = await fetch('/admin/otp/request', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ adminId: 'admin' })
+          body: JSON.stringify({ adminId: 'admin' }),
         });
         if (response.ok) {
           otpSuccess.classList.remove('hidden');
@@ -84,7 +84,7 @@ class AdminApp {
         requestBtn.textContent = 'Kod Gönder';
       }
     };
-    
+
     const handleVerify = async () => {
       const code = otpInput.value.trim();
       if (!/^\d{6}$/.test(code)) {
@@ -98,7 +98,7 @@ class AdminApp {
         const r = await fetch('/admin/otp/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ adminId: 'admin', code })
+          body: JSON.stringify({ adminId: 'admin', code }),
         });
         if (r.status === 204) {
           this.authenticated = true;
@@ -127,22 +127,22 @@ class AdminApp {
         verifyBtn.textContent = 'Panele Gir';
       }
     };
-    
+
     verifyBtn.onclick = handleVerify;
-    otpInput.onkeypress = (e) => {
+    otpInput.onkeypress = e => {
       if (e.key === 'Enter' && otpInput.value.trim().length === 6) handleVerify();
     };
   }
-  
+
   setupEvents() {
-    this.socket.on('disconnect', (reason) => {
+    this.socket.on('disconnect', reason => {
       console.log('🔴 Socket disconnected:', reason);
       if (typeof window.showToast === 'function') {
         window.showToast('warning', 'Bağlantı koptu, yeniden bağlanılıyor...');
       }
     });
-    
-    this.socket.on('reconnect', async (attemptNumber) => {
+
+    this.socket.on('reconnect', async attemptNumber => {
       console.log('🟢 Socket reconnected after', attemptNumber, 'attempts');
       if (typeof window.showToast === 'function') {
         window.showToast('success', 'Bağlantı yeniden kuruldu');
@@ -163,8 +163,8 @@ class AdminApp {
         }
       }
     });
-    
-    this.socket.on('room:joined', (data) => {
+
+    this.socket.on('room:joined', data => {
       if (data.role === 'admin') {
         console.log('✅ Admin room:joined event received');
         if (!this.webRTCManager.peerConnection) {
@@ -173,63 +173,63 @@ class AdminApp {
         }
       }
     });
-    
-    this.socket.on('room:user:joined', async (data) => {
+
+    this.socket.on('room:user:joined', async data => {
       if (data.role === 'customer') {
         console.log('👤 Müşteri odaya katıldı:', data.customerName);
         document.getElementById('waiting-message').classList.add('hidden');
         document.getElementById('callInfo').classList.remove('hidden');
-        
+
         if (data.customerName) {
           const nameDisplay = document.getElementById('customerNameDisplay');
           nameDisplay.textContent = `👤 ${data.customerName}`;
         }
-        
+
         this.timer.start();
       }
     });
-    
-    this.socket.on('queue:update', (data) => {
+
+    this.socket.on('queue:update', data => {
       const queueEl = document.getElementById('queueLength');
       if (queueEl) {
         queueEl.textContent = data.queueLength || 0;
       }
     });
-    
+
     this.socket.emit('queue:get');
-    
-    this.socket.on('customer:name:updated', (data) => {
+
+    this.socket.on('customer:name:updated', data => {
       const nameDisplay = document.getElementById('customerNameDisplay');
       if (nameDisplay && data.customerName) {
         nameDisplay.textContent = `👤 ${data.customerName}`;
       }
     });
-    
+
     this.socket.on('room:timeout', () => {
       document.getElementById('waiting-message').classList.remove('hidden');
       document.getElementById('callInfo').classList.add('hidden');
       this.timer.stop();
     });
-    
+
     Helpers.setupControlButtons(this.webRTCManager);
-    
+
     document.getElementById('endButton').onclick = () => {
       this.timer.stop();
       this.socket.emit('call:end');
       document.getElementById('waiting-message').classList.remove('hidden');
       document.getElementById('callInfo').classList.add('hidden');
     };
-    
+
     this.socket.on('call:ended', () => {
       this.timer.stop();
       document.getElementById('waiting-message').classList.remove('hidden');
       document.getElementById('callInfo').classList.add('hidden');
     });
-    
+
     document.getElementById('diagnosticsToggle').onclick = () => {
       document.getElementById('diagnosticsPanel').classList.toggle('hidden');
     };
-    
+
     document.getElementById('restartICEButton').onclick = async () => {
       if (this.webRTCManager.peerConnection) {
         await this.webRTCManager.handleConnectionFailure();
@@ -238,11 +238,11 @@ class AdminApp {
         }
       }
     };
-    
+
     const testBtn = document.getElementById('testButton');
     const refreshBtn = document.getElementById('refreshButton');
     const reloadBtn = document.getElementById('reloadBtn');
-    
+
     if (testBtn) testBtn.onclick = () => window.open('/test-suite.html', '_blank');
     if (refreshBtn) refreshBtn.onclick = () => window.location.reload();
     if (reloadBtn) reloadBtn.onclick = () => window.location.reload();
@@ -250,9 +250,10 @@ class AdminApp {
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js')
+  navigator.serviceWorker
+    .register('/service-worker.js')
     .then(() => console.log('✅ Service Worker registered'))
-    .catch((err) => console.error('❌ Service Worker registration failed:', err));
+    .catch(err => console.error('❌ Service Worker registration failed:', err));
 }
 
 new AdminApp();

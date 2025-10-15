@@ -12,7 +12,7 @@ describe('API Integration Tests', () => {
       customerSockets: new Map(),
       channelStatus: 'AVAILABLE',
       connectionCount: 0,
-      bot: null
+      bot: null,
     };
     app.use('/', routes(mockState));
   });
@@ -46,9 +46,7 @@ describe('API Integration Tests', () => {
 
     test('should include STUN server', async () => {
       const response = await request(app).get('/config/ice-servers');
-      const stunServer = response.body.iceServers.find(s => 
-        s.urls.includes('stun:')
-      );
+      const stunServer = response.body.iceServers.find(s => s.urls.includes('stun:'));
       expect(stunServer).toBeDefined();
     });
   });

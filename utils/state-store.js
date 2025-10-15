@@ -19,19 +19,19 @@ async function init() {
   }
 
   try {
-    client = createClient({ 
+    client = createClient({
       url: process.env.REDIS_URL,
       socket: {
-        reconnectStrategy: (retries) => Math.min(retries * 50, 500),
-        connectTimeout: 10000
+        reconnectStrategy: retries => Math.min(retries * 50, 500),
+        connectTimeout: 10000,
       },
       // Connection pool settings
       isolationPoolOptions: {
         min: 2,
-        max: 10
-      }
+        max: 10,
+      },
     });
-    client.on('error', (err) => logger.error('Redis error', { err: err.message }));
+    client.on('error', err => logger.error('Redis error', { err: err.message }));
     await client.connect();
     logger.info('Redis connected with pool', { url: process.env.REDIS_URL });
     return client;

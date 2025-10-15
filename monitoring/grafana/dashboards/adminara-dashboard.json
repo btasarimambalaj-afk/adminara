@@ -8,37 +8,45 @@
       {
         "id": 1,
         "title": "Active WebSocket Connections",
-        "targets": [{
-          "expr": "websocket_connections_total",
-          "legendFormat": "Connections"
-        }],
+        "targets": [
+          {
+            "expr": "websocket_connections_total",
+            "legendFormat": "Connections"
+          }
+        ],
         "type": "graph"
       },
       {
         "id": 2,
         "title": "HTTP Request Rate",
-        "targets": [{
-          "expr": "rate(http_requests_total[5m])",
-          "legendFormat": "{{method}} {{path}}"
-        }],
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{path}}"
+          }
+        ],
         "type": "graph"
       },
       {
         "id": 3,
         "title": "WebRTC ICE Success Rate",
-        "targets": [{
-          "expr": "rate(webrtc_ice_success_total[5m]) / rate(webrtc_ice_attempts_total[5m]) * 100",
-          "legendFormat": "Success %"
-        }],
+        "targets": [
+          {
+            "expr": "rate(webrtc_ice_success_total[5m]) / rate(webrtc_ice_attempts_total[5m]) * 100",
+            "legendFormat": "Success %"
+          }
+        ],
         "type": "gauge"
       },
       {
         "id": 4,
         "title": "Queue Length",
-        "targets": [{
-          "expr": "queue_length",
-          "legendFormat": "Waiting Customers"
-        }],
+        "targets": [
+          {
+            "expr": "queue_length",
+            "legendFormat": "Waiting Customers"
+          }
+        ],
         "type": "stat"
       }
     ]

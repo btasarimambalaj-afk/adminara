@@ -14,14 +14,18 @@ function init() {
 
   queue = new Queue('telegramNotifications', { connection });
 
-  worker = new Worker('telegramNotifications', async (job) => {
-    const bot = require('../utils/telegram-bot');
-    await bot.sendMessage(job.data.chatId, job.data.text);
-    logger.info('Telegram message sent', { jobId: job.id });
-  }, {
-    connection,
-    limiter: { max: 5, duration: 1000 },
-  });
+  worker = new Worker(
+    'telegramNotifications',
+    async job => {
+      const bot = require('../utils/telegram-bot');
+      await bot.sendMessage(job.data.chatId, job.data.text);
+      logger.info('Telegram message sent', { jobId: job.id });
+    },
+    {
+      connection,
+      limiter: { max: 5, duration: 1000 },
+    }
+  );
 
   worker.on('failed', (job, err) => {
     logger.error('Telegram job failed', { jobId: job?.id, err: err.message });

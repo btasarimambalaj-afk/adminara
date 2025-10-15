@@ -52,7 +52,7 @@ describe('Socket Handlers - Extended Coverage', () => {
       const candidate = {
         candidate: 'candidate:1 1 UDP 2130706431 192.168.1.1 54321 typ host',
         sdpMid: '0',
-        sdpMLineIndex: 0
+        sdpMLineIndex: 0,
       };
       expect(validateIceCandidate(candidate)).toBe(true);
     });

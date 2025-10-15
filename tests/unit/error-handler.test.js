@@ -20,7 +20,7 @@ describe('Error Handler', () => {
     test('should emit error event', () => {
       const mockSocket = {
         id: 'test-socket',
-        emit: jest.fn()
+        emit: jest.fn(),
       };
 
       const error = new SocketError('Test error', 'TEST_CODE');
@@ -28,14 +28,14 @@ describe('Error Handler', () => {
 
       expect(mockSocket.emit).toHaveBeenCalledWith('error', {
         message: 'Test error',
-        code: 'TEST_CODE'
+        code: 'TEST_CODE',
       });
     });
 
     test('should handle error without code', () => {
       const mockSocket = {
         id: 'test-socket',
-        emit: jest.fn()
+        emit: jest.fn(),
       };
 
       const error = new Error('Generic error');
@@ -43,7 +43,7 @@ describe('Error Handler', () => {
 
       expect(mockSocket.emit).toHaveBeenCalledWith('error', {
         message: 'Generic error',
-        code: 'UNKNOWN_ERROR'
+        code: 'UNKNOWN_ERROR',
       });
     });
   });

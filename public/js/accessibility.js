@@ -14,7 +14,7 @@ class AccessibilityManager {
 
   setupKeyboardNavigation() {
     // ESC key to close modals/fullscreen
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         if (document.fullscreenElement) {
           document.exitFullscreen();
@@ -23,25 +23,25 @@ class AccessibilityManager {
     });
 
     // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
       // Alt+M: Toggle microphone
       if (e.altKey && e.key === 'm') {
         e.preventDefault();
         document.getElementById('muteButton')?.click();
       }
-      
+
       // Alt+C: Toggle camera
       if (e.altKey && e.key === 'c') {
         e.preventDefault();
         document.getElementById('cameraButton')?.click();
       }
-      
+
       // Alt+F: Toggle fullscreen
       if (e.altKey && e.key === 'f') {
         e.preventDefault();
         document.getElementById('fullscreenButton')?.click();
       }
-      
+
       // Alt+E: End call
       if (e.altKey && e.key === 'e') {
         e.preventDefault();
@@ -69,7 +69,7 @@ class AccessibilityManager {
     if (liveRegion) {
       liveRegion.setAttribute('aria-live', priority);
       liveRegion.textContent = message;
-      
+
       // Clear after announcement
       setTimeout(() => {
         liveRegion.textContent = '';
@@ -80,7 +80,7 @@ class AccessibilityManager {
   setupFocusManagement() {
     // Track last focused element before modal
     this.lastFocusedElement = null;
-    
+
     // Restore focus when modal closes
     document.addEventListener('modalClosed', () => {
       if (this.lastFocusedElement) {
@@ -93,11 +93,11 @@ class AccessibilityManager {
     const focusableElements = element.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
-    
+
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements[focusableElements.length - 1];
 
-    this.focusTrap = (e) => {
+    this.focusTrap = e => {
       if (e.key === 'Tab') {
         if (e.shiftKey) {
           if (document.activeElement === firstFocusable) {

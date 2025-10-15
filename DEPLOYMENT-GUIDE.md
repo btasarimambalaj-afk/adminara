@@ -81,18 +81,21 @@ ENABLE_QUEUE=true
 ## 🔧 Environment Variables (Detaylı)
 
 ### Zorunlu:
+
 ```bash
 SESSION_SECRET=<32-char-random>     # openssl rand -base64 32
 COOKIE_SECRET=<32-char-random>      # openssl rand -base64 32
 ```
 
 ### Opsiyonel (Telegram):
+
 ```bash
 TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
 TELEGRAM_ADMIN_CHAT_ID=123456789
 ```
 
 ### Opsiyonel (TURN Server):
+
 ```bash
 TURN_SERVER_URL=turn:turn.example.com:3478
 TURN_USERNAME=username
@@ -103,11 +106,13 @@ TURN_TTL=300
 ```
 
 ### Opsiyonel (Redis - External):
+
 ```bash
 REDIS_URL=redis://username:password@host:port
 ```
 
 ### Opsiyonel (Features):
+
 ```bash
 ENABLE_QUEUE=true
 ENABLE_PII_MASKING=true
@@ -121,6 +126,7 @@ RATE_LIMIT_MAX=100
 ## 📊 Deployment Checklist
 
 ### Pre-Deployment:
+
 - [x] Git repository hazır
 - [x] .gitignore oluşturuldu
 - [x] .env.example güncel
@@ -129,6 +135,7 @@ RATE_LIMIT_MAX=100
 - [x] Build successful (npm run build)
 
 ### Deployment:
+
 - [ ] GitHub'a push edildi
 - [ ] Render.com'da service oluşturuldu
 - [ ] Environment variables set edildi
@@ -137,6 +144,7 @@ RATE_LIMIT_MAX=100
 - [ ] Health check passing (/health)
 
 ### Post-Deployment:
+
 - [ ] URL açılıyor (https://adminara.onrender.com)
 - [ ] Customer page çalışıyor (/)
 - [ ] Admin page çalışıyor (/admin)
@@ -150,6 +158,7 @@ RATE_LIMIT_MAX=100
 ## 🧪 Test Komutları
 
 ### Local Test:
+
 ```bash
 # Install
 npm install
@@ -165,6 +174,7 @@ curl http://localhost:3000/health
 ```
 
 ### Production Test:
+
 ```bash
 # Health check
 curl https://adminara.onrender.com/health
@@ -181,6 +191,7 @@ curl https://adminara.onrender.com/config/ice-servers
 ## 🔄 Update Deployment
 
 ### Kod değişikliği sonrası:
+
 ```bash
 # Commit changes
 git add .
@@ -192,6 +203,7 @@ git push origin main
 ```
 
 ### Manual deploy:
+
 ```bash
 # Render dashboard → Service → Manual Deploy → Deploy latest commit
 ```
@@ -201,6 +213,7 @@ git push origin main
 ## 🐛 Troubleshooting
 
 ### Build Failed:
+
 ```bash
 # Render logs'u kontrol et
 # Genelde npm install hatası
@@ -212,6 +225,7 @@ git push origin main
 ```
 
 ### Deploy Failed:
+
 ```bash
 # Health check failing
 
@@ -222,6 +236,7 @@ git push origin main
 ```
 
 ### Service Sleeping:
+
 ```bash
 # Free tier 15 dakika inactivity sonrası sleep
 
@@ -232,6 +247,7 @@ git push origin main
 ```
 
 ### WebRTC Not Working:
+
 ```bash
 # TURN server gerekli
 
@@ -246,11 +262,13 @@ git push origin main
 ## 📈 Monitoring
 
 ### Render Dashboard:
+
 - **Metrics**: CPU, Memory, Response time
 - **Logs**: Real-time logs
 - **Events**: Deploy history
 
 ### Custom Monitoring:
+
 ```bash
 # Prometheus metrics
 curl https://adminara.onrender.com/metrics
@@ -263,6 +281,7 @@ curl https://adminara.onrender.com/ready
 ```
 
 ### External Monitoring:
+
 - **UptimeRobot**: Free uptime monitoring
 - **Sentry**: Error tracking (SENTRY_DSN set et)
 - **Grafana Cloud**: Prometheus metrics visualization
@@ -272,6 +291,7 @@ curl https://adminara.onrender.com/ready
 ## 💰 Cost Optimization
 
 ### Free Tier:
+
 ```bash
 ✅ $0/ay
 ✅ 512 MB RAM
@@ -281,6 +301,7 @@ curl https://adminara.onrender.com/ready
 ```
 
 ### Starter Plan ($7/ay):
+
 ```bash
 ✅ Always-on (no sleep)
 ✅ Faster cold start
@@ -289,6 +310,7 @@ curl https://adminara.onrender.com/ready
 ```
 
 ### Recommendation:
+
 **Free tier ile başla**, gerekirse upgrade et.
 
 ---
@@ -296,6 +318,7 @@ curl https://adminara.onrender.com/ready
 ## 🎯 Next Steps
 
 ### After Deployment:
+
 1. ✅ Test all features
 2. ✅ Monitor logs (first 24h)
 3. ✅ Check metrics
@@ -305,6 +328,7 @@ curl https://adminara.onrender.com/ready
 7. ✅ Increase test coverage (54% → 85%)
 
 ### Future Improvements:
+
 - [ ] Add more tests
 - [ ] Improve documentation
 - [ ] Add more features

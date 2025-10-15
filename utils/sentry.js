@@ -11,11 +11,11 @@ function initSentry(app) {
         new Sentry.Integrations.Express({ app }),
       ],
     });
-    
+
     console.log('✅ Sentry initialized');
     return true;
   }
-  
+
   console.log('⚠️ Sentry DSN not configured');
   return false;
 }

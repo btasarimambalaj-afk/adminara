@@ -5,19 +5,19 @@ const socketIO = require('socket.io');
 describe('Socket Handlers Integration', () => {
   let server, ioServer, clientSocket;
 
-  beforeAll((done) => {
+  beforeAll(done => {
     server = http.createServer();
     ioServer = socketIO(server);
-    
+
     const mockState = {
       adminSocket: null,
       customerSockets: new Map(),
       channelStatus: 'AVAILABLE',
       otpStore: new Map(),
-      bot: null
+      bot: null,
     };
 
-    ioServer.on('connection', (socket) => {
+    ioServer.on('connection', socket => {
       require('../../socket/handlers')(ioServer, socket, mockState);
     });
 
@@ -34,31 +34,31 @@ describe('Socket Handlers Integration', () => {
     server.close();
   });
 
-  test('should handle room:join event', (done) => {
+  test('should handle room:join event', done => {
     clientSocket.emit('room:join', {
       role: 'customer',
-      customerName: 'Test User'
+      customerName: 'Test User',
     });
 
-    clientSocket.on('room:joined', (data) => {
+    clientSocket.on('room:joined', data => {
       expect(data.role).toBe('customer');
       done();
     });
   });
 
-  test('should handle rtc:description event', (done) => {
+  test('should handle rtc:description event', done => {
     clientSocket.emit('rtc:description', {
       type: 'description',
-      description: { type: 'offer', sdp: 'test-sdp' }
+      description: { type: 'offer', sdp: 'test-sdp' },
     });
 
     setTimeout(done, 100);
   });
 
-  test('should handle rtc:ice-candidate event', (done) => {
+  test('should handle rtc:ice-candidate event', done => {
     clientSocket.emit('rtc:ice-candidate', {
       type: 'ice-candidate',
-      candidate: { candidate: 'test-candidate' }
+      candidate: { candidate: 'test-candidate' },
     });
 
     setTimeout(done, 100);

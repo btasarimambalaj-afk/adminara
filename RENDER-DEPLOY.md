@@ -15,9 +15,11 @@ git push -u origin main
 ## 2️⃣ Render.com'a Deploy Et (3 dakika)
 
 ### Adım 1: Render'a Git
+
 https://render.com → **Sign Up** (GitHub ile giriş yap)
 
 ### Adım 2: Web Service Oluştur
+
 1. **Dashboard** → **New +** → **Web Service**
 2. **Connect Repository** → `adminara` seç
 3. **Ayarları kontrol et**:
@@ -30,9 +32,11 @@ https://render.com → **Sign Up** (GitHub ile giriş yap)
    - Instance Type: `Free`
 
 ### Adım 3: Environment Variables
+
 Render otomatik `SESSION_SECRET` ve `COOKIE_SECRET` oluşturacak (render.yaml'da tanımlı).
 
 **Opsiyonel** (şimdilik gerek yok):
+
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_ADMIN_CHAT_ID`
 - `TURN_SERVER_URL`
@@ -40,6 +44,7 @@ Render otomatik `SESSION_SECRET` ve `COOKIE_SECRET` oluşturacak (render.yaml'da
 - `TURN_CREDENTIAL`
 
 ### Adım 4: Deploy
+
 **Create Web Service** → Deploy başlayacak (5-10 dakika)
 
 ## 3️⃣ Test Et (1 dakika)
@@ -69,12 +74,14 @@ https://adminara.onrender.com/admin    # Admin
 Sistem şimdi canlı: https://adminara.onrender.com
 
 ### Önemli Notlar:
+
 - ✅ **Free tier** kullanıyorsun ($0/ay)
 - ⚠️ **15 dakika** inactivity sonrası sleep (ilk istek 30-60s sürer)
 - ✅ **Auto-deploy**: GitHub'a push → Otomatik deploy
 - ✅ **HTTPS**: Otomatik SSL sertifikası
 
 ### Güncelleme:
+
 ```bash
 # Kod değişikliği yap
 git add .
@@ -85,6 +92,7 @@ git push
 ```
 
 ### Monitoring:
+
 - **Dashboard**: https://dashboard.render.com
 - **Logs**: Dashboard → adminara → Logs
 - **Metrics**: Dashboard → adminara → Metrics

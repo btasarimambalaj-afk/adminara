@@ -8,7 +8,7 @@ class WebRTCConnectionPool {
     this.pool = [];
     this.active = new Map();
   }
-  
+
   /**
    * Get connection from pool or create new
    */
@@ -19,28 +19,28 @@ class WebRTCConnectionPool {
       console.log('📦 Reusing connection from pool');
       return pc;
     }
-    
+
     // Create new
     console.log('🆕 Creating new connection');
     return new RTCPeerConnection(config);
   }
-  
+
   /**
    * Return connection to pool
    */
   release(pc) {
     if (!pc) return;
-    
+
     // Check if connection is reusable
     const state = pc.connectionState;
     if (state === 'closed' || state === 'failed') {
       console.log('❌ Connection not reusable:', state);
       return;
     }
-    
+
     // Reset connection
     this.resetConnection(pc);
-    
+
     // Add to pool if not full
     if (this.pool.length < this.maxSize) {
       this.pool.push(pc);
@@ -50,7 +50,7 @@ class WebRTCConnectionPool {
       console.log('🗑️ Pool full, closing connection');
     }
   }
-  
+
   /**
    * Reset connection for reuse
    */
@@ -61,14 +61,14 @@ class WebRTCConnectionPool {
         pc.removeTrack(sender);
       }
     });
-    
+
     // Clear event handlers
     pc.ontrack = null;
     pc.onicecandidate = null;
     pc.onconnectionstatechange = null;
     pc.oniceconnectionstatechange = null;
   }
-  
+
   /**
    * Clear pool
    */
@@ -78,7 +78,7 @@ class WebRTCConnectionPool {
     this.active.clear();
     console.log('🧹 Pool cleared');
   }
-  
+
   /**
    * Get pool stats
    */
@@ -86,7 +86,7 @@ class WebRTCConnectionPool {
     return {
       poolSize: this.pool.length,
       maxSize: this.maxSize,
-      activeConnections: this.active.size
+      activeConnections: this.active.size,
     };
   }
 }

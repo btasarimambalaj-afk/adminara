@@ -12,14 +12,14 @@ class OfflineHandler {
   init() {
     // Create offline banner
     this.createBanner();
-    
+
     // Listen to online/offline events
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
-    
+
     // Listen to service worker messages
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
+      navigator.serviceWorker.addEventListener('message', event => {
         if (event.data.type === 'OFFLINE') {
           this.handleOffline();
         } else if (event.data.type === 'ONLINE') {
@@ -27,7 +27,7 @@ class OfflineHandler {
         }
       });
     }
-    
+
     // Check initial state
     if (this.isOffline) {
       this.showBanner();
@@ -45,7 +45,7 @@ class OfflineHandler {
     this.isOffline = true;
     this.showBanner();
     console.warn('📡 Offline mode activated');
-    
+
     if (typeof window.showToast === 'function') {
       window.showToast('warning', 'İnternet bağlantısı kesildi');
     }
@@ -55,7 +55,7 @@ class OfflineHandler {
     this.isOffline = false;
     this.hideBanner();
     console.log('📡 Online mode restored');
-    
+
     if (typeof window.showToast === 'function') {
       window.showToast('success', 'İnternet bağlantısı geri geldi');
     }

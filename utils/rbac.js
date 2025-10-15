@@ -10,12 +10,12 @@ let rolesConfig = null;
  */
 function loadRoles() {
   if (rolesConfig) return rolesConfig;
-  
+
   try {
     const rolesPath = path.join(__dirname, '../config/roles.yaml');
     rolesConfig = yaml.load(fs.readFileSync(rolesPath, 'utf8'));
-    logger.info('Roles configuration loaded', { 
-      roles: Object.keys(rolesConfig.roles || {}) 
+    logger.info('Roles configuration loaded', {
+      roles: Object.keys(rolesConfig.roles || {}),
     });
     return rolesConfig;
   } catch (err) {
@@ -94,5 +94,5 @@ module.exports = {
   roleExists,
   getDefaultRole,
   getRoleLevel,
-  isHigherRole
+  isHigherRole,
 };

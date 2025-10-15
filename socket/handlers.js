@@ -9,7 +9,9 @@ function validateOffer(offer) {
 }
 
 function validateAnswer(answer) {
-  return answer && answer.type === 'answer' && typeof answer.sdp === 'string' && answer.sdp.length > 0;
+  return (
+    answer && answer.type === 'answer' && typeof answer.sdp === 'string' && answer.sdp.length > 0
+  );
 }
 
 function validateIceCandidate(candidate) {
@@ -32,15 +34,15 @@ const withClearTimeout = withTimeoutClear(clearRoomTimeout);
 const startRoomTimeout = withClearTimeout((state, io) => {
   roomTimeout = setTimeout(() => {
     logger.info('Room timeout - closing channel');
-    
+
     // Bildirim gönder
     if (state.adminSocket) {
       state.adminSocket.emit('room:timeout', { message: 'Kanal zaman aşımı' });
     }
-    state.customerSockets.forEach((cs) => {
+    state.customerSockets.forEach(cs => {
       cs.emit('room:timeout', { message: 'Kanal zaman aşımı' });
     });
-    
+
     // Temizle
     state.channelStatus = 'AVAILABLE';
     state.adminSocket = null;
@@ -49,14 +51,14 @@ const startRoomTimeout = withClearTimeout((state, io) => {
 });
 
 async function createHandleRoomJoin(io, state) {
-  const handleRoomJoin = async function(socket, data) {
+  const handleRoomJoin = async function (socket, data) {
     const { customerSockets, bot } = state;
     const stateStore = require('../utils/state-store');
     const enableQueue = process.env.ENABLE_QUEUE === 'true';
-    
+
     try {
       const { isAdmin, customerName } = data;
-      
+
       if (isAdmin) {
         // Admin session kontrolü
         if (state.adminSocket && state.adminSocket.id !== socket.id) {
@@ -64,34 +66,39 @@ async function createHandleRoomJoin(io, state) {
           logger.warn('Admin login rejected - active session exists');
           return;
         }
-        
+
         state.adminSocket = socket;
         state.channelStatus = 'READY';
         socket.join('support-room');
         socket.emit('room:joined', { role: 'admin' });
         socket.emit('channel:joined', { role: 'admin' });
-        logger.info('Admin joined room permanently - waiting for customers', { socketId: socket.id });
-        
+        logger.info('Admin joined room permanently - waiting for customers', {
+          socketId: socket.id,
+        });
+
         // Bekleyen müşterilere admin hazır bildir
         customerSockets.forEach((cs, customerId) => {
           cs.emit('room:user:joined', { role: 'admin' });
-          
+
           // Admin'e müşteri bilgisini gönder
-          socket.emit('room:user:joined', { 
-            role: 'customer', 
+          socket.emit('room:user:joined', {
+            role: 'customer',
             userId: customerId,
-            customerName: cs.customerName || 'Misafir'
+            customerName: cs.customerName || 'Misafir',
           });
         });
       } else {
         if (customerSockets.size >= 1) {
           if (enableQueue) {
             const name = customerName || 'Misafir';
-            await stateStore.enqueueCustomer(socket.id, { customerName: name, joinedAt: Date.now() });
+            await stateStore.enqueueCustomer(socket.id, {
+              customerName: name,
+              joinedAt: Date.now(),
+            });
             const position = await stateStore.queueLength();
             socket.emit('queue:joined', { position });
             logger.info('Customer queued', { socketId: socket.id, position });
-            
+
             if (state.adminSocket) {
               state.adminSocket.emit('queue:updated', { queueLength: position });
             }
@@ -102,7 +109,7 @@ async function createHandleRoomJoin(io, state) {
             return;
           }
         }
-        
+
         const name = customerName || 'Misafir';
         socket.customerName = name;
         customerSockets.set(socket.id, socket);
@@ -110,44 +117,48 @@ async function createHandleRoomJoin(io, state) {
         socket.join('support-room');
         socket.emit('room:joined', { role: 'customer' });
         socket.emit('channel:joined', { role: 'customer' });
-        
+
         if (state.adminSocket) {
           // Admin kanalda hazır bekliyor, direkt bağlan
           logger.info('Customer connected to waiting admin', { customerName: name });
-          
-          state.adminSocket.emit('room:user:joined', { 
-            role: 'customer', 
-            userId: socket.id, 
-            customerName: name
+
+          state.adminSocket.emit('room:user:joined', {
+            role: 'customer',
+            userId: socket.id,
+            customerName: name,
           });
-          
+
           socket.emit('room:user:joined', { role: 'admin' });
         } else {
           // Admin yok, 1 dakika bekle
           logger.info('Customer waiting for admin - 1 minute timeout');
           startRoomTimeout(state, io);
         }
-        
+
         if (bot && process.env.TELEGRAM_ADMIN_CHAT_ID) {
-          const adminUrl = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/admin.html` : `http://localhost:${process.env.PORT || 3000}/admin.html`;
+          const adminUrl = process.env.PUBLIC_URL
+            ? `${process.env.PUBLIC_URL}/admin.html`
+            : `http://localhost:${process.env.PORT || 3000}/admin.html`;
           const telegramQueue = require('../jobs/telegram');
           await telegramQueue.enqueueTelegramMessage({
             chatId: process.env.TELEGRAM_ADMIN_CHAT_ID,
-            text: `🔔 Yeni müşteri aramaya hazır!\n\n👤 Müşteri: ${name}\n⏰ Saat: ${new Date().toLocaleTimeString('tr-TR')}\n\n👨💼 Admin Paneli:\n${adminUrl}`
+            text: `🔔 Yeni müşteri aramaya hazır!\n\n👤 Müşteri: ${name}\n⏰ Saat: ${new Date().toLocaleTimeString('tr-TR')}\n\n👨💼 Admin Paneli:\n${adminUrl}`,
           });
         }
-        
+
         logger.info('Customer joined', { socketId: socket.id, customerName: name });
       }
     } catch (error) {
-      handleSocketError(socket, new SocketError(
-        error.message || 'Room join failed',
-        'ROOM_JOIN_ERROR',
-        { isAdmin, customerName }
-      ));
+      handleSocketError(
+        socket,
+        new SocketError(error.message || 'Room join failed', 'ROOM_JOIN_ERROR', {
+          isAdmin,
+          customerName,
+        })
+      );
     }
   };
-  
+
   // Wrap with timeout clear middleware
   return withClearTimeout(handleRoomJoin);
 }
@@ -157,13 +168,13 @@ module.exports = (io, socket, state) => {
   const handleRoomJoin = createHandleRoomJoin(io, state);
 
   socket.on('visit', () => logger.info('Visitor', { socketId: socket.id }));
-  
+
   socket.on('queue:get', async () => {
     const stateStore = require('../utils/state-store');
     const queueLength = await stateStore.queueLength();
     socket.emit('queue:update', { queueLength });
   });
-  
+
   socket.on('queue:pop', async () => {
     if (socket.id !== state.adminSocket?.id) return;
     const stateStore = require('../utils/state-store');
@@ -178,24 +189,24 @@ module.exports = (io, socket, state) => {
       socket.emit('queue:update', { queueLength });
     }
   });
-  socket.on('channel:join', (data) => handleRoomJoin(socket, data));
-  socket.on('room:join', (data) => handleRoomJoin(socket, data));
-  
-  socket.on('customer:update:name', (data) => {
+  socket.on('channel:join', data => handleRoomJoin(socket, data));
+  socket.on('room:join', data => handleRoomJoin(socket, data));
+
+  socket.on('customer:update:name', data => {
     const { customerName } = data;
     if (customerSockets.has(socket.id)) {
       socket.customerName = customerName;
       logger.info('Customer name updated', { socketId: socket.id, name: customerName });
-      
+
       if (state.adminSocket) {
-        state.adminSocket.emit('customer:name:updated', { 
-          userId: socket.id, 
-          customerName 
+        state.adminSocket.emit('customer:name:updated', {
+          userId: socket.id,
+          customerName,
         });
       }
     }
   });
-  
+
   // Export handleRoomJoin for admin-auth
   socket.handleRoomJoin = handleRoomJoin;
 
@@ -204,15 +215,15 @@ module.exports = (io, socket, state) => {
     logger.info('Description', { from: socket.id, type: data.description?.type });
     socket.to('support-room').emit('rtc:description', data);
     metrics.webrtcEvents.inc({ event_type: data.description?.type || 'description' });
-    
+
     if (typeof ack === 'function') {
       ack({ ok: true });
     }
   });
 
-  socket.on('rtc:ice:candidate', (data) => socket.to('support-room').emit('rtc:ice:candidate', data));
-  
-  socket.on('audio:level', (data) => {
+  socket.on('rtc:ice:candidate', data => socket.to('support-room').emit('rtc:ice:candidate', data));
+
+  socket.on('audio:level', data => {
     const { level } = data;
     if (level < -60) {
       logger.warn('Silence detected - disconnecting', { socketId: socket.id, level });
@@ -220,69 +231,75 @@ module.exports = (io, socket, state) => {
       setTimeout(() => socket.disconnect(true), 5000);
     }
   });
-  
-  socket.on('ice:failed', async (data) => {
+
+  socket.on('ice:failed', async data => {
     logger.error('ICE connection failed', { socketId: socket.id, state: data.state });
     socket.emit('ice:restart', { message: 'Bağlantı yeniden başlatılıyor' });
   });
-  
-  socket.on('chat:send', (data) => {
+
+  socket.on('chat:send', data => {
     const { message } = data;
     if (!message || message.length > 500) return;
-    
+
     logger.info('Chat message', { socketId: socket.id, length: message.length });
-    
+
     // Broadcast to room
     socket.to('support-room').emit('chat:message', {
       message,
       sender: socket.id,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   });
 
-  socket.on('call:end', withClearTimeout(() => {
-    socket.to('support-room').emit('call:ended');
-    socket.to('support-room').emit('chat:clear');
-    customerSockets.clear();
-    logger.info('Call ended - starting timeout');
-    startRoomTimeout(state, io);
-  }));
-
-  socket.on('disconnect', withClearTimeout(async () => {
-    state.connectionCount = Math.max(0, state.connectionCount - 1);
-    logger.info('Disconnected', { socketId: socket.id, remaining: state.connectionCount });
-    
-    if (state.adminSocket?.id === socket.id) {
-      logger.info('Admin disconnected - channel still available for reconnect');
-      state.adminSocket = null;
+  socket.on(
+    'call:end',
+    withClearTimeout(() => {
+      socket.to('support-room').emit('call:ended');
+      socket.to('support-room').emit('chat:clear');
+      customerSockets.clear();
+      logger.info('Call ended - starting timeout');
       startRoomTimeout(state, io);
-    }
-    
-    if (customerSockets.has(socket.id)) {
-      logger.info('Customer disconnected', { socketId: socket.id });
-      customerSockets.delete(socket.id);
-      socket.to('support-room').emit('user:disconnected', { userId: socket.id });
-      
-      if (customerSockets.size === 0) {
-        state.channelStatus = state.adminSocket ? 'READY' : 'AVAILABLE';
-        logger.info('No customers remaining', { status: state.channelStatus });
-        
-        if (process.env.ENABLE_QUEUE === 'true') {
-          const stateStore = require('../utils/state-store');
-          const nextCustomer = await stateStore.dequeueCustomer();
-          if (nextCustomer && state.adminSocket) {
-            const queuedSocket = io.sockets.sockets.get(nextCustomer.socketId);
-            if (queuedSocket) {
-              queuedSocket.emit('queue:ready');
-              logger.info('Next customer from queue', { socketId: nextCustomer.socketId });
+    })
+  );
+
+  socket.on(
+    'disconnect',
+    withClearTimeout(async () => {
+      state.connectionCount = Math.max(0, state.connectionCount - 1);
+      logger.info('Disconnected', { socketId: socket.id, remaining: state.connectionCount });
+
+      if (state.adminSocket?.id === socket.id) {
+        logger.info('Admin disconnected - channel still available for reconnect');
+        state.adminSocket = null;
+        startRoomTimeout(state, io);
+      }
+
+      if (customerSockets.has(socket.id)) {
+        logger.info('Customer disconnected', { socketId: socket.id });
+        customerSockets.delete(socket.id);
+        socket.to('support-room').emit('user:disconnected', { userId: socket.id });
+
+        if (customerSockets.size === 0) {
+          state.channelStatus = state.adminSocket ? 'READY' : 'AVAILABLE';
+          logger.info('No customers remaining', { status: state.channelStatus });
+
+          if (process.env.ENABLE_QUEUE === 'true') {
+            const stateStore = require('../utils/state-store');
+            const nextCustomer = await stateStore.dequeueCustomer();
+            if (nextCustomer && state.adminSocket) {
+              const queuedSocket = io.sockets.sockets.get(nextCustomer.socketId);
+              if (queuedSocket) {
+                queuedSocket.emit('queue:ready');
+                logger.info('Next customer from queue', { socketId: nextCustomer.socketId });
+              }
             }
           }
         }
       }
-    }
-    
-    otpStore.delete(socket.id);
-  }));
+
+      otpStore.delete(socket.id);
+    })
+  );
 };
 
 module.exports.validateOffer = validateOffer;

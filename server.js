@@ -34,10 +34,7 @@ const TURN_MODE = config.TURN_MODE;
 const TURN_SECRET = config.TURN_SECRET;
 
 function buildIceServersForClient(adminId = 'admin') {
-  const ice = [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
-  ];
+  const ice = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
   if (!TURN_SERVER_URL) return { iceServers: ice };
 
   if (TURN_MODE === 'rest' && TURN_SECRET) {
@@ -47,7 +44,10 @@ function buildIceServersForClient(adminId = 'admin') {
     hmac.update(username);
     const credential = hmac.digest('base64');
     ice.push({ urls: TURN_SERVER_URL, username, credential });
-    logger.info('TURN credentials generated', { ttl: ttlSecs, expiresAt: Math.floor(Date.now() / 1000) + ttlSecs });
+    logger.info('TURN credentials generated', {
+      ttl: ttlSecs,
+      expiresAt: Math.floor(Date.now() / 1000) + ttlSecs,
+    });
   } else if (TURN_USERNAME && TURN_CREDENTIAL) {
     ice.push({ urls: TURN_SERVER_URL, username: TURN_USERNAME, credential: TURN_CREDENTIAL });
   }
@@ -71,30 +71,30 @@ const corsOptions = {
       ? callback(null, origin)
       : callback(new Error('Origin not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
 };
 
 async function initializeApp() {
   await stateStore.init();
   telegramQueue.init();
-  
+
   // Initialize job scheduler
   const scheduler = require('./jobs/scheduler');
   await scheduler.initScheduler();
-  
+
   logger.info('State store, queue, and scheduler initialized');
 }
 
-const io = socketIO(server, { 
+const io = socketIO(server, {
   cors: corsOptions,
   allowRequest: (req, callback) => {
     const origin = req.headers.origin;
     const allowedOrigins = [
       process.env.PUBLIC_URL,
       'https://adminara.onrender.com',
-      'http://localhost:3000'
+      'http://localhost:3000',
     ].filter(Boolean);
-    
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -109,14 +109,14 @@ const io = socketIO(server, {
     clientNoContextTakeover: true,
     serverNoContextTakeover: true,
     serverMaxWindowBits: 10,
-    concurrencyLimit: 10
+    concurrencyLimit: 10,
   },
   transports: ['websocket', 'polling'],
   allowUpgrades: true,
-  pingTimeout: 15000,  // 15s (was 30s)
+  pingTimeout: 15000, // 15s (was 30s)
   pingInterval: 10000, // 10s (was 25s) - faster disconnect detection
   upgradeTimeout: 10000,
-  maxHttpBufferSize: 1e6
+  maxHttpBufferSize: 1e6,
 });
 
 const { bot } = require('./utils/telegram-bot');
@@ -137,24 +137,30 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`, "https://www.googletagmanager.com"],
-      styleSrc: ["'self'"],
-      mediaSrc: ["'self'", "blob:"],
-      connectSrc: ["'self'", "wss:", "https:", "stun:", "turn:"],
-      imgSrc: ["'self'", "data:", "blob:"],
-      frameSrc: ["'none'"]
-    }
-  },
-  hsts: {
-    maxAge: 63072000, // 2 years
-    includeSubDomains: true,
-    preload: true
-  }
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          (req, res) => `'nonce-${res.locals.cspNonce}'`,
+          'https://www.googletagmanager.com',
+        ],
+        styleSrc: ["'self'"],
+        mediaSrc: ["'self'", 'blob:'],
+        connectSrc: ["'self'", 'wss:', 'https:', 'stun:', 'turn:'],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        frameSrc: ["'none'"],
+      },
+    },
+    hsts: {
+      maxAge: 63072000, // 2 years
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
 app.use(cors(corsOptions));
 
 // HTTPS enforce (production)
@@ -172,11 +178,11 @@ if (process.env.NODE_ENV === 'production') {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
-    skip: (req) => req.path === '/health' || req.path === '/ready',
+    skip: req => req.path === '/health' || req.path === '/ready',
     standardHeaders: true,
     legacyHeaders: false,
     // Trust proxy - use leftmost IP from X-Forwarded-For
-    validate: { trustProxy: false }
+    validate: { trustProxy: false },
   });
   app.use(limiter);
 }
@@ -209,7 +215,7 @@ const stateTarget = {
   channelStatus,
   otpStore,
   connectionCount,
-  bot
+  bot,
 };
 
 const state = new Proxy(stateTarget, {
@@ -222,7 +228,7 @@ const state = new Proxy(stateTarget, {
   },
   get(target, prop) {
     return target[prop];
-  }
+  },
 });
 
 // Metrics origin guard (CRITICAL security fix)
@@ -283,7 +289,7 @@ function setSessionCookie(res, token, ttl = adminSession.SESSION_TTL_MS) {
     secure: prod,
     sameSite: 'Strict',
     maxAge: ttl,
-    path: '/'
+    path: '/',
   });
 }
 
@@ -324,22 +330,30 @@ const { createOtpForAdmin, verifyAdminOtp } = require('./socket/admin-auth');
  *                   type: string
  *                   example: OTP send failed
  */
-app.post('/admin/otp/request', celebrate({
-  body: Joi.object({
-    adminId: Joi.string().trim().max(64).default('admin')
-  })
-}), async (req, res) => {
-  const adminId = String(req.body?.adminId || 'admin');
-  logger.info('OTP request received', { adminId, botConfigured: !!bot, chatId: process.env.TELEGRAM_ADMIN_CHAT_ID });
-  try {
-    await createOtpForAdmin(adminId, bot);
-    logger.info('OTP creation completed');
-    res.sendStatus(204);
-  } catch (err) {
-    logger.error('OTP request failed', { err: err.message });
-    res.status(500).json({ error: 'OTP send failed' });
+app.post(
+  '/admin/otp/request',
+  celebrate({
+    body: Joi.object({
+      adminId: Joi.string().trim().max(64).default('admin'),
+    }),
+  }),
+  async (req, res) => {
+    const adminId = String(req.body?.adminId || 'admin');
+    logger.info('OTP request received', {
+      adminId,
+      botConfigured: !!bot,
+      chatId: process.env.TELEGRAM_ADMIN_CHAT_ID,
+    });
+    try {
+      await createOtpForAdmin(adminId, bot);
+      logger.info('OTP creation completed');
+      res.sendStatus(204);
+    } catch (err) {
+      logger.error('OTP request failed', { err: err.message });
+      res.status(500).json({ error: 'OTP send failed' });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -388,20 +402,26 @@ app.post('/admin/otp/request', celebrate({
  *                   type: string
  *                   example: invalid_otp
  */
-app.post('/admin/otp/verify', celebrate({
-  body: Joi.object({
-    adminId: Joi.string().trim().max(64).default('admin'),
-    code: Joi.string().pattern(/^\d{6}$/).required()
-  })
-}), async (req, res) => {
-  const adminId = String(req.body?.adminId || 'admin');
-  const code = String(req.body?.code || '');
-  const ok = verifyAdminOtp(adminId, code);
-  if (!ok) return res.status(401).json({ ok: false, error: 'invalid_otp' });
-  const token = await adminSession.createSession(adminId);
-  setSessionCookie(res, token);
-  res.sendStatus(204);
-});
+app.post(
+  '/admin/otp/verify',
+  celebrate({
+    body: Joi.object({
+      adminId: Joi.string().trim().max(64).default('admin'),
+      code: Joi.string()
+        .pattern(/^\d{6}$/)
+        .required(),
+    }),
+  }),
+  async (req, res) => {
+    const adminId = String(req.body?.adminId || 'admin');
+    const code = String(req.body?.code || '');
+    const ok = verifyAdminOtp(adminId, code);
+    if (!ok) return res.status(401).json({ ok: false, error: 'invalid_otp' });
+    const token = await adminSession.createSession(adminId);
+    setSessionCookie(res, token);
+    res.sendStatus(204);
+  }
+);
 
 // Rate limiter for session verify (brute force protection)
 const sessionVerifyLimiter = rateLimit({
@@ -410,7 +430,7 @@ const sessionVerifyLimiter = rateLimit({
   message: { ok: false, error: 'Too many requests' },
   standardHeaders: true,
   legacyHeaders: false,
-  validate: { trustProxy: false }
+  validate: { trustProxy: false },
 });
 
 /**
@@ -486,31 +506,36 @@ app.use(correlationMiddleware);
 app.use('/', require('./routes')(state));
 
 // Static files (AFTER routes)
-app.use('/js', express.static('public/js', {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.js')) {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-    }
-  }
-}));
+app.use(
+  '/js',
+  express.static('public/js', {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.js')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    },
+  })
+);
 
 // Static files with CDN-friendly headers
-app.use(express.static('public', {
-  maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
-  setHeaders: (res, path) => {
-    // CDN headers for images, fonts, icons
-    if (path.match(/\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/)) {
-      res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-    }
-    // CSS with versioning
-    if (path.endsWith('.css')) {
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-    }
-  }
-}));
+app.use(
+  express.static('public', {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+    setHeaders: (res, path) => {
+      // CDN headers for images, fonts, icons
+      if (path.match(/\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+      }
+      // CSS with versioning
+      if (path.endsWith('.css')) {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+      }
+    },
+  })
+);
 
 // V1 API Routes
 const adminRoutes = require('./routes/v1/admin');
@@ -540,11 +565,12 @@ if (csrfEnabled) {
 
 // Socket.IO admin cookie guard
 io.use(async (socket, next) => {
-  const isAdmin = socket.handshake?.auth?.isAdmin === true || socket.handshake?.query?.role === 'admin';
+  const isAdmin =
+    socket.handshake?.auth?.isAdmin === true || socket.handshake?.query?.role === 'admin';
   if (!isAdmin) return next();
   try {
     const raw = socket.request.headers.cookie || '';
-    const token = (raw.match(/(?:^|; )adminSession=([^;]+)/)||[])[1];
+    const token = (raw.match(/(?:^|; )adminSession=([^;]+)/) || [])[1];
     const session = await adminSession.validateSession(decodeURIComponent(token));
     if (!session) {
       return next(new Error('unauthorized'));
@@ -559,42 +585,46 @@ io.use(async (socket, next) => {
 const socketHandlers = require('./socket/handlers');
 const adminAuthHandlers = require('./socket/admin-auth');
 
-io.on('connection', (socket) => {
+io.on('connection', socket => {
   const maxConnections = parseInt(process.env.MAX_CONNECTIONS) || 50;
-  
+
   if (state.connectionCount >= maxConnections) {
     logger.warn('Max connections reached', { current: state.connectionCount, max: maxConnections });
     socket.emit('error', { message: 'Server capacity reached' });
     socket.disconnect();
     return;
   }
-  
+
   state.connectionCount++;
   metrics.socketConnections.set(state.connectionCount);
   logger.info('New connection', { socketId: socket.id, total: state.connectionCount });
-  
+
   // Memory leak fix: Proper cleanup on disconnect
-  socket.on('disconnect', (reason) => {
+  socket.on('disconnect', reason => {
     state.connectionCount--;
     metrics.socketConnections.set(state.connectionCount);
-    
+
     // Remove from customerSockets
     if (state.customerSockets.has(socket.id)) {
       state.customerSockets.delete(socket.id);
       logger.info('Customer socket cleaned up', { socketId: socket.id });
     }
-    
+
     // Clear admin socket if this was admin
     if (state.adminSocket?.id === socket.id) {
       state.adminSocket = null;
       logger.info('Admin socket cleaned up', { socketId: socket.id });
     }
-    
-    logger.info('Socket disconnected', { socketId: socket.id, reason, remaining: state.connectionCount });
+
+    logger.info('Socket disconnected', {
+      socketId: socket.id,
+      reason,
+      remaining: state.connectionCount,
+    });
   });
-  
+
   // WebSocket failover support
-  socket.on('reconnect:transfer', async (data) => {
+  socket.on('reconnect:transfer', async data => {
     const bridge = require('./utils/bridge');
     const success = await bridge.failoverWebSocket(data.oldSocketId, socket.id, state);
     socket.emit('reconnect:transferred', { success });
@@ -620,27 +650,27 @@ app.use((err, req, res, next) => {
 });
 
 // Graceful shutdown
-let gracefulShutdown = async (signal) => {
+let gracefulShutdown = async signal => {
   logger.info('Graceful shutdown started', { signal });
-  
+
   clearInterval(otpCleanupInterval);
-  
+
   // Shutdown job scheduler
   const scheduler = require('./jobs/scheduler');
   await scheduler.shutdownScheduler();
-  
+
   server.close(() => {
     logger.info('HTTP server closed');
   });
-  
+
   io.emit('server:shutdown', { message: 'Server restarting' });
   io.close(() => {
     logger.info('Socket.IO closed');
   });
-  
+
   if (state.adminSocket) state.adminSocket.disconnect();
   state.customerSockets.forEach(socket => socket.disconnect());
-  
+
   setTimeout(() => {
     logger.info('Graceful shutdown complete');
     process.exit(0);
@@ -655,44 +685,50 @@ server.listen(PORT, async () => {
   await initializeApp();
   logger.info('Server started', { port: PORT });
   logger.info('Customer URL', { url: process.env.PUBLIC_URL || `http://localhost:${PORT}` });
-  logger.info('Admin URL', { url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/admin` });
-  logger.info('Health URL', { url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/health` });
-  logger.info('Telegram config', { 
-    botConfigured: !!bot, 
-    chatIdConfigured: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
-    tokenLength: process.env.TELEGRAM_BOT_TOKEN?.length || 0
+  logger.info('Admin URL', {
+    url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/admin`,
   });
-  
+  logger.info('Health URL', {
+    url: `${process.env.PUBLIC_URL || `http://localhost:${PORT}`}/health`,
+  });
+  logger.info('Telegram config', {
+    botConfigured: !!bot,
+    chatIdConfigured: !!process.env.TELEGRAM_ADMIN_CHAT_ID,
+    tokenLength: process.env.TELEGRAM_BOT_TOKEN?.length || 0,
+  });
+
   if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
     const pingUrl = process.env.RENDER_EXTERNAL_URL;
     const pingInterval = parseInt(process.env.PING_INTERVAL) || 240000;
-    logger.info('Keep-alive enabled', { url: pingUrl, interval: `${pingInterval/1000}s` });
-    
+    logger.info('Keep-alive enabled', { url: pingUrl, interval: `${pingInterval / 1000}s` });
+
     const keepAliveInterval = setInterval(async () => {
       try {
         const https = require('https');
-        https.get(`${pingUrl}/health`, (res) => {
-          let data = '';
-          res.on('data', chunk => data += chunk);
-          res.on('end', () => {
-            try {
-              const json = JSON.parse(data);
-              logger.debug('Ping OK', { uptime: Math.floor(json.uptime) });
-            } catch (e) {
-              logger.debug('Ping OK');
-            }
+        https
+          .get(`${pingUrl}/health`, res => {
+            let data = '';
+            res.on('data', chunk => (data += chunk));
+            res.on('end', () => {
+              try {
+                const json = JSON.parse(data);
+                logger.debug('Ping OK', { uptime: Math.floor(json.uptime) });
+              } catch (e) {
+                logger.debug('Ping OK');
+              }
+            });
+          })
+          .on('error', error => {
+            logger.error('Ping error', { error: error.message });
           });
-        }).on('error', (error) => {
-          logger.error('Ping error', { error: error.message });
-        });
       } catch (error) {
         logger.error('Ping error', { error: error.message });
       }
     }, pingInterval);
-    
+
     // Cleanup on shutdown
     const originalShutdown = gracefulShutdown;
-    gracefulShutdown = (signal) => {
+    gracefulShutdown = signal => {
       clearInterval(keepAliveInterval);
       originalShutdown(signal);
     };

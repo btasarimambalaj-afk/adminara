@@ -10,43 +10,49 @@ async function idempotencyMiddleware(req, res, next) {
   if (!['POST', 'PUT', 'PATCH'].includes(req.method)) {
     return next();
   }
-  
+
   const key = req.headers['idempotency-key'];
   if (!key) {
     return next(); // Optional, not enforced
   }
-  
+
   try {
     const cacheKey = `idemp:${key}`;
-    
+
     // Check if request already processed
     const cached = await stateStore.get(cacheKey);
     if (cached) {
-      logger.info('Idempotent request detected', { 
-        key, 
-        method: req.method, 
+      logger.info('Idempotent request detected', {
+        key,
+        method: req.method,
         path: req.path,
-        correlationId: req.id
+        correlationId: req.id,
       });
-      
+
       return res.status(cached.status).json(cached.body);
     }
-    
+
     // Intercept response
     const originalJson = res.json.bind(res);
-    res.json = function(body) {
+    res.json = function (body) {
       // Cache successful responses for 24 hours
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        stateStore.set(cacheKey, { 
-          status: res.statusCode, 
-          body 
-        }, 86400).catch(err => {
-          logger.error('Failed to cache idempotent response', { error: err.message });
-        });
+        stateStore
+          .set(
+            cacheKey,
+            {
+              status: res.statusCode,
+              body,
+            },
+            86400
+          )
+          .catch(err => {
+            logger.error('Failed to cache idempotent response', { error: err.message });
+          });
       }
       return originalJson(body);
     };
-    
+
     next();
   } catch (err) {
     logger.error('Idempotency middleware error', { error: err.message });

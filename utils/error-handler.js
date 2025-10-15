@@ -14,18 +14,18 @@ function handleSocketError(socket, error) {
     socketId: socket.id,
     message: error.message,
     code: error.code || 'UNKNOWN_ERROR',
-    data: error.data || {}
+    data: error.data || {},
   };
 
   logger.error('Socket error', errorData);
-  
+
   socket.emit('error', {
     message: error.message,
-    code: error.code || 'UNKNOWN_ERROR'
+    code: error.code || 'UNKNOWN_ERROR',
   });
 }
 
 module.exports = {
   SocketError,
-  handleSocketError
+  handleSocketError,
 };

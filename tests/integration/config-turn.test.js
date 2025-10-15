@@ -18,7 +18,7 @@ describe('GET /config - ICE servers', () => {
     function buildIceServersForClient(adminId = 'admin') {
       const ice = [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' },
       ];
       if (!TURN_URL) return { iceServers: ice };
 
@@ -46,7 +46,7 @@ describe('GET /config - ICE servers', () => {
   it('returns STUN only when no TURN env', async () => {
     app = createTestApp({});
     const res = await request(app).get('/config').expect(200);
-    
+
     expect(res.body.iceServers).toBeDefined();
     expect(res.body.iceServers.length).toBeGreaterThanOrEqual(2);
     expect(res.body.iceServers.find(s => String(s.urls).startsWith('turn:'))).toBeFalsy();
@@ -57,10 +57,10 @@ describe('GET /config - ICE servers', () => {
       TURN_URL: 'turn:1.2.3.4:3478',
       TURN_MODE: 'static',
       TURN_USER: 'adminara',
-      TURN_PASS: 'testpass'
+      TURN_PASS: 'testpass',
     });
     const res = await request(app).get('/config').expect(200);
-    
+
     const turn = res.body.iceServers.find(s => String(s.urls).startsWith('turn:'));
     expect(turn).toBeDefined();
     expect(turn.username).toBe('adminara');
@@ -71,10 +71,10 @@ describe('GET /config - ICE servers', () => {
     app = createTestApp({
       TURN_URL: 'turn:1.2.3.4:3478',
       TURN_MODE: 'rest',
-      TURN_SECRET: 'secret123'
+      TURN_SECRET: 'secret123',
     });
     const res = await request(app).get('/config').expect(200);
-    
+
     const turn = res.body.iceServers.find(s => String(s.urls).startsWith('turn:'));
     expect(turn).toBeDefined();
     expect(turn.username).toMatch(/^\d+:admin$/);
@@ -86,10 +86,10 @@ describe('GET /config - ICE servers', () => {
     app = createTestApp({
       TURN_MODE: 'static',
       TURN_USER: 'adminara',
-      TURN_PASS: 'testpass'
+      TURN_PASS: 'testpass',
     });
     const res = await request(app).get('/config').expect(200);
-    
+
     expect(res.body.iceServers.find(s => String(s.urls).startsWith('turn:'))).toBeFalsy();
   });
 });

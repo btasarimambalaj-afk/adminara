@@ -7,9 +7,9 @@ describe('Metrics Origin Guard', () => {
   beforeAll(() => {
     app = express();
     app.use(express.json());
-    
+
     const metrics = { webrtcReconnectAttempts: { inc: jest.fn() } };
-    
+
     function metricsOriginGuard(req, res, next) {
       const origin = String(req.headers.origin || '');
       const allowed = ['http://localhost:3000'];
@@ -18,7 +18,7 @@ describe('Metrics Origin Guard', () => {
       }
       next();
     }
-    
+
     app.post('/metrics/reconnect-attempt', metricsOriginGuard, (req, res) => {
       metrics.webrtcReconnectAttempts.inc();
       res.sendStatus(204);
@@ -40,8 +40,6 @@ describe('Metrics Origin Guard', () => {
   });
 
   test('allows no origin (server-side)', async () => {
-    await request(app)
-      .post('/metrics/reconnect-attempt')
-      .expect(204);
+    await request(app).post('/metrics/reconnect-attempt').expect(204);
   });
 });

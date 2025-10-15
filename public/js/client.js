@@ -6,7 +6,7 @@ class ClientApp {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: Infinity,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
     });
     this.webRTCManager = new WebRTCManager();
     this.customerName = '';
@@ -21,19 +21,19 @@ class ClientApp {
     this.setupUIEvents();
     // ✅ Artık otomatik katılmıyor - kullanıcı butona basınca katılacak
   }
-  
+
   async joinChannel() {
     // ✅ İsim girildikten SONRA kanala katıl
     console.log('✅ Müşteri kanala katılıyor:', this.customerName);
-    
+
     // Waiting mesajını göster
     document.getElementById('waiting-message').classList.remove('hidden');
-    
+
     this.socket.emit('room:join', {
       isAdmin: false,
-      customerName: this.customerName
+      customerName: this.customerName,
     });
-    
+
     // WebRTC stream'i başlat
     console.log('🎥 Customer WebRTC stream başlatılıyor...');
     const ok = await this.webRTCManager.start(this.socket, true);
@@ -44,27 +44,19 @@ class ClientApp {
       this.showError('Mikrofon erişimi reddedildi');
     }
   }
-  
-
 
   setupSocketEvents() {
     this.socket.on('connect', () => {
       console.log('Socket connected:', this.socket.id);
-      Helpers.updateConnectionStatus(
-        document.getElementById('connection-status'),
-        'connected'
-      );
+      Helpers.updateConnectionStatus(document.getElementById('connection-status'), 'connected');
     });
 
     this.socket.on('disconnect', () => {
       console.log('Socket disconnected');
-      Helpers.updateConnectionStatus(
-        document.getElementById('connection-status'),
-        'disconnected'
-      );
+      Helpers.updateConnectionStatus(document.getElementById('connection-status'), 'disconnected');
     });
 
-    this.socket.on('room:joined', (data) => {
+    this.socket.on('room:joined', data => {
       console.log('Joined room:', data);
       if (data.role === 'customer') {
         document.getElementById('waiting-message').classList.remove('hidden');
@@ -77,7 +69,7 @@ class ClientApp {
       document.getElementById('waiting-message').classList.add('hidden');
     });
 
-    this.socket.on('room:user:joined', async (data) => {
+    this.socket.on('room:user:joined', async data => {
       if (data.role === 'admin') {
         console.log('👨💼 Admin joined, creating peer connection');
         // Admin geldi, şimdi peer connection oluştur
@@ -97,32 +89,34 @@ class ClientApp {
       console.log('Call ended by admin');
       this.endCall();
     });
-    
+
     this.socket.on('room:timeout', () => {
       console.log('Room timeout');
       alert('Zaman aşımı! Admin 1 dakika içinde bağlanmadı.');
       window.location.reload();
     });
-    
+
     this.socket.on('reconnect', () => {
       console.log('Socket reconnected');
       if (this.customerName) {
         this.reconnecting = true;
         this.socket.emit('room:join', {
           isAdmin: false,
-          customerName: this.customerName
+          customerName: this.customerName,
         });
-        setTimeout(() => { this.reconnecting = false; }, 1000);
+        setTimeout(() => {
+          this.reconnecting = false;
+        }, 1000);
       }
     });
-    
-    this.socket.on('queue:joined', (data) => {
+
+    this.socket.on('queue:joined', data => {
       console.log('✅ Kuyruğa katıldı, sıra:', data.position);
       // ✅ QueueUI göster
       this.queueUI.show(data.position);
       document.getElementById('waiting-message').classList.add('hidden');
     });
-    
+
     this.socket.on('queue:ready', () => {
       console.log('✅ Sıra geldi, kanala katılıyor');
       this.queueUI.hide();
@@ -140,19 +134,19 @@ class ClientApp {
 
     callButton.onclick = () => this.handleCallButton();
     endButton.onclick = () => this.endCall();
-    
+
     if (reconnectButton) {
       reconnectButton.onclick = () => window.location.reload();
     }
-    
+
     if (retryButton) {
       retryButton.onclick = () => window.location.reload();
     }
 
-    customerNameInput.onkeypress = (e) => {
+    customerNameInput.onkeypress = e => {
       if (e.key === 'Enter') this.handleCallButton();
     };
-    
+
     // Setup control buttons using shared helper
     Helpers.setupControlButtons(this.webRTCManager);
   }
@@ -167,7 +161,7 @@ class ClientApp {
     }
 
     document.getElementById('callButton').disabled = true;
-    
+
     // ✅ İsim girildikten SONRA kanala katıl ve WebRTC başlat
     await this.joinChannel();
     console.log('✅ Müşteri bağlandı:', this.customerName);
@@ -178,12 +172,12 @@ class ClientApp {
     document.getElementById('waiting-message').classList.add('hidden');
     document.getElementById('endButton').classList.remove('hidden');
     document.querySelector('.control-buttons').classList.remove('hidden');
-    
+
     this.timer.start();
 
     // Perfect Negotiation onnegotiationneeded ile otomatik başlayacak
     console.log('✅ Perfect Negotiation aktif, negotiation başlıyor...');
-    
+
     // Force negotiation by adding/removing a dummy track (Safari fix)
     if (this.webRTCManager.peerConnection) {
       const pc = this.webRTCManager.peerConnection;
@@ -193,19 +187,19 @@ class ClientApp {
   }
 
   async waitForIceGathering() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const pc = this.webRTCManager.peerConnection;
       if (pc.iceGatheringState === 'complete') {
         console.log('✅ ICE gathering already complete');
         resolve();
         return;
       }
-      
+
       const timeout = setTimeout(() => {
         console.log('⏱️ ICE gathering timeout, continuing anyway');
         resolve();
       }, 3000);
-      
+
       pc.onicegatheringstatechange = () => {
         console.log('🧊 ICE gathering state:', pc.iceGatheringState);
         if (pc.iceGatheringState === 'complete') {
@@ -216,7 +210,7 @@ class ClientApp {
       };
     });
   }
-  
+
   endCall() {
     this.timer.stop();
     this.webRTCManager.endCall();

@@ -21,32 +21,32 @@ try {
 function requireRole(permission) {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ 
-        code: 'AUTH_401', 
+      return res.status(401).json({
+        code: 'AUTH_401',
         message: 'Authentication required',
-        correlationId: req.id
+        correlationId: req.id,
       });
     }
-    
+
     const userRole = req.user.role || 'viewer';
     const userPermissions = rolesConfig.roles[userRole] || [];
-    
+
     if (!userPermissions.includes(permission)) {
-      logger.warn('RBAC denied', { 
-        user: req.user.id, 
-        role: userRole, 
+      logger.warn('RBAC denied', {
+        user: req.user.id,
+        role: userRole,
         permission,
-        correlationId: req.id
+        correlationId: req.id,
       });
-      
-      return res.status(403).json({ 
-        code: 'RBAC_403', 
+
+      return res.status(403).json({
+        code: 'RBAC_403',
         message: 'Insufficient permissions',
         required: permission,
-        correlationId: req.id
+        correlationId: req.id,
       });
     }
-    
+
     next();
   };
 }

@@ -25,6 +25,7 @@ docker-compose -f docker-compose.monitoring.yml logs -f
 ## Dashboard
 
 ### AdminAra - System Overview
+
 - **Active WebSocket Connections**: Real-time connection count
 - **HTTP Request Rate**: Requests per second by method/path
 - **WebRTC ICE Success Rate**: Connection success percentage
@@ -53,11 +54,13 @@ rate(http_requests_total{status=~"5.."}[5m])
 ## Configuration
 
 ### Prometheus
+
 - Config: `monitoring/prometheus.yml`
 - Scrape interval: 15s
 - Retention: 15 days (default)
 
 ### Grafana
+
 - Datasources: `monitoring/grafana/datasources/`
 - Dashboards: `monitoring/grafana/dashboards/`
 - Auto-provisioned on startup
@@ -65,6 +68,7 @@ rate(http_requests_total{status=~"5.."}[5m])
 ## Metrics Endpoint
 
 AdminAra exposes metrics at `/metrics` with Basic Auth:
+
 - Username: `admin`
 - Password: `secret` (change in production!)
 

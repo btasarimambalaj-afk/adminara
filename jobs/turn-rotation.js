@@ -11,12 +11,12 @@ try {
     const bullmq = require('bullmq');
     Queue = bullmq.Queue;
     Worker = bullmq.Worker;
-    
+
     const connection = {
       host: new URL(config.REDIS_URL).hostname,
-      port: new URL(config.REDIS_URL).port
+      port: new URL(config.REDIS_URL).port,
     };
-    
+
     turnRotationQueue = new Queue('turn-rotation', { connection });
   }
 } catch (err) {
@@ -30,24 +30,24 @@ try {
 async function rotateTurnSecret() {
   try {
     const newSecret = crypto.randomBytes(32).toString('hex');
-    
+
     // In production, update secret in KMS/Vault
     // For now, log the rotation
-    logger.info('TURN secret rotated', { 
+    logger.info('TURN secret rotated', {
       secretLength: newSecret.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     // TODO: Update KMS/Vault with new secret
     // await kms.updateSecret('TURN_SECRET', newSecret);
-    
+
     // Invalidate old credentials cache
     const turnCredentials = require('../utils/turn-credentials');
     if (turnCredentials.cachedCredentials) {
       turnCredentials.cachedCredentials = null;
       turnCredentials.cacheExpiry = 0;
     }
-    
+
     return { success: true, rotatedAt: Date.now() };
   } catch (err) {
     logger.error('TURN rotation failed', { error: err.message });
@@ -59,15 +59,19 @@ async function rotateTurnSecret() {
 if (Worker && config.REDIS_URL) {
   const connection = {
     host: new URL(config.REDIS_URL).hostname,
-    port: new URL(config.REDIS_URL).port
+    port: new URL(config.REDIS_URL).port,
   };
-  
-  turnRotationWorker = new Worker('turn-rotation', async (job) => {
-    logger.info('Processing TURN rotation job', { jobId: job.id });
-    return await rotateTurnSecret();
-  }, { connection });
 
-  turnRotationWorker.on('completed', (job) => {
+  turnRotationWorker = new Worker(
+    'turn-rotation',
+    async job => {
+      logger.info('Processing TURN rotation job', { jobId: job.id });
+      return await rotateTurnSecret();
+    },
+    { connection }
+  );
+
+  turnRotationWorker.on('completed', job => {
     logger.info('TURN rotation completed', { jobId: job.id });
   });
 
@@ -85,19 +89,19 @@ async function scheduleTurnRotation() {
     logger.info('TURN rotation disabled - Redis not configured');
     return;
   }
-  
+
   await turnRotationQueue.add(
     'rotate-turn-secret',
     {},
     {
       repeat: {
-        pattern: '0 0 * * 0' // Every Sunday at 00:00
+        pattern: '0 0 * * 0', // Every Sunday at 00:00
       },
       removeOnComplete: 10,
-      removeOnFail: 50
+      removeOnFail: 50,
     }
   );
-  
+
   logger.info('TURN rotation scheduled (weekly, Sunday 00:00)');
 }
 
@@ -105,5 +109,5 @@ module.exports = {
   turnRotationQueue,
   turnRotationWorker,
   scheduleTurnRotation,
-  rotateTurnSecret
+  rotateTurnSecret,
 };

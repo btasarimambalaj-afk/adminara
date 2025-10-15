@@ -8,13 +8,13 @@ describe('Background Jobs', () => {
     expect(result.success).toBe(true);
     expect(result.rotatedAt).toBeDefined();
   });
-  
+
   test('should cleanup expired sessions', async () => {
     const result = await cleanupExpiredSessions();
     expect(result.success).toBe(true);
     expect(result.cleaned).toBeGreaterThanOrEqual(0);
   });
-  
+
   test('should delete old logs', async () => {
     const result = await deleteOldLogs();
     expect(result.success).toBe(true);

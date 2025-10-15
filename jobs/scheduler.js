@@ -10,34 +10,34 @@ const telegram = require('./telegram');
 /**
  * Initialize all scheduled jobs
  */
-const initScheduler = traceAsync('scheduler.init', async function() {
+const initScheduler = traceAsync('scheduler.init', async function () {
   try {
     logger.info('Initializing job scheduler...');
-    
+
     if (!process.env.REDIS_URL) {
       logger.info('Job scheduler disabled - Redis not configured');
       return {};
     }
-    
+
     // Schedule TURN rotation (weekly)
     await turnRotation.scheduleTurnRotation();
-    
+
     // Schedule session cleanup (hourly)
     await sessionCleanup.scheduleSessionCleanup();
-    
+
     // Schedule retention jobs (daily/weekly)
     await retention.scheduleRetention();
-    
+
     // Initialize Telegram queue
     telegram.init();
-    
+
     logger.info('Job scheduler initialized successfully');
-    
+
     return {
       turnRotation: turnRotation.turnRotationQueue,
       sessionCleanup: sessionCleanup.sessionCleanupQueue,
       retention: retention.retentionQueue,
-      telegram: telegram.queue
+      telegram: telegram.queue,
     };
   } catch (err) {
     logger.error('Job scheduler initialization failed', { error: err.message });
@@ -55,11 +55,11 @@ async function shutdownScheduler() {
       logger.info('Job scheduler not running - skipping shutdown');
       return;
     }
-    
+
     logger.info('Shutting down job scheduler...');
-    
+
     const closePromises = [];
-    
+
     if (turnRotation.turnRotationWorker) {
       closePromises.push(turnRotation.turnRotationWorker.close());
     }
@@ -69,9 +69,9 @@ async function shutdownScheduler() {
     if (retention.retentionWorker) {
       closePromises.push(retention.retentionWorker.close());
     }
-    
+
     await Promise.all(closePromises);
-    
+
     logger.info('Job scheduler shut down successfully');
   } catch (err) {
     logger.error('Job scheduler shutdown failed', { error: err.message });
@@ -80,5 +80,5 @@ async function shutdownScheduler() {
 
 module.exports = {
   initScheduler,
-  shutdownScheduler
+  shutdownScheduler,
 };

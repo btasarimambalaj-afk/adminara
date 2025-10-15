@@ -7,12 +7,12 @@ window.showToast = (type, message) => {
     <span class="toast-icon">${getIcon(type)}</span>
     <span class="toast-message">${message}</span>
   `;
-  
+
   document.body.appendChild(toast);
-  
+
   // Animate in
   setTimeout(() => toast.classList.add('show'), 10);
-  
+
   // Remove after 5 seconds
   setTimeout(() => {
     toast.classList.remove('show');
@@ -25,21 +25,21 @@ function getIcon(type) {
     success: '✅',
     error: '❌',
     warning: '⚠️',
-    info: 'ℹ️'
+    info: 'ℹ️',
   };
   return icons[type] || icons.info;
 }
 
 // User-friendly error messages
 const ERROR_MESSAGES = {
-  'NotAllowedError': 'Mikrofon izni verilmedi. Lütfen tarayıcı ayarlarından izin verin.',
-  'NotFoundError': 'Mikrofon bulunamadı. Lütfen cihazınızı kontrol edin.',
-  'NotReadableError': 'Mikrofon kullanımda. Diğer uygulamaları kapatın.',
-  'OverconstrainedError': 'Mikrofon ayarları uyumsuz.',
-  'TypeError': 'Tarayıcı desteği eksik. Lütfen güncelleyin.',
-  'default': 'Bağlantı hatası. Lütfen tekrar deneyin.'
+  NotAllowedError: 'Mikrofon izni verilmedi. Lütfen tarayıcı ayarlarından izin verin.',
+  NotFoundError: 'Mikrofon bulunamadı. Lütfen cihazınızı kontrol edin.',
+  NotReadableError: 'Mikrofon kullanımda. Diğer uygulamaları kapatın.',
+  OverconstrainedError: 'Mikrofon ayarları uyumsuz.',
+  TypeError: 'Tarayıcı desteği eksik. Lütfen güncelleyin.',
+  default: 'Bağlantı hatası. Lütfen tekrar deneyin.',
 };
 
-window.getUserFriendlyError = (error) => {
+window.getUserFriendlyError = error => {
   return ERROR_MESSAGES[error.name] || ERROR_MESSAGES.default;
 };

@@ -14,7 +14,7 @@ const logger = require('./logger');
 async function issueTokens(user) {
   const jti = uuidv4();
   const now = Math.floor(Date.now() / 1000);
-  
+
   const accessToken = jwt.sign(
     {
       sub: user.id,
@@ -22,30 +22,30 @@ async function issueTokens(user) {
       jti,
       iat: now,
       nbf: now,
-      exp: now + config.JWT_ACCESS_TTL
+      exp: now + config.JWT_ACCESS_TTL,
     },
     config.JWT_SECRET
   );
-  
+
   const refreshToken = jwt.sign(
     {
       sub: user.id,
       type: 'refresh',
       jti: uuidv4(),
       iat: now,
-      exp: now + config.JWT_REFRESH_TTL
+      exp: now + config.JWT_REFRESH_TTL,
     },
     config.JWT_SECRET
   );
-  
+
   // Sync JWT to Redis for cross-instance sharing
   const bridge = require('./bridge');
   await bridge.syncJWT(accessToken, user.id, config.JWT_ACCESS_TTL);
-  
+
   return {
     accessToken,
     refreshToken,
-    expiresIn: config.JWT_ACCESS_TTL
+    expiresIn: config.JWT_ACCESS_TTL,
   };
 }
 
@@ -57,7 +57,7 @@ async function issueTokens(user) {
 function verifyToken(token) {
   try {
     return jwt.verify(token, config.JWT_SECRET, {
-      clockTolerance: 30 // 30s clock skew tolerance
+      clockTolerance: 30, // 30s clock skew tolerance
     });
   } catch (err) {
     logger.warn('JWT verification failed', { error: err.message });
@@ -84,7 +84,7 @@ async function generateMfaSecret(userId) {
   const secret = authenticator.generateSecret();
   const otpauth = authenticator.keyuri(userId, config.MFA_ISSUER, secret);
   const qrCode = await QRCode.toDataURL(otpauth);
-  
+
   return { secret, qrCode, otpauth };
 }
 
@@ -99,7 +99,7 @@ function verifyTotp(secret, code) {
     return authenticator.verify({
       token: code,
       secret,
-      window: 1 // ±30s window
+      window: 1, // ±30s window
     });
   } catch (err) {
     logger.warn('TOTP verification failed', { error: err.message });
@@ -127,5 +127,5 @@ module.exports = {
   revokeJti,
   generateMfaSecret,
   verifyTotp,
-  generateBackupCodes
+  generateBackupCodes,
 };

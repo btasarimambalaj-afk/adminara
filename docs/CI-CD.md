@@ -9,17 +9,20 @@ AdminAra uses GitHub Actions for continuous integration and deployment with auto
 ### 1. CI/CD Pipeline (`.github/workflows/ci.yml`)
 
 **Triggers**:
+
 - Push to `main` or `develop` branches
 - Pull requests to `main` or `develop`
 
 **Jobs**:
 
 #### Lint
+
 - ESLint code quality check
 - Prettier formatting check
 - Runs on: `ubuntu-latest`
 
 #### Test
+
 - Unit tests with Jest
 - Integration tests with Redis service
 - Coverage report generation
@@ -28,18 +31,21 @@ AdminAra uses GitHub Actions for continuous integration and deployment with auto
 - Needs: `lint`
 
 #### E2E
+
 - End-to-end tests with Playwright
 - Upload test reports as artifacts
 - Runs on: `ubuntu-latest`
 - Needs: `test`
 
 #### Security
+
 - npm audit for dependency vulnerabilities
 - Snyk security scanning (if token configured)
 - Runs on: `ubuntu-latest`
 - Needs: `lint`
 
 #### Build
+
 - Docker image build
 - Push to Docker Hub (main branch only)
 - Runs on: `ubuntu-latest`
@@ -47,6 +53,7 @@ AdminAra uses GitHub Actions for continuous integration and deployment with auto
 - Only on: `push` events
 
 #### Deploy
+
 - Trigger Render.com deployment
 - Runs on: `ubuntu-latest`
 - Needs: `build`
@@ -55,30 +62,36 @@ AdminAra uses GitHub Actions for continuous integration and deployment with auto
 ### 2. Security Scan (`.github/workflows/security-scan.yml`)
 
 **Triggers**:
+
 - Push to `main`
 - Weekly schedule (Sunday 00:00 UTC)
 
 **Jobs**:
+
 - Dependency vulnerability scanning with npm audit
 
 ### 3. Deploy (`.github/workflows/deploy.yml`)
 
 **Triggers**:
+
 - Push to `main` branch
 - Version tags (`v*`)
 
 **Jobs**:
+
 - Notify Render.com deployment
 - Success/failure notifications
 
 ### 4. CodeQL Analysis (`.github/workflows/codeql.yml`)
 
 **Triggers**:
+
 - Push to `main` or `develop`
 - Pull requests to `main`
 - Weekly schedule (Monday 06:00 UTC)
 
 **Jobs**:
+
 - Static code analysis for security vulnerabilities
 - JavaScript/TypeScript scanning
 
@@ -139,6 +152,7 @@ develop → PR → main → CI/CD → Build → Deploy → Production
 ```
 
 **Automatic Deployment**:
+
 - Push to `main` triggers Render.com auto-deploy
 - No manual intervention required
 - Rollback available via Render dashboard
@@ -146,16 +160,19 @@ develop → PR → main → CI/CD → Build → Deploy → Production
 ## Monitoring CI/CD
 
 **GitHub Actions Dashboard**:
+
 - View workflow runs: `https://github.com/[owner]/[repo]/actions`
 - Check test results and logs
 - Download artifacts (Playwright reports)
 
 **Codecov Dashboard**:
+
 - Coverage trends: `https://codecov.io/gh/[owner]/[repo]`
 - PR coverage diff
 - File-level coverage
 
 **Snyk Dashboard**:
+
 - Vulnerability reports: `https://app.snyk.io`
 - Dependency updates
 - Security advisories
@@ -212,6 +229,7 @@ npm audit fix --force
 ## Performance
 
 **Average CI/CD Times**:
+
 - Lint: ~30s
 - Test: ~2min
 - E2E: ~3min

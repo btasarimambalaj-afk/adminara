@@ -8,7 +8,7 @@ describe('Admin Auth - Extended Coverage', () => {
     mockSocket = {
       id: 'test-socket-id',
       emit: jest.fn(),
-      handshake: { headers: {} }
+      handshake: { headers: {} },
     };
 
     mockHandleRoomJoin = jest.fn();
@@ -18,14 +18,14 @@ describe('Admin Auth - Extended Coverage', () => {
       otpStore: new Map(),
       adminSocket: null,
       customerSockets: new Map(),
-      channelStatus: 'AVAILABLE'
+      channelStatus: 'AVAILABLE',
     };
   });
 
   test('should reject admin:auth without token', () => {
     adminAuth(null, mockSocket, mockState);
     mockSocket.emit('admin:auth', {});
-    
+
     expect(mockSocket.emit).toHaveBeenCalledWith(
       'admin:auth:failed',
       expect.objectContaining({ message: expect.any(String) })
@@ -35,7 +35,7 @@ describe('Admin Auth - Extended Coverage', () => {
   test('should reject admin:auth with invalid token', () => {
     adminAuth(null, mockSocket, mockState);
     mockSocket.emit('admin:auth', { token: 'invalid-token' });
-    
+
     expect(mockSocket.emit).toHaveBeenCalledWith(
       'admin:auth:failed',
       expect.objectContaining({ message: expect.any(String) })
@@ -45,9 +45,9 @@ describe('Admin Auth - Extended Coverage', () => {
   test('should accept admin:auth with valid token', () => {
     const token = issueToken();
     adminAuth(null, mockSocket, mockState);
-    
+
     mockSocket.emit('admin:auth', { token });
-    
+
     expect(mockSocket.emit).toHaveBeenCalledWith('admin:auth:success');
     expect(mockHandleRoomJoin).toHaveBeenCalledWith(mockSocket, { isAdmin: true });
   });
@@ -55,10 +55,10 @@ describe('Admin Auth - Extended Coverage', () => {
   test('should handle cookie-based auth', () => {
     const token = issueToken();
     mockSocket.handshake.headers.cookie = `adminSession=${token}`;
-    
+
     adminAuth(null, mockSocket, mockState);
     mockSocket.emit('admin:auth', {});
-    
+
     expect(mockSocket.emit).toHaveBeenCalledWith('admin:auth:success');
   });
 
@@ -70,25 +70,22 @@ describe('Admin Auth - Extended Coverage', () => {
       // Force expiration
       jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 16 * 60 * 1000);
     }
-    
+
     adminAuth(null, mockSocket, mockState);
     mockSocket.emit('admin:auth', { token: 'expired-token' });
-    
-    expect(mockSocket.emit).toHaveBeenCalledWith(
-      'admin:auth:failed',
-      expect.any(Object)
-    );
-    
+
+    expect(mockSocket.emit).toHaveBeenCalledWith('admin:auth:failed', expect.any(Object));
+
     jest.restoreAllMocks();
   });
 
   test('should handle multiple auth attempts', () => {
     const token = issueToken();
     adminAuth(null, mockSocket, mockState);
-    
+
     mockSocket.emit('admin:auth', { token });
     mockSocket.emit('admin:auth', { token });
-    
+
     expect(mockSocket.emit).toHaveBeenCalledTimes(2);
     expect(mockHandleRoomJoin).toHaveBeenCalledTimes(2);
   });
