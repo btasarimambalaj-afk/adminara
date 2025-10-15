@@ -165,7 +165,42 @@ aws s3 sync s3://adminara-logs/2024-01-15/ logs/
 
 ---
 
-## 🔧 Backup Commands
+## 🔧 Automated Backup Scripts
+
+### Setup Automated Backups
+
+```bash
+# 1. Make scripts executable
+chmod +x scripts/backup.sh scripts/restore.sh
+
+# 2. Set environment variables
+export BACKUP_DIR="/backups/adminara"
+export BACKUP_ENCRYPTION_KEY="your-secure-key"
+export REDIS_HOST="localhost"
+export RETENTION_DAYS="7"
+
+# 3. Setup cron job (daily at 2 AM)
+bash scripts/backup-cron.sh
+
+# 4. Manual backup
+bash scripts/backup.sh
+```
+
+### Restore from Backup
+
+```bash
+# Restore Redis
+bash scripts/restore.sh /backups/adminara/redis_20240101_020000.rdb.gz
+
+# Restore Config (encrypted)
+export BACKUP_ENCRYPTION_KEY="your-secure-key"
+bash scripts/restore.sh /backups/adminara/config_20240101_020000.tar.gz.enc
+
+# Restore Logs
+bash scripts/restore.sh /backups/adminara/logs_20240101_020000.tar.gz
+```
+
+### Manual Backup Commands
 
 ```bash
 # Manual Redis backup
@@ -187,12 +222,33 @@ curl https://adminara.onrender.com/ready
 
 ## 📊 Backup Status
 
-| Component | Backup       | Frequency | Retention | Status |
-| --------- | ------------ | --------- | --------- | ------ |
-| Redis     | RDB/AOF      | Hourly    | 7 days    | ✅     |
-| Logs      | Daily Rotate | Daily     | 14 days   | ✅     |
-| Sessions  | In-Memory    | N/A       | TTL       | ✅     |
-| Queue     | In-Memory    | N/A       | N/A       | ✅     |
+| Component | Backup       | Frequency | Retention | Automation | Status |
+| --------- | ------------ | --------- | --------- | ---------- | ------ |
+| Redis     | RDB/AOF      | Daily     | 7 days    | Cron       | ✅     |
+| Logs      | Daily Rotate | Daily     | 14 days   | Winston    | ✅     |
+| Config    | Encrypted    | Daily     | 7 days    | Cron       | ✅     |
+| Sessions  | In-Memory    | N/A       | TTL       | Auto       | ✅     |
+| Queue     | In-Memory    | N/A       | N/A       | Auto       | ✅     |
 
+**Backup Scripts**: `scripts/backup.sh`, `scripts/restore.sh`
+**Cron Setup**: `scripts/backup-cron.sh`
 **Last Updated**: 2024
 **Next Review**: Monthly
+
+## 🔐 Security Notes
+
+**Encryption**:
+- Config backups encrypted with AES-256-CBC
+- Set `BACKUP_ENCRYPTION_KEY` environment variable
+- Never commit encryption keys to git
+
+**Access Control**:
+- Backup directory: 700 permissions
+- Backup files: 600 permissions
+- Cron logs: 644 permissions
+
+**Best Practices**:
+- Store backups on separate server/cloud
+- Test restore procedure monthly
+- Monitor backup success/failure
+- Rotate encryption keys annually
