@@ -10,7 +10,16 @@ module.exports = (state) => {
   
   // Swagger API documentation
   router.use('/api-docs', swaggerUi.serve);
-  router.get('/api-docs', swaggerUi.setup(swaggerSpec));
+  router.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'AdminAra API Docs'
+  }));
+  
+  // JSON spec endpoint
+  router.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
 
   /**
    * @swagger

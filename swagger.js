@@ -22,6 +22,16 @@ const options = {
         description: 'Development server'
       }
     ],
+    externalDocs: {
+      description: 'Socket.IO API Documentation',
+      url: 'https://github.com/btasarimambalaj-afk/adminara/blob/main/SOCKET-API.md'
+    },
+    tags: [
+      { name: 'Health', description: 'Health check endpoints' },
+      { name: 'WebRTC', description: 'WebRTC configuration' },
+      { name: 'Admin', description: 'Admin authentication' },
+      { name: 'Monitoring', description: 'Metrics and monitoring' }
+    ],
     components: {
       securitySchemes: {
         cookieAuth: {
@@ -36,7 +46,7 @@ const options = {
       }
     }
   },
-  apis: ['./routes/*.js', './server.js']
+  apis: ['./routes/*.js', './routes/**/*.js', './server.js']
 };
 
 module.exports = swaggerJsdoc(options);
