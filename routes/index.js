@@ -26,10 +26,50 @@ module.exports = (state) => {
    * /health:
    *   get:
    *     summary: Health check endpoint
+   *     description: Returns detailed service health status including memory, connections, and component health
    *     tags: [Health]
    *     responses:
    *       200:
    *         description: Service is healthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   enum: [ok, degraded]
+   *                 timestamp:
+   *                   type: string
+   *                   format: date-time
+   *                 admin:
+   *                   type: boolean
+   *                 customers:
+   *                   type: integer
+   *                 channel:
+   *                   type: string
+   *                 connections:
+   *                   type: integer
+   *                 uptime:
+   *                   type: number
+   *                 memory:
+   *                   type: object
+   *                   properties:
+   *                     rss:
+   *                       type: string
+   *                     heapUsed:
+   *                       type: string
+   *                     heapTotal:
+   *                       type: string
+   *                 services:
+   *                   type: object
+   *                   properties:
+   *                     telegram:
+   *                       type: string
+   *                     redis:
+   *                       type: string
+   *                     queue:
+   *                       type: string
    *       503:
    *         description: Service is degraded
    */
@@ -87,12 +127,42 @@ module.exports = (state) => {
    * /ready:
    *   get:
    *     summary: Readiness check endpoint
+   *     description: Fast readiness check for load balancers (no Redis dependency). Ready if uptime > 5s and memory < 400MB
    *     tags: [Health]
    *     responses:
    *       200:
    *         description: Service is ready
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 ready:
+   *                   type: boolean
+   *                   example: true
+   *                 uptime:
+   *                   type: integer
+   *                   example: 120
+   *                 memory:
+   *                   type: string
+   *                   example: 256MB
    *       503:
    *         description: Service is not ready
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 ready:
+   *                   type: boolean
+   *                   example: false
+   *                 reason:
+   *                   type: string
+   *                   enum: [cold_start, high_memory]
+   *                 uptime:
+   *                   type: integer
+   *                 memory:
+   *                   type: string
    */
   router.get('/ready', async (req, res) => {
     // Fast readiness check (no Redis dependency)
@@ -134,10 +204,30 @@ module.exports = (state) => {
    * /config/ice-servers:
    *   get:
    *     summary: Get ICE servers configuration
+   *     description: Returns STUN/TURN server configuration for WebRTC. TURN credentials are time-limited (5 minutes)
    *     tags: [WebRTC]
    *     responses:
    *       200:
    *         description: ICE servers configuration
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 iceServers:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       urls:
+   *                         type: string
+   *                         example: stun:stun.l.google.com:19302
+   *                       username:
+   *                         type: string
+   *                       credential:
+   *                         type: string
+   *       429:
+   *         description: Too many requests (rate limit: 10/minute)
    *       500:
    *         description: ICE servers unavailable
    */
@@ -160,14 +250,23 @@ module.exports = (state) => {
    * /metrics:
    *   get:
    *     summary: Prometheus metrics endpoint
+   *     description: Returns Prometheus-formatted metrics including HTTP requests, WebRTC events, business metrics, and error tracking
    *     tags: [Monitoring]
    *     security:
    *       - metricsAuth: []
    *     responses:
    *       200:
    *         description: Prometheus metrics
+   *         content:
+   *           text/plain:
+   *             schema:
+   *               type: string
+   *               example: |
+   *                 # HELP http_request_duration_seconds Duration of HTTP requests
+   *                 # TYPE http_request_duration_seconds histogram
+   *                 http_request_duration_seconds_bucket{le="0.1"} 100
    *       401:
-   *         description: Unauthorized
+   *         description: Unauthorized (requires Basic auth in production)
    */
   router.get('/metrics', async (req, res) => {
     const authHeader = req.headers.authorization;

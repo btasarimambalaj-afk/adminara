@@ -294,8 +294,10 @@ const { createOtpForAdmin, verifyAdminOtp } = require('./socket/admin-auth');
  * /admin/otp/request:
  *   post:
  *     summary: Request OTP for admin login
+ *     description: Sends 6-digit OTP code to admin via Telegram. OTP expires in 5 minutes. Rate limited to 3 requests per 15 minutes
  *     tags: [Admin]
  *     requestBody:
+ *       required: false
  *       content:
  *         application/json:
  *           schema:
@@ -304,11 +306,23 @@ const { createOtpForAdmin, verifyAdminOtp } = require('./socket/admin-auth');
  *               adminId:
  *                 type: string
  *                 default: admin
+ *                 maxLength: 64
+ *                 description: Admin identifier
  *     responses:
  *       204:
- *         description: OTP sent successfully
+ *         description: OTP sent successfully to Telegram
+ *       429:
+ *         description: Too many OTP requests (rate limit exceeded)
  *       500:
  *         description: OTP send failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: OTP send failed
  */
 app.post('/admin/otp/request', celebrate({
   body: Joi.object({
@@ -332,8 +346,10 @@ app.post('/admin/otp/request', celebrate({
  * /admin/otp/verify:
  *   post:
  *     summary: Verify OTP and create session
+ *     description: Verifies 6-digit OTP code and creates admin session. Sets httpOnly cookie. Max 5 attempts before lockout
  *     tags: [Admin]
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -344,14 +360,33 @@ app.post('/admin/otp/request', celebrate({
  *               adminId:
  *                 type: string
  *                 default: admin
+ *                 maxLength: 64
  *               code:
  *                 type: string
  *                 pattern: ^\d{6}$
+ *                 example: "123456"
+ *                 description: 6-digit OTP code from Telegram
  *     responses:
  *       204:
- *         description: OTP verified, session created
+ *         description: OTP verified, session created (cookie set)
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: adminSession=abc123; HttpOnly; Secure; SameSite=Strict
  *       401:
- *         description: Invalid OTP
+ *         description: Invalid OTP or expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: invalid_otp
  */
 app.post('/admin/otp/verify', celebrate({
   body: Joi.object({
@@ -383,14 +418,33 @@ const sessionVerifyLimiter = rateLimit({
  * /admin/session/verify:
  *   get:
  *     summary: Verify admin session
+ *     description: Checks if admin session cookie is valid. Rate limited to 50 requests per 15 minutes
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: Session is valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
  *       401:
- *         description: Session is invalid
+ *         description: Session is invalid or expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   example: false
+ *       429:
+ *         description: Too many requests (rate limit exceeded)
  */
 app.get('/admin/session/verify', sessionVerifyLimiter, async (req, res) => {
   const t = req.cookies?.adminSession;
@@ -404,12 +458,18 @@ app.get('/admin/session/verify', sessionVerifyLimiter, async (req, res) => {
  * /admin/logout:
  *   post:
  *     summary: Logout admin and revoke session
+ *     description: Revokes admin session and clears cookie. Session token is blacklisted
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
  *     responses:
  *       204:
- *         description: Logged out successfully
+ *         description: Logged out successfully (cookie cleared)
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: adminSession=; Max-Age=0
  */
 app.post('/admin/logout', async (req, res) => {
   const t = req.cookies?.adminSession;
