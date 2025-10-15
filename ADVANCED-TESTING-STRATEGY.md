@@ -382,8 +382,35 @@ class AutoFixer {
   }
 
   async fixWebRTC(fix) {
-    // Similar implementation for WebRTC
+    const file = fix.file;
+    let content = fs.readFileSync(file, 'utf8');
+
+    // Add TURN fallback after ICE timeout
+    const turnFallback = `
+    // Auto-generated TURN fallback
+    setTimeout(() => {
+      if (pc.iceGatheringState !== 'complete') {
+        console.warn('ICE timeout, forcing TURN');
+        pc.setConfiguration({
+          iceServers: [{ urls: 'turn:server', username: 'user', credential: 'pass' }]
+        });
+      }
+    }, ${fix.timeout});
+    `;
+
+    content = content.replace(
+      /pc = new RTCPeerConnection\((.*?)\);/s,
+      (match) => match + turnFallback
+    );
+
+    content = await prettier.format(content, { parser: 'babel' });
+    fs.writeFileSync(file, content);
+
+    return { success: true, file, changes: 'Added TURN fallback' };
   }
+}
+
+module.exports = AutoFixer;}
 }
 ```
 
