@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 /**
  * Correlation ID Middleware
@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
  */
 function correlationMiddleware(req, res, next) {
   // Use existing X-Request-ID or generate new
-  req.id = req.headers['x-request-id'] || uuidv4();
+  req.id = req.headers['x-request-id'] || crypto.randomUUID();
 
   // Set response header
   res.setHeader('X-Request-ID', req.id);
