@@ -149,7 +149,7 @@ app.use(
           (req, res) => `'nonce-${res.locals.cspNonce}'`,
           'https://www.googletagmanager.com',
         ],
-        styleSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
         mediaSrc: ["'self'", 'blob:'],
         connectSrc: ["'self'", 'wss:', 'https:', 'stun:', 'turn:'],
         imgSrc: ["'self'", 'data:', 'blob:'],
@@ -157,7 +157,7 @@ app.use(
       },
     },
     hsts: {
-      maxAge: 63072000, // 2 years
+      maxAge: 63072000,
       includeSubDomains: true,
       preload: true,
     },
