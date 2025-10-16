@@ -2,19 +2,19 @@
 
 const express = require('express');
 const router = express.Router();
-const redis = require('../utils/redis');
+const stateStore = require('../utils/state-store');
 const logger = require('../utils/logger');
 
 // Health check for Redis
 async function checkRedis() {
   try {
-    if (!redis.client) {
-      return { healthy: false, message: 'Redis client not initialized' };
-    }
-    
     const start = Date.now();
-    await redis.client.ping();
+    const healthy = await stateStore.isHealthy();
     const latency = Date.now() - start;
+    
+    if (!healthy) {
+      return { healthy: false, message: 'Using in-memory fallback' };
+    }
     
     return {
       healthy: latency < 100,

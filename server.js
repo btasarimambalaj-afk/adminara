@@ -14,10 +14,10 @@ const { initSentry, Sentry } = require('./utils/sentry');
 const stateStore = require('./utils/state-store');
 const telegramQueue = require('./jobs/telegram');
 
-const COOKIE_SECRET = config.COOKIE_SECRET;
+const COOKIE_SECRET = config.COOKIE_SECRET || crypto.randomBytes(32).toString('hex');
 
 if (config.isProduction && !process.env.COOKIE_SECRET) {
-  logger.warn('COOKIE_SECRET not set, generated random secret (will change on restart)');
+  logger.warn('COOKIE_SECRET not set, using generated secret (will change on restart)');
 }
 
 const app = express();
@@ -688,7 +688,7 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Start server
-server.listen(PORT, async () => {
+server.listen(PORT, '0.0.0.0', async () => {
   await initializeApp();
   logger.info('Server started', { port: PORT });
   logger.info('Customer URL', { url: process.env.PUBLIC_URL || `http://localhost:${PORT}` });
