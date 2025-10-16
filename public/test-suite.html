@@ -386,7 +386,12 @@
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Dynamic base URL detection
+    const baseURL = window.location.protocol + '//' + window.location.host;
+    window.baseURL = baseURL;
+  </script>
+  <script src="./socket.io/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="js/test-ai-analyzer.js"></script>
   <script src="js/test-snapshot.js"></script>
@@ -474,7 +479,7 @@
       btn.textContent = '⏳ Çalıştırılıyor...';
       
       try {
-        const res = await fetch('/api/test/run', { method: 'POST' });
+        const res = await fetch((window.baseURL || '') + '/api/test/run', { method: 'POST' });
         const data = await res.json();
         
         document.getElementById('passed').textContent = data.summary.passed;
@@ -511,7 +516,7 @@ TELEGRAM_ADMIN_CHAT_ID=your_chat_id</pre>
 
     window.testTelegram = async () => {
       try {
-        const res = await fetch('/api/telegram/send', {
+        const res = await fetch((window.baseURL || '') + '/api/telegram/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: 'Test bildirimi: AdminAra Test Suite' })

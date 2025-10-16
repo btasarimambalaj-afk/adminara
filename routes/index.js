@@ -3,25 +3,35 @@ const rateLimit = require('express-rate-limit');
 const logger = require('../utils/logger');
 const metrics = require('../utils/metrics');
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('../swagger');
 
 module.exports = state => {
   const router = express.Router();
 
   // Swagger API documentation
   router.use('/api-docs', swaggerUi.serve);
-  router.get(
-    '/api-docs',
-    swaggerUi.setup(swaggerSpec, {
-      customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'AdminAra API Docs',
-    })
-  );
+  router.get('/api-docs', (req, res, next) => {
+    try {
+      const swaggerSpec = require('../swagger');
+      swaggerUi.setup(swaggerSpec, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'AdminAra API Docs',
+      })(req, res, next);
+    } catch (error) {
+      logger.error('Swagger setup error', { error: error.message });
+      res.status(500).json({ error: 'Swagger documentation unavailable' });
+    }
+  });
 
   // JSON spec endpoint
   router.get('/api-docs.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(swaggerSpec);
+    try {
+      const swaggerSpec = require('../swagger');
+      res.setHeader('Content-Type', 'application/json');
+      res.send(swaggerSpec);
+    } catch (error) {
+      logger.error('Swagger spec error', { error: error.message });
+      res.status(500).json({ error: 'Swagger spec unavailable' });
+    }
   });
 
   /**

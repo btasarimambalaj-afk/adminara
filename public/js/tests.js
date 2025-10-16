@@ -20,9 +20,13 @@
     elements.duration = document.getElementById('duration');
     elements.progress = document.getElementById('progress');
 
-    document.getElementById('runAll').onclick = runAll;
-    document.getElementById('clearBtn').onclick = clear;
-    document.getElementById('exportBtn').onclick = exportData;
+    var runAllBtn = document.getElementById('runAll');
+    var clearBtn = document.getElementById('clearBtn');
+    var exportBtn = document.getElementById('exportBtn');
+
+    if (runAllBtn) runAllBtn.onclick = runAll;
+    if (clearBtn) clearBtn.onclick = clear;
+    if (exportBtn) exportBtn.onclick = exportData;
 
     var btns = document.querySelectorAll('.test-btn');
     for (var i = 0; i < btns.length; i++) {
@@ -165,7 +169,7 @@
   function test5() {
     setStatus('health', 'running');
     addLog('Checking /health...', 'info');
-    return fetch('/health')
+    return fetch((window.baseURL || '') + '/health')
       .then(function (res) {
         return res.json();
       })
@@ -188,7 +192,7 @@
   function test6() {
     setStatus('ice', 'running');
     addLog('Checking /config/ice-servers...', 'info');
-    return fetch('/config/ice-servers')
+    return fetch((window.baseURL || '') + '/config/ice-servers')
       .then(function (res) {
         return res.json();
       })
@@ -211,7 +215,7 @@
   function test7() {
     setStatus('metrics', 'running');
     addLog('Checking /metrics...', 'info');
-    return fetch('/metrics')
+    return fetch((window.baseURL || '') + '/metrics')
       .then(function (res) {
         if (res.status === 401) {
           addLog('OK Metrics endpoint protected (401)', 'success');
@@ -244,7 +248,7 @@
     }
 
     addLog('Connecting socket...', 'info');
-    var socket = io({
+    var socket = io(window.baseURL || '', {
       reconnection: false,
       timeout: 10000,
       transports: ['websocket', 'polling'],
@@ -282,7 +286,7 @@
     setStatus('ping', 'running');
     addLog('Ping test...', 'info');
     var start = Date.now();
-    return fetch('/health')
+    return fetch((window.baseURL || '') + '/health')
       .then(function (res) {
         var dur = Date.now() - start;
         var ok = res.ok;
@@ -300,7 +304,7 @@
   function test10() {
     setStatus('otpMetrics', 'running');
     addLog('Checking OTP metrics...', 'info');
-    return fetch('/metrics')
+    return fetch((window.baseURL || '') + '/metrics')
       .then(function (res) {
         if (res.status === 401) {
           addLog('OK OTP metrics protected (skipping content check)', 'success');
@@ -369,7 +373,7 @@
   function test14() {
     setStatus('iceGathering', 'running');
     addLog('Testing ICE gathering...', 'info');
-    return fetch('/config/ice-servers')
+    return fetch((window.baseURL || '') + '/config/ice-servers')
       .then(function (res) {
         return res.json();
       })
@@ -433,7 +437,7 @@
   function test17() {
     setStatus('turnServer', 'running');
     addLog('Testing TURN server...', 'info');
-    return fetch('/config/ice-servers')
+    return fetch((window.baseURL || '') + '/config/ice-servers')
       .then(function (res) {
         return res.json();
       })
@@ -498,7 +502,7 @@
 
   function test20() {
     setStatus('adminSession', 'running');
-    return fetch('/admin/session/verify')
+    return fetch((window.baseURL || '') + '/admin/session/verify')
       .then(function (res) {
         return res.json();
       })
@@ -520,7 +524,7 @@
 
   function test21() {
     setStatus('otpRequest', 'running');
-    return fetch('/admin/otp/request', {
+    return fetch((window.baseURL || '') + '/admin/otp/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ adminId: 'test' }),
@@ -562,7 +566,7 @@
   function test24() {
     setStatus('csp', 'running');
     addLog('Checking CSP headers...', 'info');
-    return fetch('/health')
+    return fetch((window.baseURL || '') + '/health')
       .then(function (res) {
         var csp = res.headers.get('content-security-policy');
         var ok = !!csp;
@@ -625,7 +629,7 @@
   function test29() {
     setStatus('latency', 'running');
     var start = Date.now();
-    return fetch('/health')
+    return fetch((window.baseURL || '') + '/health')
       .then(function () {
         var lat = Date.now() - start;
         var ok = lat < 1000;
