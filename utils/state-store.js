@@ -1,4 +1,9 @@
-const { createClient } = require('redis');
+let createClient = null;
+try {
+  createClient = require('redis').createClient;
+} catch (err) {
+  console.log('⚠️ Redis not installed - using in-memory state only');
+}
 const logger = require('./logger');
 const { CustomerQueue } = require('./queue-fallback');
 
@@ -12,8 +17,8 @@ function key(name) {
 }
 
 async function init() {
-  if (!process.env.REDIS_URL) {
-    logger.info('Redis not configured - using in-memory state');
+  if (!createClient || !process.env.REDIS_URL) {
+    logger.info('Redis not available - using in-memory state');
     inMemoryQueue = new CustomerQueue();
     return null;
   }
