@@ -208,7 +208,8 @@ module.exports = state => {
    *   get:
    *     summary: Get ICE servers configuration
    *     description: Returns STUN/TURN server configuration for WebRTC. TURN credentials are time-limited (5 minutes)
-   *     tags: [WebRTC]
+   *     tags:
+   *       - WebRTC
    *     responses:
    *       200:
    *         description: ICE servers configuration
@@ -230,7 +231,7 @@ module.exports = state => {
    *                       credential:
    *                         type: string
    *       429:
-   *         description: Too many requests (rate limit: 10/minute)
+   *         description: Too many requests
    *       500:
    *         description: ICE servers unavailable
    */
