@@ -1,82 +1,58 @@
-const envalid = require('envalid');
 const crypto = require('crypto');
 
-const env = envalid.cleanEnv(
-  process.env,
-  {
-    NODE_ENV: envalid.str({
-      choices: ['development', 'staging', 'production'],
-      default: 'development',
-    }),
-    PORT: envalid.port({ default: 3000 }),
-    PUBLIC_URL: envalid.str({ default: '' }),
-
-    SESSION_SECRET: envalid.str({
-      default: crypto.randomBytes(32).toString('hex'),
-      desc: 'Session secret for Express sessions',
-    }),
-    COOKIE_SECRET: envalid.str({
-      default:
-        process.env.NODE_ENV === 'production'
-          ? crypto.randomBytes(32).toString('hex')
-          : 'dev-cookie-secret',
-      desc: 'Cookie signing secret',
-    }),
-    SESSION_TTL_MS: envalid.num({ default: 43200000 }),
-
-    REDIS_URL: envalid.str({ default: '' }),
-    REDIS_NAMESPACE: envalid.str({ default: 'support' }),
-    STATE_TTL_SECS: envalid.num({ default: 3600 }),
-
-    TELEGRAM_BOT_TOKEN: envalid.str({ default: '' }),
-    TELEGRAM_ADMIN_CHAT_ID: envalid.str({ default: '' }),
-
-    TURN_SERVER_URL: envalid.str({ default: '' }),
-    TURN_MODE: envalid.str({ choices: ['static', 'rest'], default: 'static' }),
-    TURN_USERNAME: envalid.str({ default: '' }),
-    TURN_CREDENTIAL: envalid.str({ default: '' }),
-    TURN_SECRET: envalid.str({ default: '' }),
-
-    MAX_CONNECTIONS: envalid.num({ default: 50 }),
-    RATE_LIMIT_MAX: envalid.num({ default: 100 }),
-    ROOM_TIMEOUT_MS: envalid.num({ default: 60000 }),
-
-    ALLOWED_ORIGINS: envalid.str({ default: '' }),
-    ALLOWED_METRICS_ORIGINS: envalid.str({ default: '' }),
-
-    SENTRY_DSN: envalid.str({ default: '' }),
-    METRICS_AUTH: envalid.str({ default: 'Basic YWRtaW46c2VjcmV0' }),
-
-    DEBUG_STATE: envalid.bool({ default: false }),
-    ENABLE_CSRF: envalid.bool({ default: false }),
-    ENABLE_QUEUE: envalid.bool({ default: false }),
-
-    // Part 16-17: JWT & MFA
-    JWT_SECRET: envalid.str({
-      default: crypto.randomBytes(32).toString('hex'),
-      desc: 'JWT signing secret (min 32 chars)',
-    }),
-    JWT_ACCESS_TTL: envalid.num({ default: 900 }),
-    JWT_REFRESH_TTL: envalid.num({ default: 604800 }),
-    MFA_ISSUER: envalid.str({ default: 'AdminAra' }),
-
-    // Part 17: TURN TTL
-    TURN_TTL: envalid.num({ default: 300 }),
-
-    // Part 19: GDPR/KVKK
-    RETENTION_DAYS: envalid.num({ default: 30 }),
-    ENABLE_PII_MASKING: envalid.bool({ default: true }),
-    ENCRYPTION_KEY: envalid.str({ default: '' }),
-
-    // Part 6: Adaptive Bitrate
-    ADAPTIVE_BITRATE: envalid.bool({ default: true }),
-    MIN_BITRATE: envalid.num({ default: 300000 }),
-    MAX_BITRATE: envalid.num({ default: 1500000 }),
-    BATTERY_THRESHOLD: envalid.num({ default: 0.2 }),
-  },
-  {
-    strict: false,
-  }
-);
+const env = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: parseInt(process.env.PORT) || 3000,
+  PUBLIC_URL: process.env.PUBLIC_URL || '',
+  
+  SESSION_SECRET: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  COOKIE_SECRET: process.env.COOKIE_SECRET || (process.env.NODE_ENV === 'production' ? crypto.randomBytes(32).toString('hex') : 'dev-cookie-secret'),
+  SESSION_TTL_MS: parseInt(process.env.SESSION_TTL_MS) || 43200000,
+  
+  REDIS_URL: process.env.REDIS_URL || '',
+  REDIS_NAMESPACE: process.env.REDIS_NAMESPACE || 'support',
+  STATE_TTL_SECS: parseInt(process.env.STATE_TTL_SECS) || 3600,
+  
+  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
+  TELEGRAM_ADMIN_CHAT_ID: process.env.TELEGRAM_ADMIN_CHAT_ID || '',
+  
+  TURN_SERVER_URL: process.env.TURN_SERVER_URL || '',
+  TURN_MODE: process.env.TURN_MODE || 'static',
+  TURN_USERNAME: process.env.TURN_USERNAME || '',
+  TURN_CREDENTIAL: process.env.TURN_CREDENTIAL || '',
+  TURN_SECRET: process.env.TURN_SECRET || '',
+  TURN_TTL: parseInt(process.env.TURN_TTL) || 300,
+  
+  MAX_CONNECTIONS: parseInt(process.env.MAX_CONNECTIONS) || 50,
+  RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX) || 100,
+  ROOM_TIMEOUT_MS: parseInt(process.env.ROOM_TIMEOUT_MS) || 60000,
+  
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || '',
+  ALLOWED_METRICS_ORIGINS: process.env.ALLOWED_METRICS_ORIGINS || '',
+  
+  SENTRY_DSN: process.env.SENTRY_DSN || '',
+  METRICS_AUTH: process.env.METRICS_AUTH || 'Basic YWRtaW46c2VjcmV0',
+  
+  DEBUG_STATE: process.env.DEBUG_STATE === 'true',
+  ENABLE_CSRF: process.env.ENABLE_CSRF !== 'false' && process.env.NODE_ENV === 'production',
+  ENABLE_QUEUE: process.env.ENABLE_QUEUE === 'true',
+  
+  JWT_SECRET: process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex'),
+  JWT_ACCESS_TTL: parseInt(process.env.JWT_ACCESS_TTL) || 900,
+  JWT_REFRESH_TTL: parseInt(process.env.JWT_REFRESH_TTL) || 604800,
+  MFA_ISSUER: process.env.MFA_ISSUER || 'AdminAra',
+  
+  RETENTION_DAYS: parseInt(process.env.RETENTION_DAYS) || 30,
+  ENABLE_PII_MASKING: process.env.ENABLE_PII_MASKING !== 'false',
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
+  
+  ADAPTIVE_BITRATE: process.env.ADAPTIVE_BITRATE !== 'false',
+  MIN_BITRATE: parseInt(process.env.MIN_BITRATE) || 300000,
+  MAX_BITRATE: parseInt(process.env.MAX_BITRATE) || 1500000,
+  BATTERY_THRESHOLD: parseFloat(process.env.BATTERY_THRESHOLD) || 0.2,
+  
+  isProduction: process.env.NODE_ENV === 'production',
+  isDevelopment: process.env.NODE_ENV === 'development',
+};
 
 module.exports = env;
