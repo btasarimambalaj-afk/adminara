@@ -1,12 +1,20 @@
-const { Queue, Worker } = require('bullmq');
+let Queue = null;
+let Worker = null;
+try {
+  const bullmq = require('bullmq');
+  Queue = bullmq.Queue;
+  Worker = bullmq.Worker;
+} catch (err) {
+  console.log('⚠️ BullMQ not installed - queue disabled');
+}
 const logger = require('../utils/logger');
 
 let queue = null;
 let worker = null;
 
 function init() {
-  if (!process.env.REDIS_URL) {
-    logger.info('Telegram queue disabled - Redis not configured');
+  if (!Queue || !Worker || !process.env.REDIS_URL) {
+    logger.info('Telegram queue disabled - BullMQ or Redis not available');
     return;
   }
 
