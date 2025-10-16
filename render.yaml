@@ -18,6 +18,8 @@ services:
         generateValue: true
       - key: JWT_SECRET
         generateValue: true
+      - key: PUBLIC_URL
+        sync: false
       - key: RENDER_EXTERNAL_URL
         sync: false
       - key: TELEGRAM_BOT_TOKEN

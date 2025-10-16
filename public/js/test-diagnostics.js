@@ -37,7 +37,7 @@ class SystemDiagnostics {
         fixes: [{ label: 'Retry', action: 'retryWebSocket' }]
       }), 5000);
     });
-  },
+  }
 
   async checkWebRTC() {
     const result = {
@@ -87,7 +87,7 @@ class SystemDiagnostics {
     }
 
     return result;
-  },
+  }
 
   async checkMediaDevices() {
     const result = {
@@ -124,7 +124,7 @@ class SystemDiagnostics {
     }
 
     return result;
-  },
+  }
 
   async checkStorage() {
     const result = {
@@ -166,7 +166,7 @@ class SystemDiagnostics {
     }
 
     return result;
-  },
+  }
 
   async checkNetwork() {
     const result = {
@@ -200,7 +200,7 @@ class SystemDiagnostics {
     }
 
     return result;
-  },
+  }
 
   async checkSecurity() {
     const result = {
@@ -236,7 +236,7 @@ class SystemDiagnostics {
     }
 
     return result;
-  },
+  }
 
   async checkPerformance() {
     const result = {

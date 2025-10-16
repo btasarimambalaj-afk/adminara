@@ -47,14 +47,16 @@ describe('State Management Deep Tests', () => {
     const queue = [{ id: 1, retries: 0 }];
     
     const processWithRetry = async (item, maxRetries = 3) => {
+      let success = false;
       while (item.retries < maxRetries) {
         try {
-          return { success: true };
+          success = true;
+          break;
         } catch {
           item.retries++;
         }
       }
-      return { success: false };
+      return { success };
     };
 
     const result = await processWithRetry(queue[0]);

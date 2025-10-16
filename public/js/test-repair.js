@@ -26,13 +26,13 @@ class RepairActions {
     } catch (error) {
       showToast('error', `Clear cache failed: ${error.message}`);
     }
-  },
+  }
 
   retryWebSocket() {
     console.log('🔄 Retrying WebSocket connection...');
     showToast('info', 'Reconnecting...');
     setTimeout(() => window.location.reload(), 1000);
-  },
+  }
 
   async checkNetwork() {
     console.log('🌐 Checking network...');
@@ -47,7 +47,7 @@ class RepairActions {
     } catch (error) {
       showToast('error', 'Network error: Check your connection');
     }
-  },
+  }
 
   updateBrowser() {
     const userAgent = navigator.userAgent;
@@ -72,7 +72,7 @@ class RepairActions {
         window.open(updateUrls[browserName], '_blank');
       }
     }, 2000);
-  },
+  }
 
   enforceHTTPS() {
     if (location.protocol === 'http:' && location.hostname !== 'localhost') {
@@ -85,7 +85,7 @@ class RepairActions {
     } else {
       showToast('success', 'Already using HTTPS or localhost');
     }
-  },
+  }
 
   async requestMediaPermissions() {
     console.log('🎥 Requesting media permissions...');
@@ -99,7 +99,7 @@ class RepairActions {
       showToast('error', `Permission denied: ${error.name}`);
       this.showPermissionInstructions();
     }
-  },
+  }
 
   showPermissionInstructions() {
     const modal = document.createElement('div');
@@ -118,12 +118,12 @@ class RepairActions {
       </div>
     `;
     document.body.appendChild(modal);
-  },
+  }
 
   reloadPage() {
     showToast('info', 'Reloading page...');
     setTimeout(() => window.location.reload(true), 500);
-  },
+  }
 
   async optimizeAssets() {
     console.log('⚡ Optimizing assets...');
@@ -144,7 +144,7 @@ class RepairActions {
 
     showToast('success', 'Optimization applied');
     setTimeout(() => window.location.reload(), 2000);
-  },
+  }
 
   async autoFix() {
     console.log('🔧 Running auto-fix...');
@@ -178,7 +178,7 @@ class RepairActions {
       showToast('success', 'Auto-fix completed');
       setTimeout(() => runFullDiagnostics(), 3000);
     }
-  },
+  }
 
   async repairWebRTC() {
     console.log('🔧 Repairing WebRTC...');
@@ -202,7 +202,7 @@ class RepairActions {
       showToast('error', `WebRTC repair failed: ${error.message}`);
       this.showWebRTCTroubleshooting();
     }
-  },
+  }
 
   showWebRTCTroubleshooting() {
     const modal = document.createElement('div');
@@ -228,7 +228,7 @@ class RepairActions {
       </div>
     `;
     document.body.appendChild(modal);
-  },
+  }
 
   async cleanupDatabase() {
     console.log('🗄️ Cleaning up database...');
@@ -245,7 +245,7 @@ class RepairActions {
     } catch (error) {
       showToast('error', `Database cleanup failed: ${error.message}`);
     }
-  },
+  }
 
   async resetAll() {
     if (!confirm('⚠️ This will reset all settings and clear all data. Continue?')) {

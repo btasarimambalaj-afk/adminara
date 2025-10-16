@@ -15,10 +15,12 @@ global.RTCPeerConnection = class extends EventTarget {
     super();
     this.connectionState = 'new';
   }
+
   addTrack = jest.fn();
   createOffer = jest.fn(async () => ({ type: 'offer', sdp: 'mock' }));
   setLocalDescription = jest.fn(async () => {});
   close = jest.fn();
+
   __simulateConnected() {
     this.connectionState = 'connected';
     this.dispatchEvent(new Event('connectionstatechange'));
